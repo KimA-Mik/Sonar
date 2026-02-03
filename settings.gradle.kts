@@ -21,8 +21,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sonar"
 include(":client:app")
+include(":client:data:application-config")
 include(":client:data:home-api")
-include(":common:server-api")
+include(":client:feature:authentication")
 include(":client:feature:securities")
+include(":common:server-api")
 include(":server:app")
 include(":server:data:market")
