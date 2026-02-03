@@ -1,4 +1,4 @@
-package ru.kima.sonar.ui.theme
+package ru.kima.sonar.common.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

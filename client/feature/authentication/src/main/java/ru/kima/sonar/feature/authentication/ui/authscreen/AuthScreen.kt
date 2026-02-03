@@ -3,6 +3,7 @@ package ru.kima.sonar.feature.authentication.ui.authscreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import ru.kima.sonar.common.ui.preview.SonarPreview
 
 @Composable
 fun AuthScreen(modifier: Modifier = Modifier) {
@@ -17,6 +18,6 @@ fun AuthScreenContent(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-private fun AuthScreenPreview() {
+private fun AuthScreenPreview() = SonarPreview {
 
 }

@@ -55,9 +55,10 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
-    implementation(project(":client:feature:authentication"))
+    implementation(project(":client:common:ui"))
     implementation(project(":client:data:application-config"))
     implementation(project(":client:data:home-api"))
+    implementation(project(":client:feature:authentication"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
