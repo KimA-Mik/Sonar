@@ -1,6 +1,10 @@
+import org.jetbrains.kotlin.konan.properties.loadProperties
+
 plugins {
     alias(libs.plugins.android.library)
 }
+
+val localProperties = loadProperties(rootProject.file("local.properties").toString())
 
 android {
     namespace = "ru.kima.sonar.data.applicationconfig"
@@ -22,11 +26,21 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField("String", "API_ENDPOINT", localProperties.getProperty("api.url"))
+        }
+
+        debug {
+            buildConfigField("String", "API_ENDPOINT", localProperties.getProperty("api.url.debug"))
         }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 
