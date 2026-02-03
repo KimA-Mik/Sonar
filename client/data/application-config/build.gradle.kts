@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.serialization) apply false
+    alias(libs.plugins.serialization)
 }
 
 val localProperties = loadProperties(rootProject.file("local.properties").toString())

@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.koin.compiler)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -56,6 +57,7 @@ dependencies {
 
     implementation(project(":client:feature:authentication"))
     implementation(project(":client:data:application-config"))
+    implementation(project(":client:data:home-api"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
