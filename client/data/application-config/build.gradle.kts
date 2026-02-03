@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.serialization) apply false
 }
 
 val localProperties = loadProperties(rootProject.file("local.properties").toString())
@@ -20,6 +21,7 @@ android {
     }
 
     buildTypes {
+        val apiEndpointName = "API_ENDPOINT"
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -27,11 +29,15 @@ android {
                 "proguard-rules.pro"
             )
 
-            buildConfigField("String", "API_ENDPOINT", localProperties.getProperty("api.url"))
+            buildConfigField("String", apiEndpointName, localProperties.getProperty("api.url"))
         }
 
         debug {
-            buildConfigField("String", "API_ENDPOINT", localProperties.getProperty("api.url.debug"))
+            buildConfigField(
+                "String",
+                apiEndpointName,
+                localProperties.getProperty("api.url.debug")
+            )
         }
     }
     compileOptions {
@@ -47,6 +53,9 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.koin.core)
+    implementation(libs.androidx.datastore)
+    implementation(libs.kotlinx.serialization.protobuf)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
