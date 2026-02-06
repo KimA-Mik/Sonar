@@ -1,0 +1,45 @@
+package ru.kima.sonar.common.serverapi.clientrequests
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+
+sealed interface RegisterClientRequest {
+    val login: String
+    val password: String
+
+    @Serializable
+    @SerialName("firebase")
+    data class FirebaseLoginRequest(
+        override val login: String,
+        override val password: String,
+        val notificationProviderClientId: String
+    ) : RegisterClientRequest
+
+    @Serializable
+    @SerialName("huawei_push_kit")
+    data class HuaweiPushKitLoginRequest(
+        override val login: String,
+        override val password: String,
+        val notificationProviderClientId: String
+    ) : RegisterClientRequest
+
+    @Serializable
+    @SerialName("no_notification_provider")
+    data class NoNotificationProviderLoginRequest(
+        override val login: String,
+        override val password: String
+    ) : RegisterClientRequest
+
+    companion object {
+        val serializationModule = SerializersModule {
+            polymorphic(RegisterClientRequest::class) {
+                subclass(FirebaseLoginRequest::class)
+                subclass(HuaweiPushKitLoginRequest::class)
+                subclass(NoNotificationProviderLoginRequest::class)
+            }
+        }
+    }
+}
