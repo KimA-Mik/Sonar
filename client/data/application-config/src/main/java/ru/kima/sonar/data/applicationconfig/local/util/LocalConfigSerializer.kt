@@ -19,7 +19,11 @@ object LocalConfigSerializer : Serializer<LocalConfig> {
     override val defaultValue: LocalConfig
         get() = LocalConfig(
             apiUrl = BuildConfig.API_ENDPOINT,
-            apiAccessToken = null
+            apiAccessToken = null,
+            login = null,
+            password = null,
+            notificationProvider = null,
+            notificationProviderClientId = null,
         )
 
     override suspend fun readFrom(input: InputStream): LocalConfig = try {

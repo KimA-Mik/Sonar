@@ -37,7 +37,15 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.client.resources)
+    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(project(":common:server-api"))
+    implementation(project(":common:util"))
+    implementation(project(":client:data:application-config"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

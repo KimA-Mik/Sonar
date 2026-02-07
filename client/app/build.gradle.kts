@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":client:data:application-config"))
     implementation(project(":client:data:home-api"))
     implementation(project(":client:feature:authentication"))
+    implementation(project(":common:server-api"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

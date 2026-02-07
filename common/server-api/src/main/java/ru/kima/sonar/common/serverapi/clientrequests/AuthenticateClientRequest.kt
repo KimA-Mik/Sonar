@@ -6,7 +6,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 
-sealed interface RegisterClientRequest {
+sealed interface AuthenticateClientRequest {
     val login: String
     val password: String
 
@@ -16,7 +16,7 @@ sealed interface RegisterClientRequest {
         override val login: String,
         override val password: String,
         val notificationProviderClientId: String
-    ) : RegisterClientRequest
+    ) : AuthenticateClientRequest
 
     @Serializable
     @SerialName("huawei_push_kit")
@@ -24,18 +24,18 @@ sealed interface RegisterClientRequest {
         override val login: String,
         override val password: String,
         val notificationProviderClientId: String
-    ) : RegisterClientRequest
+    ) : AuthenticateClientRequest
 
     @Serializable
     @SerialName("no_notification_provider")
     data class NoNotificationProviderLoginRequest(
         override val login: String,
         override val password: String
-    ) : RegisterClientRequest
+    ) : AuthenticateClientRequest
 
     companion object {
         val serializationModule = SerializersModule {
-            polymorphic(RegisterClientRequest::class) {
+            polymorphic(AuthenticateClientRequest::class) {
                 subclass(FirebaseLoginRequest::class)
                 subclass(HuaweiPushKitLoginRequest::class)
                 subclass(NoNotificationProviderLoginRequest::class)
