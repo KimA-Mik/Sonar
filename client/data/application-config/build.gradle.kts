@@ -56,7 +56,6 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.androidx.datastore)
     implementation(libs.kotlinx.serialization.protobuf)
-    implementation(project(":common:server-api"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

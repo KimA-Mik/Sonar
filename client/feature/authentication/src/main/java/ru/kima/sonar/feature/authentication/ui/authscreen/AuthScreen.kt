@@ -1,5 +1,8 @@
 package ru.kima.sonar.feature.authentication.ui.authscreen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +14,10 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -46,12 +51,24 @@ fun AuthScreen(modifier: Modifier = Modifier) {
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AuthScreenContent(
     state: AuthScreenState,
     onEvent: (AuthScreenEvent) -> Unit,
     modifier: Modifier = Modifier
 ) = Box(modifier = modifier) {
+    AnimatedVisibility(
+        state.isLoading,
+        modifier = Modifier.align(Alignment.TopCenter),
+        enter = slideInVertically(initialOffsetY = { -it }),
+        exit = slideOutVertically(targetOffsetY = { -it })
+    ) {
+        LoadingIndicator(
+            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)
+        )
+    }
+
     IconButton(
         onClick = {},
         modifier = Modifier
@@ -76,6 +93,7 @@ fun AuthScreenContent(
             value = state.email,
             onValueChange = { onEvent(AuthScreenEvent.LoginChanged(it)) },
             modifier = m,
+            enabled = !state.isLoading,
             label = { Text(stringResource(R.string.label_email)) },
             singleLine = true
         )
@@ -85,6 +103,7 @@ fun AuthScreenContent(
             value = state.password,
             onValueChange = { onEvent(AuthScreenEvent.PasswordChanged(it)) },
             modifier = m,
+            enabled = !state.isLoading,
             label = { Text(stringResource(R.string.label_password)) },
             trailingIcon = {
                 IconButton(onClick = { isPasswordVisile = !isPasswordVisile }) {
@@ -107,7 +126,8 @@ fun AuthScreenContent(
 
         Button(
             onClick = { onEvent(AuthScreenEvent.LoginClicked) },
-            modifier = m
+            modifier = m,
+            enabled = !state.isLoading,
         ) {
             Text(stringResource(R.string.action_login))
         }
@@ -121,10 +141,34 @@ fun AuthScreenContent(
 )
 @Composable
 private fun AuthScreenPreview() = SonarPreview {
+    var state by remember {
+        mutableStateOf(
+            AuthScreenState(
+                email = "email@example.com",
+                password = "password123"
+            )
+        )
+    }
+
+    AuthScreenContent(
+        state = state,
+        onEvent = { state = state.copy(isLoading = !state.isLoading) },
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Preview(name = "Loading LoginScreen preview light theme")
+@Preview(
+    name = "Loading LoginScreen preview dark theme",
+    uiMode = UI_MODE_NIGHT_YES
+)
+@Composable
+private fun LoadingAuthScreenPreview() = SonarPreview {
     AuthScreenContent(
         state = AuthScreenState(
             email = "email@example.com",
-            password = "password123"
+            password = "password123",
+            isLoading = true
         ),
         onEvent = {},
         modifier = Modifier.fillMaxSize()

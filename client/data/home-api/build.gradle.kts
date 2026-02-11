@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.koin.compiler)
 }
 
 android {
@@ -43,6 +44,7 @@ dependencies {
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.koin.core)
     implementation(project(":common:server-api"))
     implementation(project(":common:util"))
     implementation(project(":client:data:application-config"))

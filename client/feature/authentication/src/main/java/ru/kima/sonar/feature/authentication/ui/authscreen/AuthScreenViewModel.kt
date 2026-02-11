@@ -2,11 +2,15 @@ package ru.kima.sonar.feature.authentication.ui.authscreen
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
+import ru.kima.sonar.feature.authentication.uscase.LogInUseCase
 
 class AuthScreenViewModel(
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val logIn: LogInUseCase
 ) : ViewModel() {
     private val isLoading = MutableStateFlow(false)
     val state = combine(
@@ -37,8 +41,12 @@ class AuthScreenViewModel(
         savedStateHandle[PASSWORD_KEY] = password
     }
 
-    private fun onLoginClicked() {
-        // Handle login logic here
+    private fun onLoginClicked() = viewModelScope.launch {
+        isLoading.value = true
+        val login = savedStateHandle.get<String>(LOGIN_KEY) ?: ""
+        val password = savedStateHandle.get<String>(PASSWORD_KEY) ?: ""
+        logIn(login, password)
+        isLoading.value = false
     }
 
     companion object {
