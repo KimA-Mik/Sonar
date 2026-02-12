@@ -3,7 +3,7 @@ package ru.kima.sonar.server.feature.auth
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
 
-class AuthController(
+internal class AuthController(
     private val authManager: AuthManager,
 ) {
 

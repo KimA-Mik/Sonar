@@ -9,6 +9,7 @@ import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.data.user.database.DatabaseConnector
 import ru.kima.sonar.server.data.user.model.Session
 import ru.kima.sonar.server.data.user.model.User
+import ru.kima.sonar.server.data.user.model.UserAndSession
 import ru.kima.sonar.server.data.user.model.UserDataError
 import ru.kima.sonar.server.data.user.scema.SessionEntity
 import ru.kima.sonar.server.data.user.scema.SessionTable
@@ -206,6 +207,28 @@ internal class ExposedUserDataSource(
             SonarResult.Success(Unit)
         } catch (e: Exception) {
             logger.error("Error deleting session by token", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getUserAndSessionsByToken(token: String): SonarResult<UserAndSession, UserDataError> {
+        return try {
+            val result = databaseConnector.transaction {
+                SessionEntity.find { SessionTable.token eq token }.firstOrNull()?.let {
+                    val userEntity = it.user
+                    UserAndSession(
+                        user = userEntity.toDomainModel(),
+                        session = it.toDomainModel()
+                    )
+                }
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.UserNotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting user and sessions by token", e)
             SonarResult.Error(UserDataError.UnknownError(e))
         }
     }
