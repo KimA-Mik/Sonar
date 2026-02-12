@@ -4,13 +4,13 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -19,6 +19,12 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.spring.security.crypto)
+    // Source: https://mvnrepository.com/artifact/commons-logging/commons-logging
+    implementation(libs.commons.logging)
+    // Source: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+    implementation(libs.bcprov.jdk18on)
     implementation(project(":common:server-api"))
+    implementation(project(":common:util"))
     implementation(project(":server:data:user"))
 }

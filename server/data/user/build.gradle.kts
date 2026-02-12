@@ -5,12 +5,12 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_11
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
@@ -25,4 +25,5 @@ dependencies {
     implementation(libs.exposed.kotlin.datetime)
 
     implementation(project(":common:util"))
+    implementation(project(":common:server-api"))
 }
