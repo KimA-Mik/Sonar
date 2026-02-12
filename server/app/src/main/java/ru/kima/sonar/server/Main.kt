@@ -10,20 +10,20 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.resources.Resources
-import org.koin.core.context.startKoin
+import org.koin.ktor.plugin.Koin
 import ru.kima.sonar.server.di.dataModule
 import ru.kima.sonar.server.di.featureModule
 import ru.kima.sonar.server.feature.auth.routing.authRoute
 
 fun main() {
-    startKoin {
-        modules(dataModule(), featureModule())
-    }
-
     embeddedServer(Netty, port = 69) {
         install(CallLogging)
         install(Resources)
         install(ContentNegotiation) { json() }
+        install(Koin) {
+            modules(dataModule(), featureModule())
+        }
+
         install(Authentication) {
             bearer("auth-bearer") {
                 realm = "Access to the '/' path"

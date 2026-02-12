@@ -1,5 +1,6 @@
 package ru.kima.sonar.data.homeapi.datasource
 
+import android.os.Build
 import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -89,13 +90,16 @@ internal class KtorHomeApiDataSource(
         val request = if (notificationProviderClientId == null) {
             AuthenticateClientRequest.NoNotificationProviderLoginRequest(
                 login,
-                password
+                password,
+                //TODO: maybe abstract it away
+                Build.MODEL
             )
         } else when (notificationProvider) {
             NotificationProvider.FIREBASE ->
                 AuthenticateClientRequest.FirebaseLoginRequest(
                     login,
                     password,
+                    Build.MODEL,
                     notificationProviderClientId
                 )
 
@@ -103,12 +107,14 @@ internal class KtorHomeApiDataSource(
                 AuthenticateClientRequest.HuaweiPushKitLoginRequest(
                     login,
                     password,
+                    Build.MODEL,
                     notificationProviderClientId
                 )
 
             null -> AuthenticateClientRequest.NoNotificationProviderLoginRequest(
                 login,
-                password
+                password,
+                Build.MODEL,
             )
         }
 

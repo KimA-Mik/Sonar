@@ -7,12 +7,14 @@ import kotlinx.serialization.Serializable
 sealed interface AuthenticateClientRequest {
     val login: String
     val password: String
+    val device: String
 
     @Serializable
     @SerialName("firebase")
     class FirebaseLoginRequest(
         override val login: String,
         override val password: String,
+        override val device: String,
         val notificationProviderClientId: String
     ) : AuthenticateClientRequest
 
@@ -21,6 +23,7 @@ sealed interface AuthenticateClientRequest {
     data class HuaweiPushKitLoginRequest(
         override val login: String,
         override val password: String,
+        override val device: String,
         val notificationProviderClientId: String
     ) : AuthenticateClientRequest
 
@@ -28,7 +31,8 @@ sealed interface AuthenticateClientRequest {
     @SerialName("no_notification_provider")
     data class NoNotificationProviderLoginRequest(
         override val login: String,
-        override val password: String
+        override val password: String,
+        override val device: String
     ) : AuthenticateClientRequest
 
 }
