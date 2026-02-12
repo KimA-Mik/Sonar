@@ -1,5 +1,6 @@
 package ru.kima.sonar.data.homeapi.datasource
 
+import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -8,8 +9,11 @@ import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.resources.Resources
-import io.ktor.client.plugins.resources.get
+import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -19,14 +23,13 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
-import ru.kima.sonar.common.serverapi.routing.AuthRoute.Login
+import ru.kima.sonar.common.serverapi.routing.AuthRoute
 import ru.kima.sonar.common.serverapi.serverresponse.AuthorizationResult
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSource
@@ -38,7 +41,10 @@ internal class KtorHomeApiDataSource(
     private val localConfigDataSource: LocalConfigDataSource,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : HomeApiDataSource {
-    val client = HttpClient(OkHttp) {
+    var client = HttpClient(OkHttp) {
+        install(Logging) {
+            logger = Logger.DEFAULT
+        }
         install(Resources)
         install(ContentNegotiation) {
             json(Json)
@@ -58,16 +64,19 @@ internal class KtorHomeApiDataSource(
     }
 
     init {
-        //idk if i need to cancel it when activity is stopped
-        localConfigDataSource.localConfig()
-            .map { it.apiUrl }
-            .onEach {
-                client.config {
-                    defaultRequest {
-                        url(it)
+        coroutineScope.launch {
+            localConfigDataSource.localConfig()
+                .map { it.apiUrl }
+                .collect { url ->
+                    val oldClient = client
+                    client = client.config {
+                        defaultRequest {
+                            url(url)
+                        }
                     }
+                    oldClient.close()
                 }
-            }.launchIn(coroutineScope)
+        }
     }
 
     override suspend fun login(
@@ -104,9 +113,9 @@ internal class KtorHomeApiDataSource(
         }
 
         return when (val result = safeApiCall<AuthorizationResult>(logOutOnUnauthorized = false) {
-            client.get(Login()) {
-                setBody(request)
+            client.post(AuthRoute.Login()) {
                 contentType(ContentType.Application.Json)
+                setBody(request)
             }
         }) {
             is SonarResult.Error -> SonarResult.Error(result.data)
@@ -128,9 +137,11 @@ internal class KtorHomeApiDataSource(
 
             else -> SonarResult.Error(HomeApiError.UnknownApiError(response.status.value))
         }
-    } catch (_: IOException) {
+    } catch (e: IOException) {
+        Log.d("safeApiCall", "IOException: $e")
         SonarResult.Error(HomeApiError.NetworkError)
     } catch (e: Exception) {
+        Log.d("safeApiCall", "Exception: $e")
         SonarResult.Error(HomeApiError.UnknownError(e))
     }
 }

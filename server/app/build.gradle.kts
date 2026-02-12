@@ -15,12 +15,17 @@ kotlin {
     }
 }
 
-dependencies{
+dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.server.auth.api.key)
+    implementation(libs.ktor.server.call.logging)
+    implementation(libs.ktor.server.resources)
+    implementation(libs.logback.classic)
     implementation(libs.ktor.serialization.kotlinx.json)
+
+    implementation(project(":server:feature:auth"))
+    implementation(project(":common:server-api"))
 }

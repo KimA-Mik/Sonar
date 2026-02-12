@@ -4,27 +4,20 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.UserIdPrincipal
-import io.ktor.server.auth.apikey.apiKey
 import io.ktor.server.auth.bearer
-import io.ktor.server.auth.digest
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import kotlinx.serialization.json.Json
+import io.ktor.server.resources.Resources
+import ru.kima.sonar.server.feature.auth.routing.authRoute
 
 fun main() {
     embeddedServer(Netty, port = 69) {
-        install(ContentNegotiation) {
-            json(Json)
-        }
-
+        install(CallLogging)
+        install(Resources)
+        install(ContentNegotiation) { json() }
         install(Authentication) {
-            digest("user-default") {
-                realm = "ud"
-                digestProvider { _, _ ->
-                    ByteArray(1)
-                }
-            }
             bearer("auth-bearer") {
                 realm = "Access to the '/' path"
                 authenticate { tokenCredential ->
@@ -35,12 +28,8 @@ fun main() {
                     }
                 }
             }
-
-            apiKey("default-api-key") {
-                validate { keyFromHeader ->
-
-                }
-            }
         }
+
+        authRoute()
     }.start(wait = true)
 }
