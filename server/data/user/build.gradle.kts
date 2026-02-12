@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java-library")
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.koin.compiler)
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -23,6 +24,7 @@ dependencies {
     implementation(libs.exposed.migration.core)
     implementation(libs.exposed.migration.jdbc)
     implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.koin.core)
 
     implementation(project(":common:util"))
     implementation(project(":common:server-api"))

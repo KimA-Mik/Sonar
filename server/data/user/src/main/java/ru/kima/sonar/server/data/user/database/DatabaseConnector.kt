@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
 import java.sql.Connection
 
-class DatabaseConnector(dbName: String) {
+internal class DatabaseConnector(dbName: String) {
     private val connection: Database = Database.connect("jdbc:sqlite:$dbName.db", "org.sqlite.JDBC")
 
     init {

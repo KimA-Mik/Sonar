@@ -15,7 +15,7 @@ import ru.kima.sonar.server.data.user.scema.SessionTable
 import ru.kima.sonar.server.data.user.scema.UserEntity
 import ru.kima.sonar.server.data.user.scema.UserTable
 
-class ExposedUserDataSource(
+internal class ExposedUserDataSource(
     private val databaseConnector: DatabaseConnector
 ) : UserDataSource {
     private val logger = LoggerFactory.getLogger(this::class.java)

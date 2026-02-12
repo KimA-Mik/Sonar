@@ -4,7 +4,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
 
-object SessionTable : LongIdTable() {
+internal object SessionTable : LongIdTable() {
     val userId = long("user_id").references(UserTable.id)
     val token = varchar("token", 500).uniqueIndex()
     val notificationProvider = enumeration<NotificationProvider>("notification_provider").nullable()

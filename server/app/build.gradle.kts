@@ -26,7 +26,9 @@ dependencies {
     //TODO: Remove logback and use ktor's logging with slf4j and log4j
     implementation(libs.logback.classic)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.koin.core)
 
-    implementation(project(":server:feature:auth"))
     implementation(project(":common:server-api"))
+    implementation(project(":server:data:user"))
+    implementation(project(":server:feature:auth"))
 }
