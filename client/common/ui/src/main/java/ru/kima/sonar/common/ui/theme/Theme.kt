@@ -1,4 +1,4 @@
-package ru.kima.sonar.ui.theme
+package ru.kima.sonar.common.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
