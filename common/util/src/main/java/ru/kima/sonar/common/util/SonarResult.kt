@@ -33,3 +33,10 @@ fun <S, E> SonarResult<S, E>.isError(): Boolean {
     }
     return this is SonarResult.Error<S, E>
 }
+
+fun <S, E> SonarResult<S, E>.getOrNull(): S? {
+    return when (this) {
+        is SonarResult.Error -> null
+        is SonarResult.Success -> data
+    }
+}

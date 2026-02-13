@@ -26,7 +26,8 @@ fun main() {
         install(ContentNegotiation) { json() }
         install(WebSockets)
         install(Koin) {
-            modules(dataModule(), featureModule())
+            //TODO: implement command line args
+            modules(dataModule("", ""), featureModule())
         }
 
         val authManager by inject<AuthManager>()
