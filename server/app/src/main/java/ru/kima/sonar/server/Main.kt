@@ -10,6 +10,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.resources.Resources
+import io.ktor.server.websocket.WebSockets
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.Koin
 import ru.kima.sonar.server.di.dataModule
@@ -23,6 +24,7 @@ fun main() {
         install(CallLogging)
         install(Resources)
         install(ContentNegotiation) { json() }
+        install(WebSockets)
         install(Koin) {
             modules(dataModule(), featureModule())
         }
