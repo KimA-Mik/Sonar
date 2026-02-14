@@ -1,5 +1,12 @@
 package ru.kima.sonar.server
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.help
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.int
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -19,28 +26,34 @@ import ru.kima.sonar.server.feature.auth.AuthManager
 import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 import ru.kima.sonar.server.feature.auth.routing.authRoute
 
-fun main() {
-    embeddedServer(Netty, port = 69) {
-        install(CallLogging)
-        install(Resources)
-        install(ContentNegotiation) { json() }
-        install(WebSockets)
-        install(Koin) {
-            //TODO: implement command line args
-            modules(dataModule("", ""), featureModule())
-        }
+class Program : CliktCommand() {
+    val port by option("-p", "--port").int().default(69)
+    val marketDbName by option("--market-db-name").default("marketdata.db")
+    val tToken by option("-t", "--t-token").required().help("T-Invest API token")
+    override fun run() {
+        embeddedServer(Netty, port = port) {
+            install(CallLogging)
+            install(Resources)
+            install(ContentNegotiation) { json() }
+            install(WebSockets)
+            install(Koin) {
+                modules(dataModule(marketDbName, tToken), featureModule())
+            }
 
-        val authManager by inject<AuthManager>()
-        install(Authentication) {
-            bearer(MAIN_BEARER_NAME) {
-                authenticate { tokenCredential ->
-                    authManager.getUserForToken(tokenCredential.token)?.let {
-                        UserIdPrincipal(it.user.email)
+            val authManager by inject<AuthManager>()
+            install(Authentication) {
+                bearer(MAIN_BEARER_NAME) {
+                    authenticate { tokenCredential ->
+                        authManager.getUserForToken(tokenCredential.token)?.let {
+                            UserIdPrincipal(it.user.email)
+                        }
                     }
                 }
             }
-        }
 
-        authRoute()
-    }.start(wait = true)
+            authRoute()
+        }.start(wait = true)
+    }
 }
+
+fun main(args: Array<String>) = Program().main(args)

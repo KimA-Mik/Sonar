@@ -16,6 +16,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.clikt)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
