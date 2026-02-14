@@ -25,6 +25,7 @@ import ru.kima.sonar.server.di.featureModule
 import ru.kima.sonar.server.feature.auth.AuthManager
 import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 import ru.kima.sonar.server.feature.auth.routing.authRoute
+import ru.kima.sonar.server.lifecycle.shutdownHook
 
 class Program : CliktCommand() {
     val port by option("-p", "--port").int().default(69)
@@ -52,6 +53,8 @@ class Program : CliktCommand() {
             }
 
             authRoute()
+
+            shutdownHook()
         }.start(wait = true)
     }
 }
