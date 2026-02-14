@@ -68,6 +68,21 @@ class TinkoffDataSource(token: String) {
     private val rootJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(rootJob)
 
+    private var sharesMap = mapOf<String, Share>()
+    private var futuresMap = mapOf<String, Future>()
+    private var _sharesLastPrices = mutableMapOf<String, LastPrice>()
+    private var _futuresLastPrices = mutableMapOf<String, LastPrice>()
+
+    //Waiting for Explicit Backing Fields to become stable to remove this boilerplate
+    private val sharesStateFlow = MutableStateFlow<List<Share>>(emptyList())
+    val shares = sharesStateFlow.asStateFlow()
+    private val futuresStateFlow = MutableStateFlow<List<Future>>(emptyList())
+    val futures = futuresStateFlow.asStateFlow()
+    private val sharesLastPricesStateFlow = MutableStateFlow<List<LastPrice>>(emptyList())
+    val sharesLastPrices = sharesLastPricesStateFlow.asStateFlow()
+    private val futuresLastPricesStateFlow = MutableStateFlow<List<LastPrice>>(emptyList())
+    val futuresLastPrices = futuresLastPricesStateFlow.asStateFlow()
+
     init {
         val properties = Properties().apply { setProperty("token", token) }
         val configuration = ConnectorConfiguration.loadFromProperties(properties)
@@ -86,20 +101,6 @@ class TinkoffDataSource(token: String) {
         runUpdates()
     }
 
-    private var sharesMap = mapOf<String, Share>()
-    private var futuresMap = mapOf<String, Future>()
-    private var _sharesLastPrices = mutableMapOf<String, LastPrice>()
-    private var _futuresLastPrices = mutableMapOf<String, LastPrice>()
-
-    //Waiting for Explicit Backing Fields to become stable to remove this boilerplate
-    private val sharesStateFlow = MutableStateFlow<List<Share>>(emptyList())
-    val shares = sharesStateFlow.asStateFlow()
-    private val futuresStateFlow = MutableStateFlow<List<Future>>(emptyList())
-    val futures = futuresStateFlow.asStateFlow()
-    private val sharesLastPricesStateFlow = MutableStateFlow<List<LastPrice>>(emptyList())
-    val sharesLastPrices = sharesLastPricesStateFlow.asStateFlow()
-    private val futuresLastPricesStateFlow = MutableStateFlow<List<LastPrice>>(emptyList())
-    val futuresLastPrices = futuresLastPricesStateFlow.asStateFlow()
     private fun periodicUpdate(
         delay: Duration,
         context: CoroutineContext = Dispatchers.IO,
