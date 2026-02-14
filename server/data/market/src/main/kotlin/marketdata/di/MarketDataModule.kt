@@ -17,5 +17,5 @@ fun marketDataModule(
     single { SqliteDatabaseConnector(marketDataDbName) } bind DatabaseConnector::class
     singleOf(::LocalSqlDataSource) bind LocalSqlDataSource::class
     singleOf(::MarketDataRepositoryImpl) bind MarketDataRepository::class
-    single { TinkoffDataSource(tToken) }
+    single(createdAtStart = true) { TinkoffDataSource(tToken) }
 }
