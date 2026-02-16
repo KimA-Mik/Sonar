@@ -1,12 +1,10 @@
 package ru.kima.sonar.server.data.market.marketdata
 
-import ru.kima.sonar.common.serverapi.model.security.Future
-import ru.kima.sonar.common.serverapi.model.security.Share
+import kotlinx.coroutines.flow.Flow
+import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
+import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
 
 interface MarketDataRepository {
-    fun startPolling()
-    fun stopPolling()
-
-    suspend fun getShares(): List<Share>
-    suspend fun getFutures(): List<Future>
+    fun tradableShares(): Flow<List<ListItemShare>>
+    fun tradableFutures(): Flow<List<ListItemFuture>>
 }

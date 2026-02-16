@@ -10,7 +10,8 @@ import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 
 fun Application.securitiesRoute() = routing {
     authenticate(MAIN_BEARER_NAME) {
-        webSocket(SecurityRoute.Shares.PATH) {
+
+    webSocket(SecurityRoute.Shares.PATH) {
 
         }
 

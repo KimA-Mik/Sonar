@@ -78,9 +78,9 @@ class TinkoffDataSource(token: String) {
     val shares = sharesStateFlow.asStateFlow()
     private val futuresStateFlow = MutableStateFlow<List<Future>>(emptyList())
     val futures = futuresStateFlow.asStateFlow()
-    private val sharesLastPricesStateFlow = MutableStateFlow<List<LastPrice>>(emptyList())
+    private val sharesLastPricesStateFlow = MutableStateFlow<Map<String, LastPrice>>(emptyMap())
     val sharesLastPrices = sharesLastPricesStateFlow.asStateFlow()
-    private val futuresLastPricesStateFlow = MutableStateFlow<List<LastPrice>>(emptyList())
+    private val futuresLastPricesStateFlow = MutableStateFlow<Map<String, LastPrice>>(emptyMap())
     val futuresLastPrices = futuresLastPricesStateFlow.asStateFlow()
 
     init {
@@ -125,8 +125,8 @@ class TinkoffDataSource(token: String) {
         }
         //TODO: make it sleep at night, when the market is closed
         periodicUpdate(10.seconds) {
-            sharesLastPricesStateFlow.value = _sharesLastPrices.values.toList()
-            futuresLastPricesStateFlow.value = _futuresLastPrices.values.toList()
+            sharesLastPricesStateFlow.value = _sharesLastPrices.toMap()
+            futuresLastPricesStateFlow.value = _futuresLastPrices.toMap()
         }
     }
 

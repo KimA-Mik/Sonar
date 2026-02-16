@@ -34,4 +34,5 @@ dependencies {
     implementation(project(":server:data:market"))
     implementation(project(":server:data:user"))
     implementation(project(":server:feature:auth"))
+    implementation(project(":server:feature:securities"))
 }

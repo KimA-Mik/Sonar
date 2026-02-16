@@ -8,4 +8,6 @@ sealed interface Security {
     val ticker: String
     val name: String
     val lot: Int
+//    val first1MinCandleDate: Instant
+//    val first1DayCandleDate: Instant
 }

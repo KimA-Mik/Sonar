@@ -25,5 +25,6 @@ dependencies {
     implementation(project(":common:server-api"))
     implementation(project(":common:util"))
     implementation(project(":server:data:user"))
+    implementation(project(":server:data:market"))
     implementation(project(":server:feature:auth"))
 }
