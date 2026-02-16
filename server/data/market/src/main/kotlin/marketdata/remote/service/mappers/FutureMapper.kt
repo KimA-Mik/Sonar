@@ -10,5 +10,6 @@ fun TinkoffFuture.toFuture() = Future(
     ticker = ticker,
     name = name,
     lot = lot,
-    expirationDate = expirationDate.toInstant()
+    expirationDate = expirationDate.toInstant(),
+    basicAsset = basicAsset,
 )
