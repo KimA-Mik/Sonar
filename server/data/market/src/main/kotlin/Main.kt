@@ -1,6 +1,7 @@
 package ru.kima.sonar.server.data.market
 
 import ru.tinkoff.piapi.contract.v1.SubscriptionInterval
+import ru.ttech.piapi.core.connector.ConnectorConfiguration
 import ru.ttech.piapi.core.connector.ServiceStubFactory
 import ru.ttech.piapi.core.connector.streaming.StreamManagerFactory
 import ru.ttech.piapi.core.connector.streaming.StreamServiceStubFactory
@@ -9,7 +10,7 @@ import ru.ttech.piapi.core.impl.marketdata.subscription.Instrument
 import ru.ttech.piapi.core.impl.marketdata.wrapper.CandleWrapper
 import ru.ttech.piapi.storage.jdbc.config.JdbcConfiguration
 import ru.ttech.piapi.storage.jdbc.repository.CandlesJdbcRepository
-import java.lang.module.Configuration
+import java.util.Properties
 import java.util.concurrent.Executors
 import javax.sql.DataSource
 
@@ -17,7 +18,8 @@ import javax.sql.DataSource
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 fun main() {
-    val connectorConfiguration = Configuration.empty()
+    val properties = Properties()
+    val connectorConfiguration = ConnectorConfiguration.loadFromProperties(properties)
     val unaryServiceFactory = ServiceStubFactory.create(connectorConfiguration)
     val streamServiceFactory = StreamServiceStubFactory.create(unaryServiceFactory)
     val streamManagerFactory = StreamManagerFactory.create(streamServiceFactory)
@@ -27,6 +29,13 @@ fun main() {
     val candlesRepository = CandlesJdbcRepository(jdbcConfiguration)
     val marketDataStreamManager =
         streamManagerFactory.newMarketDataStreamManager(executorService, scheduledExecutorService)
+    marketDataStreamManager.subscribeOrderBooks(
+        setOf(
+            Instrument("87db07bc-0e02-4e29-90bb-05e8ef791d7b")
+        )
+    ) {
+
+    }
     marketDataStreamManager.subscribeCandles(
         mutableSetOf(
             Instrument(
