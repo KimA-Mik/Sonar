@@ -25,6 +25,7 @@ import ru.kima.sonar.server.di.featureModule
 import ru.kima.sonar.server.feature.auth.AuthManager
 import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 import ru.kima.sonar.server.feature.auth.routing.authRoute
+import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
 
 class Program : CliktCommand() {
@@ -53,7 +54,7 @@ class Program : CliktCommand() {
             }
 
             authRoute()
-
+            securitiesRoute()
             shutdownHook()
         }.start(wait = true)
     }
