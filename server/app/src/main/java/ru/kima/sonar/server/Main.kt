@@ -30,7 +30,7 @@ import ru.kima.sonar.server.lifecycle.shutdownHook
 class Program : CliktCommand() {
     val port by option("-p", "--port").int().default(69)
     val marketDbName by option("--market-db-name").default("marketdata.db")
-    val tToken by option("-t", "--t-token").required().help("T-Invest API token")
+    val tToken by option("--t-invest-token").required().help("T-Invest API token")
     override fun run() {
         embeddedServer(Netty, port = port) {
             install(CallLogging)

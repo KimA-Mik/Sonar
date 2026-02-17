@@ -99,6 +99,7 @@ class TinkoffDataSource(token: String) {
         )
 
         runUpdates()
+        marketDataStreamManager.start()
     }
 
     private fun periodicUpdate(
@@ -144,8 +145,12 @@ class TinkoffDataSource(token: String) {
             InstrumentExchangeType.INSTRUMENT_EXCHANGE_UNSPECIFIED
         )
 
-        val newShares = runCatching { sharesDeferred.await() }
-            .getOrNull()?.instrumentsList?.map { it.toShare() } ?: return
+        val sharesResult = runCatching { sharesDeferred.await() }
+            .getOrElse {
+                println("Failed to update shares: ${it.message}")
+                return
+            }
+        val newShares = sharesResult.instrumentsList?.map { it.toShare() } ?: return
 
         val oldSharesMap = sharesMap.toMutableMap()
         val newSharesExtra = mutableMapOf<String, Share>()
@@ -193,8 +198,12 @@ class TinkoffDataSource(token: String) {
             InstrumentExchangeType.INSTRUMENT_EXCHANGE_UNSPECIFIED
         )
 
-        val newFutures = runCatching { futuresDeferred.await() }
-            .getOrNull()?.instrumentsList?.map { it.toFuture() } ?: return
+        val futuresResult = runCatching { futuresDeferred.await() }
+            .getOrElse {
+                println("Failed to update futures: ${it.message}")
+                return
+            }
+        val newFutures = futuresResult.instrumentsList?.map { it.toFuture() } ?: return
 
         val oldFuturesMap = futuresMap.toMutableMap()
         val newFuturesExtra = mutableMapOf<String, Future>()
