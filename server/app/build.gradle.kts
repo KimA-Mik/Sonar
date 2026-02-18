@@ -16,6 +16,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.clikt)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
@@ -23,12 +24,15 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.resources)
+    implementation(libs.ktor.server.websockets)
     //TODO: Remove logback and use ktor's logging with slf4j and log4j
     implementation(libs.logback.classic)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.koin.ktor)
 
     implementation(project(":common:server-api"))
+    implementation(project(":server:data:market"))
     implementation(project(":server:data:user"))
     implementation(project(":server:feature:auth"))
+    implementation(project(":server:feature:securities"))
 }

@@ -10,7 +10,7 @@ import java.sql.Connection
 internal class SqliteDatabaseConnector(
     dbName: String,
 ) : DatabaseConnector {
-    private val connection: Database = Database.connect("jdbc:sqlite:$dbName.db", "org.sqlite.JDBC")
+    private val connection: Database = Database.connect("jdbc:sqlite:$dbName", "org.sqlite.JDBC")
 
     init {
         connection.transactionManager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE

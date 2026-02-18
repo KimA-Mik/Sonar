@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.websockets)
     implementation(libs.koin.core)
     implementation(libs.slf4j.andrpid)
     implementation(project(":common:server-api"))

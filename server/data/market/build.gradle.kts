@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java-library")
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.koin.compiler)
 }
 
 dependencies {
@@ -17,9 +18,10 @@ dependencies {
     implementation(libs.exposed.migration.jdbc)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.sqlite.jdbc)
-    implementation("ru.tinkoff.piapi:java-sdk-core:1.31")
-    implementation("ru.tinkoff.piapi:java-sdk-storage-jdbc:1.31")
+    implementation("ru.tinkoff.piapi:java-sdk-core:1.44.1")
+    implementation("ru.tinkoff.piapi:java-sdk-storage-jdbc:1.44.1")
     implementation(project(":common:server-api"))
+    implementation(project(":common:util"))
     testImplementation(kotlin("test"))
 }
 

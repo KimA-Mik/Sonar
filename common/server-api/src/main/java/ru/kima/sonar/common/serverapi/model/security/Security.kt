@@ -1,9 +1,13 @@
 package ru.kima.sonar.common.serverapi.model.security
 
-//@Serializable
-sealed class Security {
-    abstract val uid: String
-    abstract val ticker: String
-    abstract val name: String
-    abstract val lot: Int
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface Security {
+    val uid: String
+    val ticker: String
+    val name: String
+    val lot: Int
+//    val first1MinCandleDate: Instant
+//    val first1DayCandleDate: Instant
 }

@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":client:data:application-config"))
     implementation(project(":client:data:home-api"))
     implementation(project(":client:feature:authentication"))
+    implementation(project(":client:feature:securities"))
     implementation(project(":common:server-api"))
 
     testImplementation(libs.junit)
