@@ -40,3 +40,19 @@ fun <S, E> SonarResult<S, E>.getOrNull(): S? {
         is SonarResult.Success -> data
     }
 }
+
+inline fun <R> sonarRunCatching(block: () -> R): SonarResult<R, Exception> {
+    return try {
+        SonarResult.Success(block())
+    } catch (e: Exception) {
+        SonarResult.Error(e)
+    }
+}
+
+inline fun <T, R> T.sonarRunCaching(block: T.() -> R): SonarResult<R, Exception> {
+    return try {
+        SonarResult.Success(block())
+    } catch (e: Exception) {
+        SonarResult.Error(e)
+    }
+}

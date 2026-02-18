@@ -53,6 +53,9 @@ dependencies {
     implementation(libs.koin.compose)
 
     implementation(project(":client:common:ui"))
+    implementation(project(":client:data:home-api"))
+    implementation(project(":common:server-api"))
+    implementation(project(":common:util"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

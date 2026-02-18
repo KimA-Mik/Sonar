@@ -125,7 +125,7 @@ class TinkoffDataSource(token: String) {
             futuresStateFlow.value = futuresMap.values.toList()
         }
         //TODO: make it sleep at night, when the market is closed
-        periodicUpdate(10.seconds) {
+        periodicUpdate(5.seconds) {
             sharesLastPricesStateFlow.value = _sharesLastPrices.toMap()
             futuresLastPricesStateFlow.value = _futuresLastPrices.toMap()
         }

@@ -15,28 +15,42 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.plugins.resources.post
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.receiveDeserialized
+import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
+import ru.kima.sonar.common.serverapi.routing.SecurityRoute
 import ru.kima.sonar.common.serverapi.serverresponse.AuthorizationResult
+import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
+import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
 import ru.kima.sonar.common.util.SonarResult
+import ru.kima.sonar.common.util.isSuccess
+import ru.kima.sonar.common.util.sonarRunCaching
 import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSource
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.data.homeapi.error.HomeApiError
 import ru.kima.sonar.data.homeapi.model.mapper.toNotificationProvider
+
+private const val TAG = "KtorHomeApiDataSource"
 
 internal class KtorHomeApiDataSource(
     private val localConfigDataSource: LocalConfigDataSource,
@@ -49,6 +63,9 @@ internal class KtorHomeApiDataSource(
         install(Resources)
         install(ContentNegotiation) {
             json(Json)
+        }
+        install(WebSockets) {
+            contentConverter = KotlinxWebsocketSerializationConverter(Json)
         }
 
         install(Auth) {
@@ -144,10 +161,30 @@ internal class KtorHomeApiDataSource(
             else -> SonarResult.Error(HomeApiError.UnknownApiError(response.status.value))
         }
     } catch (e: IOException) {
-        Log.d("safeApiCall", "IOException: $e")
+        Log.d(TAG, "IOException: $e")
         SonarResult.Error(HomeApiError.NetworkError)
     } catch (e: Exception) {
-        Log.d("safeApiCall", "Exception: $e")
+        Log.d(TAG, "Exception: $e")
         SonarResult.Error(HomeApiError.UnknownError(e))
+    }
+
+    override fun tradableShares(): Flow<SonarResult<List<ListItemShare>, HomeApiError>> =
+        channelFlow {
+            client.webSocket(path = SecurityRoute.Shares.PATH) {
+                while (isActive) {
+                    val message = sonarRunCaching { receiveDeserialized<List<ListItemShare>>() }
+                    if (message.isSuccess()) {
+                        send(SonarResult.Success(message.data))
+                    } else {
+                        Log.e(TAG, "Error receiving tradable shares: ${message.data}")
+                        send(SonarResult.Error(HomeApiError.UnknownError(message.data)))
+                        break
+                    }
+                }
+            }
+        }
+
+    override fun tradableFutures(): Flow<SonarResult<List<ListItemFuture>, HomeApiError>> {
+        TODO("Not yet implemented")
     }
 }

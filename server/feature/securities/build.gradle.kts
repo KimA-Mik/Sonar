@@ -4,6 +4,7 @@ plugins {
     id("java-library")
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.koin.compiler)
+    alias(libs.plugins.serialization)
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_17

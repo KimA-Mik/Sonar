@@ -9,13 +9,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
 import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
-import ru.kima.sonar.server.data.market.marketdata.local.LocalDataSource
 import ru.kima.sonar.server.data.market.marketdata.remote.TinkoffDataSource
 import java.math.BigDecimal
 import kotlin.time.Instant
 
 internal class MarketDataRepositoryImpl(
-    private val localDataSource: LocalDataSource,
+//    private val localDataSource: LocalDataSource,
     private val tinkoffDataSource: TinkoffDataSource,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 ) : MarketDataRepository {
