@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="top_bar_title_securities_list">Securities</string>
+    <string name="tab_name_shares">Shares</string>
+    <string name="tab_name_futures">Futures</string>
 </resources>
