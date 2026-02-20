@@ -1,10 +1,6 @@
 package ru.kima.sonar.feature.securities.ui.list
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +13,6 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
@@ -25,12 +20,11 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,9 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.feature.securities.R
+import ru.kima.sonar.feature.securities.ui.list.model.DisplayListItemFuture
 import ru.kima.sonar.feature.securities.ui.list.model.DisplayListItemShare
 import java.math.BigDecimal
 
@@ -64,12 +60,6 @@ private fun SecuritiesListScreenContent(
     state: SecuritiesListState,
     onEvent: (SecuritiesListEvent) -> Unit
 ) {
-//    DisposableEffect(Unit) {
-//        onDispose {
-//
-//        }
-//    }
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -83,28 +73,6 @@ private fun SecuritiesListScreenContent(
             modifier = Modifier.padding(paddingValues),
             onEvent = onEvent
         )
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(paddingValues),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            LazyColumn(
-//                modifier = Modifier.fillMaxSize(),
-//                verticalArrangement = Arrangement.spacedBy(8.dp)
-//            ) {
-//                items(state.shares, key = { it.uid }) {
-//                    ListItemShare(
-//                        ticker = it.ticker,
-//                        name = it.name,
-//                        price = it.price,
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 8.dp)
-//                    )
-//                }
-//            }
-//        }
     }
 }
 
@@ -119,7 +87,7 @@ private fun SecuritiesListScreenBody(
     modifier: Modifier = Modifier,
     onEvent: (SecuritiesListEvent) -> Unit
 ) = Column(modifier = modifier) {
-    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedIndex by retain { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(selectedIndex) { tabs.size }
     val coroutineScope = rememberCoroutineScope()
     Tabs(
@@ -164,7 +132,12 @@ fun TabsBody(
     state: SecuritiesListState,
     modifier: Modifier = Modifier,
     onEvent: (SecuritiesListEvent) -> Unit
-) = Box(modifier = modifier) {
+) = ConditionalPullToRefreshBox(
+    isRefreshing = state.sharesListState == SecuritiesListState.SecurityListState.Loading || state.futuresListState == SecuritiesListState.SecurityListState.Loading,
+    onRefresh = { onEvent(SecuritiesListEvent.RefreshSecurities) },
+    modifier = modifier,
+    enabled = state.sharesListState != SecuritiesListState.SecurityListState.Nothing || state.futuresListState != SecuritiesListState.SecurityListState.Nothing
+) {
     HorizontalPager(state = pagerState) {
         when (it) {
             0 -> SharesPage(
@@ -173,22 +146,12 @@ fun TabsBody(
                 onEvent = onEvent
             )
 
-            1 -> Box(
+            1 -> FuturesPage(
+                futures = state.futures,
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(R.string.tab_name_futures))
-            }
+                onEvent = onEvent
+            )
         }
-    }
-
-    AnimatedVisibility(
-        visible = state.sharesListState == SecuritiesListState.SecurityListState.Loading,
-        modifier = Modifier.align(Alignment.TopCenter),
-        enter = slideInVertically(initialOffsetY = { -it }),
-        exit = slideOutVertically(targetOffsetY = { -it })
-    ) {
-        LoadingIndicator(modifier = Modifier.padding(16.dp))
     }
 }
 
@@ -198,14 +161,8 @@ fun SharesPage(
     modifier: Modifier = Modifier,
     onEvent: (SecuritiesListEvent) -> Unit
 ) {
-    DisposableEffect(Unit) {
-        onEvent(SecuritiesListEvent.OnSharesListOpen)
-        onDispose { onEvent(SecuritiesListEvent.OnSharesListDispose) }
-    }
-
     LazyColumn(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier
     ) {
         items(shares, key = { it.uid }) {
             ListItemShare(
@@ -221,6 +178,28 @@ fun SharesPage(
     }
 }
 
+@Composable
+fun FuturesPage(
+    futures: List<DisplayListItemFuture>,
+    modifier: Modifier = Modifier,
+    onEvent: (SecuritiesListEvent) -> Unit
+) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier
+    ) {
+        items(futures, key = { it.uid }) {
+            ListItemShare(
+                ticker = it.ticker,
+                name = it.name,
+                price = it.price,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .animateItem()
+            )
+        }
+    }
+}
 
 @Composable
 fun ListItemShare(

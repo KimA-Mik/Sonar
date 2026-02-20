@@ -25,6 +25,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.websocket.close
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -49,6 +50,7 @@ import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSour
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.data.homeapi.error.HomeApiError
 import ru.kima.sonar.data.homeapi.model.mapper.toNotificationProvider
+import java.net.SocketTimeoutException
 
 private const val TAG = "KtorHomeApiDataSource"
 
@@ -170,21 +172,42 @@ internal class KtorHomeApiDataSource(
 
     override fun tradableShares(): Flow<SonarResult<List<ListItemShare>, HomeApiError>> =
         channelFlow {
-            client.webSocket(path = SecurityRoute.Shares.PATH) {
-                while (isActive) {
-                    val message = sonarRunCaching { receiveDeserialized<List<ListItemShare>>() }
-                    if (message.isSuccess()) {
-                        send(SonarResult.Success(message.data))
-                    } else {
-                        Log.e(TAG, "Error receiving tradable shares: ${message.data}")
-                        send(SonarResult.Error(HomeApiError.UnknownError(message.data)))
-                        break
+            try {
+                client.webSocket(path = SecurityRoute.Shares.PATH) {
+                    while (isActive) {
+                        val message = sonarRunCaching { receiveDeserialized<List<ListItemShare>>() }
+                        if (message.isSuccess()) {
+                            send(SonarResult.Success(message.data))
+                        } else {
+                            send(SonarResult.Error(HomeApiError.UnknownError(message.data)))
+                            break
+                        }
                     }
+                    close()
                 }
+            } catch (_: SocketTimeoutException) {
+                send(SonarResult.Error(HomeApiError.NetworkError))
             }
         }
 
-    override fun tradableFutures(): Flow<SonarResult<List<ListItemFuture>, HomeApiError>> {
-        TODO("Not yet implemented")
-    }
+    override fun tradableFutures(): Flow<SonarResult<List<ListItemFuture>, HomeApiError>> =
+        channelFlow {
+            try {
+                client.webSocket(path = SecurityRoute.Futures.PATH) {
+                    while (isActive) {
+                        val message =
+                            sonarRunCaching { receiveDeserialized<List<ListItemFuture>>() }
+                        if (message.isSuccess()) {
+                            send(SonarResult.Success(message.data))
+                        } else {
+                            send(SonarResult.Error(HomeApiError.UnknownError(message.data)))
+                            break
+                        }
+                    }
+                    close()
+                }
+            } catch (_: SocketTimeoutException) {
+                send(SonarResult.Error(HomeApiError.NetworkError))
+            }
+        }
 }
