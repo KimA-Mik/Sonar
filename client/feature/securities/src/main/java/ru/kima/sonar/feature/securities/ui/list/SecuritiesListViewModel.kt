@@ -46,21 +46,29 @@ class SecuritiesListViewModel(
             futuresListState = futuresListState
         )
     }.onStart {
-        onSharesListOpen()
-        onFuturesListOpen()
+        subscribeToShares()
+        subscribeToFutures()
     }.onCompletion {
         onSharesListDispose()
         onFuturesListDispose()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SecuritiesListState.default())
 
     fun onEvent(event: SecuritiesListEvent) {
-//        when (event) {
-//            SecuritiesListEvent.OnSharesListOpen -> onSharesListOpen()
-//            SecuritiesListEvent.OnSharesListDispose -> onSharesListDispose()
-//        }
+        when (event) {
+            SecuritiesListEvent.RefreshSecurities -> onRefreshSecurities()
+        }
     }
 
-    private fun onSharesListOpen() {
+    private fun onRefreshSecurities() {
+        if (sharesListState.value == SecuritiesListState.SecurityListState.Error) {
+            subscribeToShares()
+        }
+        if (futuresListState.value == SecuritiesListState.SecurityListState.Error) {
+            subscribeToFutures()
+        }
+    }
+
+    private fun subscribeToShares() {
         onSharesListDispose()
         sharesJob = viewModelScope.launch(Dispatchers.Default) {
             sharesListState.value = SecuritiesListState.SecurityListState.Loading
@@ -78,7 +86,7 @@ class SecuritiesListViewModel(
         }
     }
 
-    private fun onFuturesListOpen() {
+    private fun subscribeToFutures() {
         onFuturesListDispose()
         futuresJob = viewModelScope.launch(Dispatchers.Default) {
             futuresListState.value = SecuritiesListState.SecurityListState.Loading

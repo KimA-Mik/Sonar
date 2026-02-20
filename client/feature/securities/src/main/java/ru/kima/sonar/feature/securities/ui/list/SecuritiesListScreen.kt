@@ -1,7 +1,6 @@
 package ru.kima.sonar.feature.securities.ui.list
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,12 +60,6 @@ private fun SecuritiesListScreenContent(
     state: SecuritiesListState,
     onEvent: (SecuritiesListEvent) -> Unit
 ) {
-//    DisposableEffect(Unit) {
-//        onDispose {
-//
-//        }
-//    }
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -80,28 +73,6 @@ private fun SecuritiesListScreenContent(
             modifier = Modifier.padding(paddingValues),
             onEvent = onEvent
         )
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(paddingValues),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            LazyColumn(
-//                modifier = Modifier.fillMaxSize(),
-//                verticalArrangement = Arrangement.spacedBy(8.dp)
-//            ) {
-//                items(state.shares, key = { it.uid }) {
-//                    ListItemShare(
-//                        ticker = it.ticker,
-//                        name = it.name,
-//                        price = it.price,
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 8.dp)
-//                    )
-//                }
-//            }
-//        }
     }
 }
 
@@ -161,23 +132,25 @@ fun TabsBody(
     state: SecuritiesListState,
     modifier: Modifier = Modifier,
     onEvent: (SecuritiesListEvent) -> Unit
-) = Box(modifier = modifier) {
-    ConditionalPullToRefreshBox(
-        isRefreshing = state.sharesListState == SecuritiesListState.SecurityListState.Loading || state.futuresListState == SecuritiesListState.SecurityListState.Loading,
-        onRefresh = { onEvent(SecuritiesListEvent.OnSharesListOpen) },
-        modifier = modifier,
-        enabled = state.sharesListState != SecuritiesListState.SecurityListState.Nothing || state.futuresListState != SecuritiesListState.SecurityListState.Nothing
-    ) {
-        HorizontalPager(state = pagerState) {
-            when (it) {
-                0 -> SharesPage(
-                    shares = state.shares, modifier = Modifier.fillMaxSize(), onEvent = onEvent
-                )
+) = ConditionalPullToRefreshBox(
+    isRefreshing = state.sharesListState == SecuritiesListState.SecurityListState.Loading || state.futuresListState == SecuritiesListState.SecurityListState.Loading,
+    onRefresh = { onEvent(SecuritiesListEvent.RefreshSecurities) },
+    modifier = modifier,
+    enabled = state.sharesListState != SecuritiesListState.SecurityListState.Nothing || state.futuresListState != SecuritiesListState.SecurityListState.Nothing
+) {
+    HorizontalPager(state = pagerState) {
+        when (it) {
+            0 -> SharesPage(
+                shares = state.shares,
+                modifier = Modifier.fillMaxSize(),
+                onEvent = onEvent
+            )
 
-                1 -> FuturesPage(
-                    futures = state.futures, modifier = Modifier.fillMaxSize(), onEvent = onEvent
-                )
-            }
+            1 -> FuturesPage(
+                futures = state.futures,
+                modifier = Modifier.fillMaxSize(),
+                onEvent = onEvent
+            )
         }
     }
 }
