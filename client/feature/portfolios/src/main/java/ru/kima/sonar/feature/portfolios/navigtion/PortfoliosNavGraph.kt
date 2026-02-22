@@ -1,14 +1,9 @@
 package ru.kima.sonar.feature.portfolios.navigtion
 
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.navigation
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListScreen
 
-fun NavGraphBuilder.portfoliosNavGraph() = navigation<PortfoliosGraph>(
-    startDestination = PortfoliosGraph.PortfoliosList
-) {
-    composable<PortfoliosGraph.PortfoliosList> {
-        PortfoliosListScreen()
-    }
+fun EntryProviderScope<NavKey>.portfoliosNavGraph() {
+    entry<PortfoliosGraph.PortfoliosList> { PortfoliosListScreen() }
 }

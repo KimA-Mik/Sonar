@@ -4,11 +4,11 @@ import android.icu.text.NumberFormat
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.compositionLocalWithComputedDefaultOf
-import androidx.navigation.NavController
+import ru.kima.sonar.common.ui.navigation.Navigator
 import java.util.Locale
 
-val LocalNavController = compositionLocalOf<NavController> {
-    error("CompositionLocal LocalNavController not presented")
+val LocalNavigator = compositionLocalOf<Navigator> {
+    error("CompositionLocal Navigator not presented")
 }
 
 val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {

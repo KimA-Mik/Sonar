@@ -1,9 +1,9 @@
 package ru.kima.sonar.feature.securities.navigation
 
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-@Serializable
 object SecuritiesGraph {
     @Serializable
-    object SecuritiesList
+    object SecuritiesList : NavKey
 }
