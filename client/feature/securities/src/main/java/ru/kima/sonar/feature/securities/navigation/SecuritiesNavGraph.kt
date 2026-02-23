@@ -1,14 +1,9 @@
 package ru.kima.sonar.feature.securities.navigation
 
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.navigation
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import ru.kima.sonar.feature.securities.ui.list.SecuritiesLstScreen
 
-fun NavGraphBuilder.securitiesNavGraph() = navigation<SecuritiesGraph>(
-    startDestination = SecuritiesGraph.SecuritiesList
-) {
-    composable<SecuritiesGraph.SecuritiesList> {
-        SecuritiesLstScreen()
-    }
+fun EntryProviderScope<NavKey>.securitiesNavGraph() {
+    entry<SecuritiesGraph.SecuritiesList> { SecuritiesLstScreen() }
 }

@@ -37,6 +37,7 @@ android {
     }
     kotlin.compilerOptions {
         jvmTarget = JvmTarget.JVM_11
+        freeCompilerArgs = listOf("-Xannotation-default-target=param-property")
     }
     buildFeatures {
         compose = true
@@ -45,6 +46,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -52,7 +54,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.navigation3.adaptive)
+
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
@@ -60,6 +66,7 @@ dependencies {
     implementation(project(":client:data:application-config"))
     implementation(project(":client:data:home-api"))
     implementation(project(":client:feature:authentication"))
+    implementation(project(":client:feature:portfolios"))
     implementation(project(":client:feature:securities"))
     implementation(project(":common:server-api"))
 

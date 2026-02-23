@@ -1,16 +1,12 @@
-import org.jetbrains.kotlin.konan.properties.loadProperties
-
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.koin.compiler)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.koin.compiler)
     alias(libs.plugins.serialization)
 }
 
-val localProperties = loadProperties(rootProject.file("local.properties").toString())
-
 android {
-    namespace = "ru.kima.sonar.feature.authentication"
+    namespace = "ru.kima.sonar.feature.portfolios"
     compileSdk {
         version = release(libs.versions.android.compileSdk.get().toInt())
     }
@@ -23,28 +19,12 @@ android {
     }
 
     buildTypes {
-        val apiEndpointName = "API_ENDPOINT"
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            buildConfigField("String", apiEndpointName, localProperties.getProperty("api.url"))
-        }
-
-        debug {
-            buildConfigField(
-                "String",
-                apiEndpointName,
-                localProperties.getProperty("api.url.debug")
-            )
-        }
-
-        buildFeatures {
-            buildConfig = true
-            compose = true
         }
     }
     compileOptions {
@@ -54,21 +34,23 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.koin.compose)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.koin.compose)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
-    implementation(project(":client:data:application-config"))
-    implementation(project(":client:data:home-api"))
     implementation(project(":client:common:ui"))
+    implementation(project(":client:data:home-api"))
+    implementation(project(":common:server-api"))
     implementation(project(":common:util"))
 
     testImplementation(libs.junit)
