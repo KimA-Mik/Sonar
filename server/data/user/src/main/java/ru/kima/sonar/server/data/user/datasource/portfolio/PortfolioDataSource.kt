@@ -6,10 +6,11 @@ import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 
-internal interface PortfolioDataSource {
+interface PortfolioDataSource {
     suspend fun insertPortfolio(portfolio: Portfolio): SonarResult<Portfolio, UserDataError>
     suspend fun updatePortfolio(portfolio: Portfolio): SonarResult<Portfolio, UserDataError>
     suspend fun getPortfoliosByUserId(userId: Long): SonarResult<List<Portfolio>, UserDataError>
+    suspend fun getPortfolioById(id: Long): SonarResult<Portfolio, UserDataError>
     suspend fun deletePortfolioById(id: Long): SonarResult<Unit, UserDataError>
 
     suspend fun insertPortfolioEntry(portfolioEntry: PortfolioEntry): SonarResult<PortfolioEntry, UserDataError>

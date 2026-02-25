@@ -64,6 +64,22 @@ internal class ExposedPortfolioDataSource(
         }
     }
 
+    override suspend fun getPortfolioById(id: Long): SonarResult<Portfolio, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                PortfolioEntity.findById(id)?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting portfolio by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
     override suspend fun deletePortfolioById(id: Long): SonarResult<Unit, UserDataError> {
         return try {
             databaseConnector.suspendTransaction {
