@@ -11,7 +11,6 @@ import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.bearer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -33,7 +32,7 @@ import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
 
 class Program : CliktCommand() {
-    val port by option("-p", "--port").int().default(69)
+    val port by option("-p", "--port").int().default(1337)
     val marketDbName by option("--market-db-name").default("marketdata.db")
     val usersDbName by option("--users-db-name").default("users.db")
     val tToken by option("--t-invest-token").required().help("T-Invest API token")
@@ -61,9 +60,7 @@ class Program : CliktCommand() {
             install(Authentication) {
                 bearer(MAIN_BEARER_NAME) {
                     authenticate { tokenCredential ->
-                        authManager.getUserForToken(tokenCredential.token)?.let {
-                            UserIdPrincipal(it.user.email)
-                        }
+                        authManager.getUserForToken(tokenCredential.token)?.user
                     }
                 }
             }
