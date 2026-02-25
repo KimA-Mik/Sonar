@@ -82,10 +82,18 @@ internal class ExposedPortfolioDataSource(
 
     override suspend fun deletePortfolioById(id: Long): SonarResult<Unit, UserDataError> {
         return try {
+            var found = false
             databaseConnector.suspendTransaction {
-                PortfolioEntity.findById(id)?.delete()
+                val entity = PortfolioEntity.findById(id)
+                if (entity != null) {
+                    //TODO: Explore exposed onDelete
+//                    entity.entries.forEach { it.delete() }
+                    entity.delete()
+                    found = true
+                }
             }
-            SonarResult.Success(Unit)
+            if (found) SonarResult.Success(Unit)
+            else SonarResult.Error(UserDataError.NotFound)
         } catch (e: Exception) {
             logger.error("Error deleting portfolio by id", e)
             SonarResult.Error(UserDataError.UnknownError(e))
@@ -127,12 +135,37 @@ internal class ExposedPortfolioDataSource(
 
     override suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError> {
         return try {
+            var found = false
             databaseConnector.suspendTransaction {
-                PortfolioEntryEntity.findById(id)?.delete()
+                val entity = PortfolioEntryEntity.findById(id)
+                if (entity != null) {
+                    entity.delete()
+                    found = true
+                }
             }
-            SonarResult.Success(Unit)
+            if (found) {
+                SonarResult.Success(Unit)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
         } catch (e: Exception) {
             logger.error("Error deleting portfolio entry", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getEntryById(id: Long): SonarResult<PortfolioEntry, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                PortfolioEntryEntity.findById(id)?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting portfolio entry by id", e)
             SonarResult.Error(UserDataError.UnknownError(e))
         }
     }

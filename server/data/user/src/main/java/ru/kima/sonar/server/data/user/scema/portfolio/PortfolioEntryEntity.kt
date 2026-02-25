@@ -14,6 +14,6 @@ internal class PortfolioEntryEntity(id: EntityID<Long>) : LongEntity(id) {
     var highPrice by PortfolioEntryTable.highPrice
     var note by PortfolioEntryTable.note
 
-    var portfolio by PortfolioEntity referencedOn PortfolioEntryTable.portfolioId
+    val portfolio by PortfolioEntity referencedOn PortfolioEntryTable.portfolioId
 }
 
