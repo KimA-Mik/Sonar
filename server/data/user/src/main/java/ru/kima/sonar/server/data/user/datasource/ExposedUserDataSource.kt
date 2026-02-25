@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.util.SonarResult
-import ru.kima.sonar.server.data.user.database.DatabaseConnector
+import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
 import ru.kima.sonar.server.data.user.model.Session
 import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserAndSession
@@ -17,7 +17,7 @@ import ru.kima.sonar.server.data.user.scema.UserEntity
 import ru.kima.sonar.server.data.user.scema.UserTable
 
 internal class ExposedUserDataSource(
-    private val databaseConnector: DatabaseConnector
+    private val usersDatabaseConnector: DatabaseConnector
 ) : UserDataSource {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -73,7 +73,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun insertUser(user: User): SonarResult<User, UserDataError> {
         return try {
-            val result = databaseConnector.transaction {
+            val result = usersDatabaseConnector.suspendTransaction {
                 val userEntity = UserEntity.new {
                     email = user.email
                     passwordHash = user.passwordHash
@@ -89,7 +89,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun updateUser(user: User): SonarResult<User, UserDataError> {
         return try {
-            val result = databaseConnector.transaction {
+            val result = usersDatabaseConnector.suspendTransaction {
                 // Use extension findByIdAndUpdate to update atomically
                 UserEntity.findByIdAndUpdate(user.id) {
                     it.putInside(user)
@@ -108,7 +108,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun getUserByEmail(email: String): SonarResult<User, UserDataError> {
         return try {
-            val userEntity = databaseConnector.transaction {
+            val userEntity = usersDatabaseConnector.suspendTransaction {
                 UserEntity.find { UserTable.email eq email }.firstOrNull()
             }
             if (userEntity != null) {
@@ -124,7 +124,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun getUserById(id: Long): SonarResult<User, UserDataError> {
         return try {
-            val userEntity = databaseConnector.transaction {
+            val userEntity = usersDatabaseConnector.suspendTransaction {
                 UserEntity.findById(id)
             }
             if (userEntity != null) {
@@ -140,7 +140,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun insertSession(session: Session): SonarResult<Session, UserDataError> {
         return try {
-            val result = databaseConnector.transaction {
+            val result = usersDatabaseConnector.suspendTransaction {
                 val sessionEntity = SessionEntity.new {
                     putInside(session)
                 }
@@ -155,7 +155,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun updateSession(session: Session): SonarResult<Session, UserDataError> {
         return try {
-            val result = databaseConnector.transaction {
+            val result = usersDatabaseConnector.suspendTransaction {
                 SessionEntity.findByIdAndUpdate(session.id) {
                     it.putInside(session)
                 }?.toDomainModel()
@@ -173,7 +173,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun getSessionByToken(token: String): SonarResult<Session, UserDataError> {
         return try {
-            val sessionEntity = databaseConnector.transaction {
+            val sessionEntity = usersDatabaseConnector.suspendTransaction {
                 SessionEntity.find { SessionTable.token eq token }.firstOrNull()
             }
             if (sessionEntity != null) {
@@ -189,7 +189,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun getSessionsByUserId(userId: Long): SonarResult<List<Session>, UserDataError> {
         return try {
-            val sessions = databaseConnector.transaction {
+            val sessions = usersDatabaseConnector.suspendTransaction {
                 SessionEntity.find { SessionTable.userId eq userId }.map { it.toDomainModel() }
             }
             SonarResult.Success(sessions)
@@ -201,7 +201,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun deleteSessionByToken(token: String): SonarResult<Unit, UserDataError> {
         return try {
-            databaseConnector.transaction {
+            usersDatabaseConnector.suspendTransaction {
                 SessionEntity.find { SessionTable.token eq token }.forEach { it.delete() }
             }
             SonarResult.Success(Unit)
@@ -213,7 +213,7 @@ internal class ExposedUserDataSource(
 
     override suspend fun getUserAndSessionsByToken(token: String): SonarResult<UserAndSession, UserDataError> {
         return try {
-            val result = databaseConnector.transaction {
+            val result = usersDatabaseConnector.suspendTransaction {
                 SessionEntity.find { SessionTable.token eq token }.firstOrNull()?.let {
                     val userEntity = it.user
                     UserAndSession(

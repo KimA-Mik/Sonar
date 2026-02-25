@@ -1,4 +1,4 @@
-package ru.kima.sonar.server.data.market.marketdata.local
+package ru.kima.sonar.server.data.user.database
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
@@ -8,9 +8,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
 import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
 import java.sql.Connection
 
-internal class SqliteDatabaseConnector(
-    dbName: String,
-) : DatabaseConnector {
+internal class UsersDatabaseConnector(dbName: String) : DatabaseConnector {
     private val connection: Database = Database.connect("jdbc:sqlite:$dbName", "org.sqlite.JDBC")
 
     init {

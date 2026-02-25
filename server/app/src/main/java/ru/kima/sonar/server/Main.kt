@@ -35,6 +35,7 @@ import ru.kima.sonar.server.lifecycle.shutdownHook
 class Program : CliktCommand() {
     val port by option("-p", "--port").int().default(69)
     val marketDbName by option("--market-db-name").default("marketdata.db")
+    val usersDbName by option("--users-db-name").default("users.db")
     val tToken by option("--t-invest-token").required().help("T-Invest API token")
     override fun run() {
         embeddedServer(Netty, port = port) {
@@ -45,7 +46,15 @@ class Program : CliktCommand() {
                 contentConverter = KotlinxWebsocketSerializationConverter(Json)
             }
             install(Koin) {
-                modules(dataModule(marketDbName, tToken), featureModule(), rootModule())
+                modules(
+                    dataModule(
+                        usersDbName = usersDbName,
+                        marketDataDbName = marketDbName,
+                        tToken = tToken
+                    ),
+                    featureModule(),
+                    rootModule()
+                )
             }
 
             val authManager by inject<AuthManager>()

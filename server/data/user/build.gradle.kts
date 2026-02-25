@@ -29,4 +29,5 @@ dependencies {
 
     implementation(project(":common:util"))
     implementation(project(":common:server-api"))
+    implementation(project(":server:common:util"))
 }

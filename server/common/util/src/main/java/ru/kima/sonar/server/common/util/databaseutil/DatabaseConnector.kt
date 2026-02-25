@@ -1,9 +1,9 @@
-package ru.kima.sonar.server.data.market.marketdata.local
+package ru.kima.sonar.server.common.util.databaseutil
 
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 
-internal interface DatabaseConnector {
+interface DatabaseConnector {
     fun <T> transaction(block: JdbcTransaction.() -> T): T
     suspend fun <T> suspendTransaction(block: suspend JdbcTransaction.() -> T): T
     fun <T> transactionCatching(block: Transaction.() -> T): Result<T> =
