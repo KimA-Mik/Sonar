@@ -1,9 +1,6 @@
 package ru.kima.sonar.server.data.user.datasource
 
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
@@ -20,23 +17,6 @@ internal class ExposedUserDataSource(
     private val usersDatabaseConnector: DatabaseConnector
 ) : UserDataSource {
     private val logger = LoggerFactory.getLogger(this::class.java)
-
-    init {
-        transaction {
-            val tables = arrayOf(UserTable, SessionTable)
-            SchemaUtils.create(*tables)
-            val missingColumnsStatements =
-                MigrationUtils.statementsRequiredForDatabaseMigration(*tables)
-            missingColumnsStatements.forEach {
-                logger.info("Executing statement: $it")
-                try {
-                    connection.prepareStatement(it, true).executeUpdate()
-                } catch (e: Exception) {
-                    logger.error(e.message)
-                }
-            }
-        }
-    }
 
     // Transformation methods
     private fun UserEntity.toDomainModel(): User = User(
@@ -98,7 +78,7 @@ internal class ExposedUserDataSource(
             if (result != null) {
                 SonarResult.Success(result)
             } else {
-                SonarResult.Error(UserDataError.UserNotFound)
+                SonarResult.Error(UserDataError.NotFound)
             }
         } catch (e: Exception) {
             logger.error("Error updating user", e)
@@ -114,7 +94,7 @@ internal class ExposedUserDataSource(
             if (userEntity != null) {
                 SonarResult.Success(userEntity.toDomainModel())
             } else {
-                SonarResult.Error(UserDataError.UserNotFound)
+                SonarResult.Error(UserDataError.NotFound)
             }
         } catch (e: Exception) {
             logger.error("Error getting user by email", e)
@@ -130,7 +110,7 @@ internal class ExposedUserDataSource(
             if (userEntity != null) {
                 SonarResult.Success(userEntity.toDomainModel())
             } else {
-                SonarResult.Error(UserDataError.UserNotFound)
+                SonarResult.Error(UserDataError.NotFound)
             }
         } catch (e: Exception) {
             logger.error("Error getting user by id", e)
@@ -163,7 +143,7 @@ internal class ExposedUserDataSource(
             if (result != null) {
                 SonarResult.Success(result)
             } else {
-                SonarResult.Error(UserDataError.UserNotFound)
+                SonarResult.Error(UserDataError.NotFound)
             }
         } catch (e: Exception) {
             logger.error("Error updating session", e)
@@ -179,7 +159,7 @@ internal class ExposedUserDataSource(
             if (sessionEntity != null) {
                 SonarResult.Success(sessionEntity.toDomainModel())
             } else {
-                SonarResult.Error(UserDataError.UserNotFound)
+                SonarResult.Error(UserDataError.NotFound)
             }
         } catch (e: Exception) {
             logger.error("Error getting session by token", e)
@@ -225,7 +205,7 @@ internal class ExposedUserDataSource(
             if (result != null) {
                 SonarResult.Success(result)
             } else {
-                SonarResult.Error(UserDataError.UserNotFound)
+                SonarResult.Error(UserDataError.NotFound)
             }
         } catch (e: Exception) {
             logger.error("Error getting user and sessions by token", e)
