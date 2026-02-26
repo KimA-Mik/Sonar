@@ -8,8 +8,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
+import ru.kima.sonar.common.serverapi.dto.auth.response.AuthorizationResult
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
-import ru.kima.sonar.common.serverapi.serverresponse.AuthorizationResult
 import ru.kima.sonar.server.feature.auth.AuthController
 
 fun Application.authRoute() = routing {

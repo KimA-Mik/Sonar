@@ -1,8 +1,8 @@
 package ru.kima.sonar.data.homeapi.datasource
 
 import kotlinx.coroutines.flow.Flow
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.data.homeapi.error.HomeApiError

@@ -5,6 +5,7 @@ import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
+import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
 import java.sql.Connection
 
 internal class SqliteDatabaseConnector(

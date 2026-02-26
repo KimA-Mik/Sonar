@@ -1,4 +1,4 @@
-package ru.kima.sonar.common.serverapi.serverresponse
+package ru.kima.sonar.common.serverapi.dto.auth.response
 
 import kotlinx.serialization.Serializable
 

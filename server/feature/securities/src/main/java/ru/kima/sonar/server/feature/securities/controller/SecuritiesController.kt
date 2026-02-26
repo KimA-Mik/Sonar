@@ -1,8 +1,8 @@
 package ru.kima.sonar.server.feature.securities.controller
 
 import kotlinx.coroutines.flow.Flow
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 
 internal class SecuritiesController(

@@ -37,12 +37,12 @@ import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
+import ru.kima.sonar.common.serverapi.dto.auth.response.AuthorizationResult
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
 import ru.kima.sonar.common.serverapi.routing.SecurityRoute
-import ru.kima.sonar.common.serverapi.serverresponse.AuthorizationResult
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.sonarRunCaching

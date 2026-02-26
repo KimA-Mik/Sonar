@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemFuture
-import ru.kima.sonar.common.serverapi.serverresponse.securitieslist.ListItemShare
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
+import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.server.data.market.marketdata.remote.TinkoffDataSource
 import java.math.BigDecimal
 import kotlin.time.Instant

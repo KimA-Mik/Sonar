@@ -11,7 +11,6 @@ import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.bearer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -28,12 +27,14 @@ import ru.kima.sonar.server.di.rootModule
 import ru.kima.sonar.server.feature.auth.AuthManager
 import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 import ru.kima.sonar.server.feature.auth.routing.authRoute
+import ru.kima.sonar.server.feature.portfolios.routing.portfoliosRoute
 import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
 
 class Program : CliktCommand() {
-    val port by option("-p", "--port").int().default(69)
+    val port by option("-p", "--port").int().default(1337)
     val marketDbName by option("--market-db-name").default("marketdata.db")
+    val usersDbName by option("--users-db-name").default("users.db")
     val tToken by option("--t-invest-token").required().help("T-Invest API token")
     override fun run() {
         embeddedServer(Netty, port = port) {
@@ -44,22 +45,29 @@ class Program : CliktCommand() {
                 contentConverter = KotlinxWebsocketSerializationConverter(Json)
             }
             install(Koin) {
-                modules(dataModule(marketDbName, tToken), featureModule(), rootModule())
+                modules(
+                    dataModule(
+                        usersDbName = usersDbName,
+                        marketDataDbName = marketDbName,
+                        tToken = tToken
+                    ),
+                    featureModule(),
+                    rootModule()
+                )
             }
 
             val authManager by inject<AuthManager>()
             install(Authentication) {
                 bearer(MAIN_BEARER_NAME) {
                     authenticate { tokenCredential ->
-                        authManager.getUserForToken(tokenCredential.token)?.let {
-                            UserIdPrincipal(it.user.email)
-                        }
+                        authManager.getUserForToken(tokenCredential.token)?.user
                     }
                 }
             }
 
             authRoute()
             securitiesRoute()
+            portfoliosRoute()
             shutdownHook()
         }.start(wait = true)
     }

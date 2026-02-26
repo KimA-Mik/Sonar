@@ -22,6 +22,7 @@ dependencies {
     implementation("ru.tinkoff.piapi:java-sdk-storage-jdbc:1.44.1")
     implementation(project(":common:server-api"))
     implementation(project(":common:util"))
+    implementation(project(":server:common:util"))
     testImplementation(kotlin("test"))
 }
 

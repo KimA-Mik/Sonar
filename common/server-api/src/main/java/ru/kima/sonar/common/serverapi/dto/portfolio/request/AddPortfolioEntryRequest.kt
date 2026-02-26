@@ -1,0 +1,13 @@
+package ru.kima.sonar.common.serverapi.dto.portfolio.request
+
+import kotlinx.serialization.Serializable
+import ru.kima.sonar.common.serverapi.util.BigDecimalJson
+
+@Serializable
+data class AddPortfolioEntryRequest(
+    val securityUid: String,
+    val name: String,
+    val lowPrice: BigDecimalJson,
+    val highPrice: BigDecimalJson,
+    val note: String
+)

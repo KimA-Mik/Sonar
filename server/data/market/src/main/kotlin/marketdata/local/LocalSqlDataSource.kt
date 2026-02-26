@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.serverapi.model.Candle
 import ru.kima.sonar.common.serverapi.model.CandleInterval
+import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
 import ru.kima.sonar.server.data.market.marketdata.local.model.entities.CandleEntity
 import ru.kima.sonar.server.data.market.marketdata.local.model.mappers.toCandle
 import ru.kima.sonar.server.data.market.marketdata.local.model.tables.CandleTable
