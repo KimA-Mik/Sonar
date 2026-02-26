@@ -4,6 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdatePortfolioRequest(
-    val id: String,
     val name: String,
 )
