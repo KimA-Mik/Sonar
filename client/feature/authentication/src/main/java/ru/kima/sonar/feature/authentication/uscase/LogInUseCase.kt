@@ -31,7 +31,8 @@ class LogInUseCase(
                 is HomeApiError.Unauthorized -> Result.IncorrectCredentials
                 is HomeApiError.NetworkError -> Result.NetworkError
                 is HomeApiError.UnknownApiError -> Result.ServerError
-                is HomeApiError.UnknownError -> Result.UnknownError
+                is HomeApiError.InternalServerError -> Result.ServerError
+                else -> Result.UnknownError
             }
         }
     }
