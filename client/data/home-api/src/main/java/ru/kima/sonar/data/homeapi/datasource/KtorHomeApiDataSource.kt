@@ -166,12 +166,14 @@ internal class KtorHomeApiDataSource(
         val response = apiCall()
         when (response.status) {
             HttpStatusCode.OK -> SonarResult.Success(response.body<T>())
+            HttpStatusCode.BadRequest -> SonarResult.Error(HomeApiError.BadRequest)
+            HttpStatusCode.Forbidden -> SonarResult.Error(HomeApiError.Forbidden)
+            HttpStatusCode.InternalServerError -> SonarResult.Error(HomeApiError.InternalServerError)
             HttpStatusCode.Unauthorized -> {
                 if (logOutOnUnauthorized) localConfigDataSource.updateApiAccessToken(null)
                 SonarResult.Error(HomeApiError.Unauthorized)
             }
 
-            //TODO: Handle a couple more errors
             else -> SonarResult.Error(HomeApiError.UnknownApiError(response.status.value))
         }
     } catch (e: IOException) {
