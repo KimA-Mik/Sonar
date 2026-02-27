@@ -10,6 +10,7 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryReq
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
+import ru.kima.sonar.common.serverapi.util.TITLE_LENGTH
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
@@ -43,10 +44,12 @@ internal class PortfoliosController(
             return
         }
 
+        var name = request.name.trim()
+        if (name.length > TITLE_LENGTH) name = name.take(TITLE_LENGTH)
         when (val res = portfoliosDataSource.insertPortfolio(
             Portfolio.default(
                 userId = user.id,
-                name = request.name
+                name = name
             )
         )) {
             is SonarResult.Success -> call.respond(res.data.toDto())
