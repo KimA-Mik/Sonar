@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.navigation.rememberNavigationState
@@ -43,6 +45,7 @@ private val TOP_LEVEL_ROUTES = mapOf<NavKey, NavBarItem>(
     )
 )
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun ApplicationScreen(authorised: Boolean) {
     val navigationState = rememberNavigationState(
@@ -84,11 +87,12 @@ fun ApplicationScreen(authorised: Boolean) {
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { paddingValues ->
-            println(navigator.state.backStacks.keys)
+            val sceneStrategy = remember { DialogSceneStrategy<NavKey>() }
             NavDisplay(
                 entries = navigationState.toDecoratedEntries(entryProvider),
                 onBack = { navigator.goBack() },
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues),
+                sceneStrategy = sceneStrategy
             )
         }
     }

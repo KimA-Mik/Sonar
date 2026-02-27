@@ -94,6 +94,7 @@ class NavigationState(
         val decoratedEntries = backStacks.mapValues { (_, stack) ->
             val decorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+                rememberSharedViewModelStoreNavEntryDecorator()
             )
             rememberDecoratedNavEntries(
                 backStack = stack,
@@ -125,3 +126,5 @@ class NavigationState(
             listOf(startRoute, topLevelRoute)
         }
 }
+
+fun NavKey.toContentKey() = this.toString()
