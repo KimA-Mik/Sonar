@@ -27,12 +27,12 @@ datastore = "1.2.0"
 kotlinxSerialization = "1.10.0"
 kotlinxCoroutines = "1.10.2"
 ktor = "3.4.0"
-m3-expressive = "1.5.0-alpha14"
+m3-expressive = "1.5.0-alpha15"
 logback = "1.5.32"
 sl4j = "1.7.36"
 lifecycleViewmodel = "2.10.0"
 navigation3 = "1.0.1"
-nav3Adaptive = "1.3.0-alpha08"
+nav3Adaptive = "1.3.0-alpha09"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
