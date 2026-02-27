@@ -55,11 +55,11 @@ internal class PortfoliosListViewModel(
     val uiEvents = _uiEvents.asStateFlow()
 
     private val createDialogValue = MutableStateFlow("")
-    private val createDialogIsError = MutableStateFlow(false)
-    val dialogState = combine(createDialogValue, createDialogIsError) { name, isError ->
+    private val createDialogError = MutableStateFlow(CreatePortfolioDialogState.DialogError.NONE)
+    val dialogState = combine(createDialogValue, createDialogError) { name, error ->
         CreatePortfolioDialogState(
             newName = name,
-            isError = isError
+            error = error
         )
     }.stateIn(
         viewModelScope,
@@ -94,12 +94,13 @@ internal class PortfoliosListViewModel(
 
     private fun onCreatePortfolioClicked() {
         createDialogValue.value = ""
+        createDialogError.value = CreatePortfolioDialogState.DialogError.NONE
         _uiEvents.value = SonarEvent(PortfolioListUiEvent.OpenCreatePortfolioDialog)
     }
 
     private fun onAcceptNewPortfolioDialog() {
         if (createDialogValue.value.isBlank()) {
-            createDialogIsError.value = true
+            createDialogError.value = CreatePortfolioDialogState.DialogError.BLANK_NAME
             return
         }
 
@@ -118,7 +119,7 @@ internal class PortfoliosListViewModel(
         _uiEvents.update { SonarEvent(PortfolioListUiEvent.DismissCreatePortfolioDialog) }
 
     private fun onUpdatePortfolioName(newName: String) {
-        createDialogIsError.value = false
+        createDialogError.value = CreatePortfolioDialogState.DialogError.NONE
         createDialogValue.value = newName
     }
 

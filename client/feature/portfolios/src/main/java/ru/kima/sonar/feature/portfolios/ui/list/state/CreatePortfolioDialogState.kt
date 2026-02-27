@@ -5,15 +5,18 @@ import androidx.compose.runtime.Immutable
 @Immutable
 data class CreatePortfolioDialogState(
     val newName: String,
-    val isError: Boolean
+    val error: DialogError
 ) {
+    enum class DialogError {
+        NONE, BLANK_NAME
+    }
     companion object {
         fun default(
             newName: String = "",
-            isError: Boolean = false
+            error: DialogError = DialogError.NONE
         ) = CreatePortfolioDialogState(
             newName = newName,
-            isError = isError
+            error = error
         )
     }
 }

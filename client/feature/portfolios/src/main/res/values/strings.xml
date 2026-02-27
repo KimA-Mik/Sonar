@@ -5,4 +5,5 @@
     <string name="action_create_portfolio">Create</string>
     <string name="title_create_portfolio">New portfolio</string>
     <string name="label_new_portfolio">Name</string>
+    <string name="error_blank_portfolio_name">Blank name</string>
 </resources>

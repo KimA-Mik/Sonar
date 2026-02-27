@@ -13,6 +13,7 @@ import ru.kima.sonar.common.ui.components.SonarAlertDialog
 import ru.kima.sonar.common.ui.util.clearFocusOnSoftKeyboardHide
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListEvent
+import ru.kima.sonar.feature.portfolios.ui.list.state.CreatePortfolioDialogState
 
 private const val TAG = "CreatePortfolioDialog"
 
@@ -43,7 +44,13 @@ fun CreatePortfolioDialog(modifier: Modifier = Modifier) {
                 onValueChange = { viewModel.onEvent(PortfolioListEvent.UpdatePortfolioName(it)) },
                 modifier = Modifier.clearFocusOnSoftKeyboardHide(),
                 label = { Text(stringResource(R.string.label_new_portfolio)) },
-                isError = dialogState.isError
+                isError = dialogState.error != CreatePortfolioDialogState.DialogError.NONE,
+                supportingText = {
+                    when (dialogState.error) {
+                        CreatePortfolioDialogState.DialogError.NONE -> {}
+                        CreatePortfolioDialogState.DialogError.BLANK_NAME -> Text(stringResource(R.string.error_blank_portfolio_name))
+                    }
+                }
             )
         },
         title = {
