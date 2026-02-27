@@ -46,7 +46,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.koin.compose)
     implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.kotlinx.collections.immutable)
 
     implementation(project(":client:common:ui"))
     implementation(project(":client:data:home-api"))

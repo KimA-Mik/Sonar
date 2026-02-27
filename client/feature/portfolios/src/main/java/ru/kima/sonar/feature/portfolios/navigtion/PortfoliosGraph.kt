@@ -5,5 +5,8 @@ import kotlinx.serialization.Serializable
 
 object PortfoliosGraph {
     @Serializable
-    object PortfoliosList : NavKey
+    object PortfoliosList : NavKey {
+        @Serializable
+        object CreatePortfolioDialog : NavKey
+    }
 }

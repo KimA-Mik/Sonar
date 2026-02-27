@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="graph_name_portfolios">Portfolios</string>
+    <string name="action_create_portfolio_content_description">Create portfolio</string>
+    <string name="action_create_portfolio">Create</string>
+    <string name="title_create_portfolio">New portfolio</string>
+    <string name="label_new_portfolio">Name</string>
 </resources>
