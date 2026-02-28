@@ -122,8 +122,11 @@ private fun collectUiEvents(
 ) {
     uiEvent.consume { event ->
         when (event) {
-            is PortfolioListUiEvent.OpenCreatePortfolioDialog -> navigator.navigate(PortfoliosGraph.PortfoliosList.CreatePortfolioDialog)
+            is PortfolioListUiEvent.OpenCreatePortfolioDialog -> navigator.navigate(PortfoliosGraph.List.CreatePortfolioDialog)
             PortfolioListUiEvent.DismissCreatePortfolioDialog -> navigator.goBack()
+            is PortfolioListUiEvent.NavigateToPortfolioDetails -> navigator.navigate(
+                PortfoliosGraph.List.Details(event.portfolioId)
+            )
         }
     }
 }
@@ -148,7 +151,8 @@ private fun PortfoliosListScreenBody(
         ) {
             items(portfolios, key = { it.id }) {
                 Card(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onEvent(PortfolioListEvent.PortfolioClicked(it.id)) }
                 ) {
                     Text(
                         it.name,

@@ -38,7 +38,7 @@ private val TOP_LEVEL_ROUTES = mapOf<NavKey, NavBarItem>(
         selectedIcon = R.drawable.security_filled_24px,
         description = R.string.root_mame_securities
     ),
-    PortfoliosGraph.PortfoliosList to NavBarItem(
+    PortfoliosGraph.List to NavBarItem(
         icon = R.drawable.cases_24px,
         selectedIcon = R.drawable.cases_filled_24px,
         description = R.string.root_mame_portfolios

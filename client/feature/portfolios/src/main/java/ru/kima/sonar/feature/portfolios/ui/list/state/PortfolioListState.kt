@@ -6,7 +6,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ru.kima.sonar.feature.portfolios.ui.list.model.DisplayPortfolio
 
 @Immutable
-data class PortfolioListState(
+internal data class PortfolioListState(
     val portfolios: ImmutableList<DisplayPortfolio>,
     val isLoading: Boolean
 ) {

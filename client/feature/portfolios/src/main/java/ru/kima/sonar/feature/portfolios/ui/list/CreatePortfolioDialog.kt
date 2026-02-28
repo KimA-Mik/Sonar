@@ -18,7 +18,7 @@ import ru.kima.sonar.feature.portfolios.ui.list.state.CreatePortfolioDialogState
 private const val TAG = "CreatePortfolioDialog"
 
 @Composable
-fun CreatePortfolioDialog(modifier: Modifier = Modifier) {
+internal fun CreatePortfolioDialog(modifier: Modifier = Modifier) {
     val viewModel: PortfoliosListViewModel = koinViewModel()
     val dialogState by viewModel.dialogState.collectAsState()
 

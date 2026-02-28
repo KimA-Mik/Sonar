@@ -5,8 +5,11 @@ import kotlinx.serialization.Serializable
 
 object PortfoliosGraph {
     @Serializable
-    object PortfoliosList : NavKey {
+    object List : NavKey {
         @Serializable
         object CreatePortfolioDialog : NavKey
+
+        @Serializable
+        data class Details(val portfolioId: Long) : NavKey
     }
 }

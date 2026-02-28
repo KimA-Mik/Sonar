@@ -74,6 +74,7 @@ internal class PortfoliosListViewModel(
             PortfolioListEvent.AcceptNewPortfolioDialog -> onAcceptNewPortfolioDialog()
             PortfolioListEvent.DismissNewPortfolioDialog -> onDismissNewPortfolioDialog()
             is PortfolioListEvent.UpdatePortfolioName -> onUpdatePortfolioName(event.name)
+            is PortfolioListEvent.PortfolioClicked -> onPortfolioClicked(event.portfolioId)
         }
     }
 
@@ -121,6 +122,10 @@ internal class PortfoliosListViewModel(
     private fun onUpdatePortfolioName(newName: String) {
         createDialogError.value = CreatePortfolioDialogState.DialogError.NONE
         createDialogValue.value = newName
+    }
+
+    private fun onPortfolioClicked(portfolioId: Long) = _uiEvents.update {
+        SonarEvent(PortfolioListUiEvent.NavigateToPortfolioDetails(portfolioId))
     }
 
     private fun launchLoading(

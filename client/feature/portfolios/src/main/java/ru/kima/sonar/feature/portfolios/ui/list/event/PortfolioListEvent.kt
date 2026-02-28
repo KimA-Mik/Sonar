@@ -7,4 +7,6 @@ internal sealed interface PortfolioListEvent {
     data class UpdatePortfolioName(val name: String) : PortfolioListEvent
     data object AcceptNewPortfolioDialog : PortfolioListEvent
     data object DismissNewPortfolioDialog : PortfolioListEvent
+
+    data class PortfolioClicked(val portfolioId: Long) : PortfolioListEvent
 }
