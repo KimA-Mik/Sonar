@@ -127,4 +127,5 @@ class NavigationState(
         }
 }
 
-fun NavKey.toContentKey() = this.toString()
+//fun NavKey.toContentKey() = this.toString()
+fun NavKey.toContentKey() = this::class.toString()

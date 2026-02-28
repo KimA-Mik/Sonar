@@ -6,7 +6,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddableSecurity
 
 @Immutable
-internal data class SelectSecurityDialogState(
+data class SelectSecuritiesDialogState(
     val query: String,
     val entries: ImmutableList<AddableSecurity>,
     val isLoading: Boolean
@@ -16,7 +16,7 @@ internal data class SelectSecurityDialogState(
             query: String = "",
             entries: ImmutableList<AddableSecurity> = persistentListOf(),
             isLoading: Boolean = false
-        ) = SelectSecurityDialogState(
+        ) = SelectSecuritiesDialogState(
             query = query,
             entries = entries,
             isLoading

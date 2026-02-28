@@ -7,4 +7,5 @@
     <string name="label_new_portfolio">Name</string>
     <string name="error_blank_portfolio_name">Blank name</string>
     <string name="content_description_add_securities">Add securities</string>
+    <string name="label_ticker">Ticker</string>
 </resources>

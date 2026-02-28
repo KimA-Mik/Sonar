@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import java.math.BigDecimal
 
 @Immutable
-internal data class AddableSecurity(
+data class AddableSecurity(
     val uid: String,
     val ticker: String,
     val name: String,

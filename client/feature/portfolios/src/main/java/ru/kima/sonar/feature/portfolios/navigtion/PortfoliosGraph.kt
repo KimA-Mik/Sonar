@@ -12,7 +12,10 @@ object PortfoliosGraph {
         @Serializable
         data class Details(val portfolioId: Long) : NavKey {
             @Serializable
-            data class AddEntries(val portfolioId: Long) : NavKey
+            data class AddEntries(val portfolioId: Long) : NavKey {
+                @Serializable
+                data object SelectSecuritiesDialog : NavKey
+            }
         }
     }
 }

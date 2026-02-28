@@ -7,6 +7,7 @@ import androidx.navigation3.scene.DialogSceneStrategy
 import ru.kima.sonar.common.ui.navigation.SharedViewModelStoreNavEntryDecorator
 import ru.kima.sonar.common.ui.navigation.toContentKey
 import ru.kima.sonar.feature.portfolios.ui.addentries.AddEntriesScreen
+import ru.kima.sonar.feature.portfolios.ui.addentries.SelectSecuritiesDialog
 import ru.kima.sonar.feature.portfolios.ui.details.PortfolioDetailsScreen
 import ru.kima.sonar.feature.portfolios.ui.list.CreatePortfolioDialog
 import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListScreen
@@ -31,5 +32,14 @@ fun EntryProviderScope<NavKey>.portfoliosNavGraph() {
         clazzContentKey = { key -> key.toContentKey() }
     ) { key ->
         AddEntriesScreen(key.portfolioId)
+    }
+
+    entry<PortfoliosGraph.List.Details.AddEntries.SelectSecuritiesDialog>(
+        metadata = DialogSceneStrategy.dialog(DialogProperties(dismissOnClickOutside = false))
+                + SharedViewModelStoreNavEntryDecorator.parent(
+            PortfoliosGraph.List.Details.AddEntries(0).toContentKey()
+        )
+    ) {
+        SelectSecuritiesDialog()
     }
 }

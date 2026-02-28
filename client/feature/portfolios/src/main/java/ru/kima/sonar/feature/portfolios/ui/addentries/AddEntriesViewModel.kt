@@ -1,6 +1,7 @@
 package ru.kima.sonar.feature.portfolios.ui.addentries
 
 import android.util.Log
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
@@ -19,13 +20,15 @@ import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
+import ru.kima.sonar.feature.portfolios.ui.addentries.event.SelectSecuritiesDialogUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddableSecurity
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.mapper.toAddableSecurity
-import ru.kima.sonar.feature.portfolios.ui.addentries.state.SelectSecurityDialogState
+import ru.kima.sonar.feature.portfolios.ui.addentries.state.SelectSecuritiesDialogState
 
 private const val TAG = "AddEntriesViewModel"
 
+@Stable
 internal class AddEntriesViewModel(
     private val portfolioId: Long,
     private val homeApiDataSource: HomeApiDataSource
@@ -41,6 +44,10 @@ internal class AddEntriesViewModel(
     }
 
     fun onEvent(event: AddEntriesUserEvent) {
+
+    }
+
+    fun onSelectDialogEvent(event: SelectSecuritiesDialogUserEvent) {
 
     }
 
@@ -71,7 +78,7 @@ internal class AddEntriesViewModel(
         selectDialogSecurities,
         selectDialogIsLoading
     ) { query, securities, isLoading ->
-        SelectSecurityDialogState(
+        SelectSecuritiesDialogState(
             query = query,
             entries = securities,
             isLoading = isLoading
@@ -79,7 +86,7 @@ internal class AddEntriesViewModel(
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        SelectSecurityDialogState.default()
+        SelectSecuritiesDialogState.default()
     )
 
     private suspend fun loadSelectDialog() = coroutineScope {
