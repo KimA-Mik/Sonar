@@ -34,7 +34,10 @@ fun BasicDialog(
     shape = RoundedCornerShape(28.dp),
     color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
-    Column(modifier = Modifier.padding(24.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(24.dp)
+    ) {
         icon?.let {
             Box(
                 modifier = Modifier
@@ -70,7 +73,11 @@ fun BasicDialog(
             MaterialTheme.colorScheme.onSurfaceVariant,
             MaterialTheme.typography.bodyMedium
         ) {
+            Box(
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
             body()
+        }
         }
 
         actions?.let {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_cancel">Отменить</string>
+    <string name="action_confirm">Принять</string>
     <string name="action_bar_up_description">Назад</string>
     <string name="action_reset">Сбросить</string>
     <string name="action_search">Искать</string>
