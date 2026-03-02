@@ -25,6 +25,10 @@ val LocalNumberFormat = compositionLocalWithComputedDefaultOf<NumberFormat> {
     NumberFormat.getInstance(Locale.getDefault())
 }
 
+val LocalDecimalFormatter = compositionLocalWithComputedDefaultOf<DecimalFormatter> {
+    DecimalFormatter()
+}
+
 @Composable
 fun ProvideContentColorTextStyle(
     contentColor: Color,

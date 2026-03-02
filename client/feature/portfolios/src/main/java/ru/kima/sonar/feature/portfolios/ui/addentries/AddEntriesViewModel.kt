@@ -1,5 +1,6 @@
 package ru.kima.sonar.feature.portfolios.ui.addentries
 
+import android.icu.text.NumberFormat
 import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,10 +21,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.util.SonarEvent
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
+import ru.kima.sonar.common.util.validBigDecimal
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
@@ -41,9 +45,15 @@ internal class AddEntriesViewModel(
     private val portfolioId: Long,
     private val homeApiDataSource: HomeApiDataSource
 ) : ViewModel() {
-    private val isLoading = MutableStateFlow(false)
-    private val wasError = MutableStateFlow(false)
     private val selectedEntries = MutableStateFlow(persistentListOf<EditableEntry>())
+    private val isLoading = MutableStateFlow(false)
+    private val networkError = MutableStateFlow(false)
+    private val inputError =
+        selectedEntries.map { entries -> entries.any { it.highPriceError || it.lowPriceError } }
+    private val wasError = combine(networkError, inputError) { networkError, inputError ->
+        networkError || inputError
+    }
+
     val state = combine(
         isLoading,
         wasError,
@@ -68,6 +78,12 @@ internal class AddEntriesViewModel(
     fun onEvent(event: AddEntriesUserEvent) {
         when (event) {
             AddEntriesUserEvent.OpenSelectSecuritiesDialogClicked -> onOpenSelectSecuritiesDialogClicked()
+            is AddEntriesUserEvent.ExpandClicked -> onExpandClicked(event.uid)
+            is AddEntriesUserEvent.UpdateHighPrice -> onUpdateHighPrice(event.uid, event.price)
+            is AddEntriesUserEvent.UpdateLowPrice -> onUpdateLowPrice(event.uid, event.price)
+            is AddEntriesUserEvent.NoteUpdated -> onUpdateNote(event.uid, event.note)
+            is AddEntriesUserEvent.RemoveEntryClicked -> onRemoveEntry(event.uid)
+            AddEntriesUserEvent.SaveChangesClicked -> onSaveChangesClicked()
         }
     }
 
@@ -81,6 +97,11 @@ internal class AddEntriesViewModel(
         }
     }
 
+    private var nf: NumberFormat = NumberFormat.getInstance()
+    fun setNumberFormatter(nf: NumberFormat) {
+        this.nf = nf
+    }
+
     private fun refresh() {
         viewModelScope.launch {
             isLoading.value = true
@@ -90,9 +111,9 @@ internal class AddEntriesViewModel(
                 res.data.entries.forEach {
                     currentEntries.add(it.uid)
                 }
-                wasError.value = false
+                networkError.value = false
             } else {
-                wasError.value = true
+                networkError.value = true
                 Log.e(TAG, "Failed to load portfolio details: ${res.data}")
             }
             isLoading.value = false
@@ -162,14 +183,14 @@ internal class AddEntriesViewModel(
 
             val shares = sharesRes.await()
             if (shares.isError()) {
-                wasError.value = true
+                networkError.value = true
                 Log.e(TAG, "Unable to load shares: ${shares.data}")
                 return@coroutineScope
             }
 
             val futures = futuresRes.await()
             if (futures.isError()) {
-                wasError.value = true
+                networkError.value = true
                 Log.e(TAG, "Unable to load futures: ${futures.data}")
                 return@coroutineScope
             }
@@ -183,12 +204,91 @@ internal class AddEntriesViewModel(
         }
     }
 
+    //Main actions
     private fun onOpenSelectSecuritiesDialogClicked() = viewModelScope.launch {
         loadSelectDialog()
         selectDialogQuery.value = ""
         selectDialogAdditions.clear()
         selectDialogRemovals.clear()
         _uiEvents.value = SonarEvent(AddEntriesUiEvent.OpenSelectSecuritiesDialog)
+    }
+    private fun onExpandClicked(uid: String) {
+        updateEntry(uid) {
+            it.copy(expanded = !it.expanded)
+        }
+    }
+
+    private fun onUpdateHighPrice(uid: String, price: String) {
+        updateEntry(uid) {
+            it.copy(
+                highPrice = price,
+                highPriceError = validBigDecimal(price)
+            )
+        }
+    }
+
+    private fun onUpdateLowPrice(uid: String, price: String) {
+        updateEntry(uid) {
+            it.copy(
+                lowPrice = price,
+                lowPriceError = validBigDecimal(price)
+            )
+        }
+    }
+
+    private fun onUpdateNote(uid: String, note: String) {
+        updateEntry(uid) {
+            it.copy(
+                note = if (note.length > NOTE_LENGTH) note.take(NOTE_LENGTH) else note
+            )
+        }
+    }
+
+    private fun onRemoveEntry(uid: String) {
+        val securities = selectedEntries.value.toMutableList()
+        val index = securities.indexOfFirst { it.uid == uid }
+        if (index < 0) return
+
+        securities.removeAt(index)
+        selectedEntries.value = securities.toPersistentList()
+    }
+
+    private fun onSaveChangesClicked() = viewModelScope.launch {
+        if (state.value.wasError) return@launch
+        coroutineScope {
+            val securities = selectedEntries.value
+            val deferred = securities.map { security ->
+                async(Dispatchers.IO) {
+                    homeApiDataSource.addEntry(
+                        portfolioId = portfolioId,
+                        name = security.ticker,
+                        securityUid = security.uid,
+                        lowPrice = BigDecimal(security.lowPrice.replace(',', '.')),
+                        highPrice = BigDecimal(security.highPrice.replace(',', '.')),
+                        note = security.note,
+                    )
+                }
+            }
+
+            try {
+                deferred.awaitAll()
+            } catch (e: Exception) {
+                Log.d(TAG, "Unable to upload securities because of $e")
+            } finally {
+                //TODO: make batch create. It's stupid this way
+                _uiEvents.value = SonarEvent(AddEntriesUiEvent.PopBack)
+            }
+        }
+    }
+
+    private fun updateEntry(uid: String, action: (EditableEntry) -> EditableEntry): Boolean {
+        val securities = selectedEntries.value.toMutableList()
+        val index = securities.indexOfFirst { it.uid == uid }
+        if (index < 0) return false
+
+        securities[index] = action(securities[index])
+        selectedEntries.value = securities.toPersistentList()
+        return true
     }
 
     //Dialog Actions
@@ -210,8 +310,10 @@ internal class AddEntriesViewModel(
                 uid = security.uid,
                 ticker = security.ticker,
                 price = security.price,
-                lowPrice = security.price - priceDeviation,
-                highPrice = security.price + priceDeviation,
+                lowPrice = nf.format(security.price - priceDeviation),
+                lowPriceError = false,
+                highPrice = nf.format(security.price + priceDeviation),
+                highPriceError = false,
                 expanded = true,
                 note = ""
             )
