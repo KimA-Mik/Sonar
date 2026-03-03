@@ -49,7 +49,9 @@ import ru.kima.sonar.feature.portfolios.ui.list.state.PortfolioListState
 private const val TAG = "PortfoliosListScreen"
 
 @Composable
-internal fun PortfoliosListScreen() {
+internal fun PortfoliosListScreen(
+    bottomBar: @Composable () -> Unit
+) {
     val viewModel: PortfoliosListViewModel = koinViewModel()
 
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -58,7 +60,8 @@ internal fun PortfoliosListScreen() {
         state = state,
         uiEvent = uiEvent,
         onEvent = viewModel::onEvent,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = bottomBar
     )
 }
 
@@ -68,7 +71,8 @@ private fun PortfoliosListScreenContent(
     state: PortfolioListState,
     uiEvent: SonarEvent<PortfolioListUiEvent>,
     onEvent: (PortfolioListEvent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    bottomBar: @Composable () -> Unit = {}
 ) {
     val resources = LocalResources.current
     val navigator = LocalNavigator.current
@@ -93,6 +97,7 @@ private fun PortfoliosListScreenContent(
                 scrollBehavior = scrollBehavior
             )
         },
+        bottomBar = bottomBar,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = { onEvent(PortfolioListEvent.CreatePortfolioClicked) }) {
