@@ -8,4 +8,9 @@
     <string name="error_blank_portfolio_name">Blank name</string>
     <string name="content_description_add_securities">Add securities</string>
     <string name="label_ticker">Ticker</string>
+    <string name="label_bid_price">Bid price</string>
+    <string name="label_sell_price">Sell price</string>
+    <string name="label_note">Note</string>
+    <string name="tittle_last_price">Last price</string>
+    <string name="tittle_add_securities">Add securities</string>
 </resources>

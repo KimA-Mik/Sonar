@@ -119,7 +119,9 @@ private fun SelectSecuritiesDialogContent(
                             AddableEntry(
                                 it,
                                 onEvent = onEvent,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem()
                             )
                         }
                     }
@@ -127,6 +129,7 @@ private fun SelectSecuritiesDialogContent(
             }
         })
 }
+
 @Composable
 private fun AddableEntry(
     security: AddableSecurity,

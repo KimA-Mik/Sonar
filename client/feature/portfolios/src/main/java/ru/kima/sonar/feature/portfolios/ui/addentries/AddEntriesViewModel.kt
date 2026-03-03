@@ -1,5 +1,6 @@
 package ru.kima.sonar.feature.portfolios.ui.addentries
 
+import android.icu.text.DecimalFormatSymbols
 import android.icu.text.NumberFormat
 import android.util.Log
 import androidx.compose.runtime.Stable
@@ -22,11 +23,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
+import ru.kima.sonar.common.ui.util.DecimalFormatter
 import ru.kima.sonar.common.ui.util.SonarEvent
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
-import ru.kima.sonar.common.util.validBigDecimal
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
@@ -45,6 +46,7 @@ internal class AddEntriesViewModel(
     private val portfolioId: Long,
     private val homeApiDataSource: HomeApiDataSource
 ) : ViewModel() {
+    private val decimalFormatter = DecimalFormatter()
     private val selectedEntries = MutableStateFlow(persistentListOf<EditableEntry>())
     private val isLoading = MutableStateFlow(false)
     private val networkError = MutableStateFlow(false)
@@ -122,6 +124,7 @@ internal class AddEntriesViewModel(
 
     private val selectDialogAdditions = mutableMapOf<String, AddableSecurity>()
     private val selectDialogRemovals = mutableSetOf<String>()
+
     //Select dialog state
     private val selectDialogQuery = MutableStateFlow("")
     private val selectDialogSecurities = MutableStateFlow(persistentListOf<AddableSecurity>())
@@ -148,8 +151,10 @@ internal class AddEntriesViewModel(
         SharingStarted.WhileSubscribed(5000),
         SelectSecuritiesDialogState.default()
     )
+
     private suspend fun loadSelectDialog() = coroutineScope {
         try {
+            selectDialogIsLoading.value = true
             val sharesRes = async(Dispatchers.Default) {
                 homeApiDataSource.tradableShares()
                     .first()
@@ -212,6 +217,7 @@ internal class AddEntriesViewModel(
         selectDialogRemovals.clear()
         _uiEvents.value = SonarEvent(AddEntriesUiEvent.OpenSelectSecuritiesDialog)
     }
+
     private fun onExpandClicked(uid: String) {
         updateEntry(uid) {
             it.copy(expanded = !it.expanded)
@@ -219,19 +225,21 @@ internal class AddEntriesViewModel(
     }
 
     private fun onUpdateHighPrice(uid: String, price: String) {
+        val cleanedPrice = decimalFormatter.cleanup(price)
         updateEntry(uid) {
             it.copy(
-                highPrice = price,
-                highPriceError = validBigDecimal(price)
+                highPrice = cleanedPrice,
+//                highPriceError = validBigDecimal(cleanedPrice)
             )
         }
     }
 
     private fun onUpdateLowPrice(uid: String, price: String) {
+        val cleanedPrice = decimalFormatter.cleanup(price)
         updateEntry(uid) {
             it.copy(
-                lowPrice = price,
-                lowPriceError = validBigDecimal(price)
+                lowPrice = cleanedPrice,
+//                lowPriceError = validBigDecimal(cleanedPrice)
             )
         }
     }
@@ -256,15 +264,24 @@ internal class AddEntriesViewModel(
     private fun onSaveChangesClicked() = viewModelScope.launch {
         if (state.value.wasError) return@launch
         coroutineScope {
+            val symbols: DecimalFormatSymbols = DecimalFormatSymbols.getInstance()
+            val decimalSeparator = symbols.decimalSeparator
             val securities = selectedEntries.value
             val deferred = securities.map { security ->
                 async(Dispatchers.IO) {
+                    val lowPrice = if (security.lowPrice.isBlank()) {
+                        BigDecimal.ZERO
+                    } else {
+                        BigDecimal(security.lowPrice.replace(decimalSeparator, '.'))
+                    }
+                    val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
+                    else BigDecimal(security.highPrice.replace(decimalSeparator, '.'))
                     homeApiDataSource.addEntry(
                         portfolioId = portfolioId,
                         name = security.ticker,
                         securityUid = security.uid,
-                        lowPrice = BigDecimal(security.lowPrice.replace(',', '.')),
-                        highPrice = BigDecimal(security.highPrice.replace(',', '.')),
+                        lowPrice = lowPrice,
+                        highPrice = highPrice,
                         note = security.note,
                     )
                 }

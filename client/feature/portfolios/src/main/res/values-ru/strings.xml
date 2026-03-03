@@ -8,4 +8,9 @@
     <string name="error_blank_portfolio_name">Пустое имя</string>
     <string name="content_description_add_securities">Добавить бумаги</string>
     <string name="label_ticker">Тикер</string>
+    <string name="label_bid_price">Цена покупки</string>
+    <string name="label_sell_price">Цена продажи</string>
+    <string name="label_note">Заметка</string>
+    <string name="tittle_last_price">Последняя цена</string>
+    <string name="tittle_add_securities">Добавить бумаги</string>
 </resources>

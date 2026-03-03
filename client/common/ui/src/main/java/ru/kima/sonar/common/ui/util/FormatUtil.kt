@@ -7,8 +7,8 @@ class DecimalFormatter(
     symbols: DecimalFormatSymbols = DecimalFormatSymbols.getInstance()
 ) {
 
-    private val thousandsSeparator = symbols.groupingSeparator
-    private val decimalSeparator = symbols.decimalSeparator
+    val thousandsSeparator = symbols.groupingSeparator
+    val decimalSeparator = symbols.decimalSeparator
 
     fun cleanup(input: String): String {
 
