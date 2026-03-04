@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import ru.kima.sonar.common.ui.event.LocalResultEventBus
 import ru.kima.sonar.common.ui.navigation.NavigationState
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.navigation.rememberNavigationState
@@ -63,7 +64,8 @@ fun ApplicationScreen(authorised: Boolean) {
 
     CompositionLocalProvider(
         LocalNavigator provides navigator,
-        LocalSnackbarHostState provides snackbarHostState
+        LocalSnackbarHostState provides snackbarHostState,
+        LocalResultEventBus provides SonarApplication.resultEventBus
     ) {
         val sceneStrategy = remember { DialogSceneStrategy<NavKey>() }
         NavDisplay(

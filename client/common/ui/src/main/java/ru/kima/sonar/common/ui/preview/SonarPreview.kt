@@ -7,6 +7,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import ru.kima.sonar.common.ui.event.LocalResultEventBus
+import ru.kima.sonar.common.ui.event.ResultEventBus
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.navigation.rememberNavigationState
 import ru.kima.sonar.common.ui.theme.SonarTheme
@@ -27,7 +29,8 @@ fun SonarPreview(
     val navigationState = rememberNavigationState(DummyNavKey, setOf(DummyNavKey))
     CompositionLocalProvider(
         LocalNavigator provides remember { Navigator(navigationState) },
-        LocalSnackbarHostState provides remember { SnackbarHostState() }
+        LocalSnackbarHostState provides remember { SnackbarHostState() },
+        LocalResultEventBus provides remember { ResultEventBus() }
     ) {
         SonarTheme(
             darkTheme = darkTheme,

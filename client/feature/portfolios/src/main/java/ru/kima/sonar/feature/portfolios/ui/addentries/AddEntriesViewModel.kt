@@ -23,8 +23,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
+import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
-import ru.kima.sonar.common.ui.util.SonarEvent
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map

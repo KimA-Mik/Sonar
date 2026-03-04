@@ -53,13 +53,13 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
+import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
-import ru.kima.sonar.common.ui.util.SonarEvent
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsUiEvent

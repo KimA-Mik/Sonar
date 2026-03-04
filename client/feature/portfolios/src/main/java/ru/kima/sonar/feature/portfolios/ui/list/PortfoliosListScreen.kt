@@ -33,11 +33,11 @@ import kotlinx.collections.immutable.persistentListOf
 import org.koin.androidx.compose.koinViewModel
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
+import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
-import ru.kima.sonar.common.ui.util.SonarEvent
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListEvent

@@ -1,5 +1,8 @@
-package ru.kima.sonar.common.ui.util
+package ru.kima.sonar.common.ui.event
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class SonarEvent<T>(
     val data: T? = null
 ) {
