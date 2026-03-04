@@ -200,8 +200,9 @@ internal class AddEntriesViewModel(
                 return@coroutineScope
             }
 
-            selectDialogSecurities.value =
-                (shares.data + futures.data).sortedBy { it.ticker }.toPersistentList()
+            selectDialogSecurities.value = (shares.data + futures.data)
+                .filter { !currentEntries.contains(it.uid) }
+                .sortedBy { it.ticker }.toPersistentList()
         } catch (e: Exception) {
             Log.e(TAG, "Unable to load select dialog: ${e.message}")
         } finally {
