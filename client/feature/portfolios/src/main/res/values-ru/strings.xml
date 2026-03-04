@@ -14,4 +14,6 @@
     <string name="tittle_last_price">Последняя цена</string>
     <string name="tittle_add_securities">Добавить бумаги</string>
     <string name="dialog_title_delete_entry">Удалить %1$s?</string>
+    <string name="label_entry_low_price">Н: %1$s</string>
+    <string name="label_entry_high_price">В: %1$s</string>
 </resources>

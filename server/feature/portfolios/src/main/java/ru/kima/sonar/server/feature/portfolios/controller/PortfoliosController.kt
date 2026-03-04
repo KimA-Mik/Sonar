@@ -111,6 +111,19 @@ internal class PortfoliosController(
         }
     }
 
+    suspend fun getPortfolioEntry(call: RoutingCall, entryId: Long) {
+        val user = call.getUserOrISE { return }
+        val entry = when (val res = portfoliosDataSource.getEntryById(entryId)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                call.handleUserDataError(res.data)
+                return
+            }
+        }
+        call.returnIfNotOwn(user.id, entry.portfolioId) { return }
+        call.respond(entry.toDto(getCurrentPrices()[entry.securityUid] ?: BigDecimal.ZERO))
+    }
+
     suspend fun addEntry(call: RoutingCall, portfolioId: Long) {
         val user = call.getUserOrISE { return }
         call.returnIfNotOwn(user.id, portfolioId) { return }
@@ -192,8 +205,8 @@ internal class PortfoliosController(
         val shares = marketDataRepository.tradableShares().first()
         val futures = marketDataRepository.tradableFutures().first()
         return buildMap(shares.size + futures.size) {
-            shares.forEach { put(it.ticker, it.price) }
-            futures.forEach { put(it.ticker, it.price) }
+            shares.forEach { put(it.uid, it.price) }
+            futures.forEach { put(it.uid, it.price) }
         }
     }
 

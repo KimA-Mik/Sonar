@@ -20,6 +20,7 @@ fun Application.portfoliosRoute() = routing {
         get<PortfoliosRoute.Portfolio> { controller.getPortfolio(call, it.id) }
         put<PortfoliosRoute.Portfolio.Update> { controller.updatePortfolio(call, it.parent.id) }
         delete<PortfoliosRoute.Portfolio.Delete> { controller.deletePortfolio(call, it.parent.id) }
+        get<PortfoliosRoute.Entry> { controller.getPortfolioEntry(call, it.id) }
         post<PortfoliosRoute.Portfolio.AddEntry> { controller.addEntry(call, it.parent.id) }
         put<PortfoliosRoute.Entry.Update> { controller.updateEntry(call, it.parent.id) }
         delete<PortfoliosRoute.Entry.Delete> { controller.deleteEntry(call, it.parent.id) }

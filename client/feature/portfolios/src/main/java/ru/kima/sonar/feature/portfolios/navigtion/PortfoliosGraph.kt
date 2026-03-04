@@ -15,6 +15,9 @@ object PortfoliosGraph {
             data object DeleteEntryDialog : NavKey
 
             @Serializable
+            data class EditEntryDialog(val entryId: Long) : NavKey
+
+            @Serializable
             data class AddEntries(val portfolioId: Long) : NavKey {
                 @Serializable
                 data object SelectSecuritiesDialog : NavKey

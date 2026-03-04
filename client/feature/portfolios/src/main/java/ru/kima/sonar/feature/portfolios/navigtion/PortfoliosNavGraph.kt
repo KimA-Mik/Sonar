@@ -10,6 +10,7 @@ import ru.kima.sonar.common.ui.navigation.toContentKey
 import ru.kima.sonar.feature.portfolios.ui.addentries.AddEntriesScreen
 import ru.kima.sonar.feature.portfolios.ui.addentries.SelectSecuritiesDialog
 import ru.kima.sonar.feature.portfolios.ui.details.DeleteEntryDialog
+import ru.kima.sonar.feature.portfolios.ui.details.EditEntryDialog
 import ru.kima.sonar.feature.portfolios.ui.details.PortfolioDetailsScreen
 import ru.kima.sonar.feature.portfolios.ui.list.CreatePortfolioDialog
 import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListScreen
@@ -39,6 +40,14 @@ fun EntryProviderScope<NavKey>.portfoliosNavGraph(
         )
     ) {
         DeleteEntryDialog()
+    }
+
+    entry<PortfoliosGraph.List.Details.EditEntryDialog>(
+        metadata = DialogSceneStrategy.dialog(
+            dialogProperties = DialogProperties(dismissOnClickOutside = false)
+        )
+    ) { key ->
+        EditEntryDialog(key.entryId)
     }
 
     entry<PortfoliosGraph.List.Details.AddEntries>(

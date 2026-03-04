@@ -1,5 +1,8 @@
 package ru.kima.sonar.common.ui.util
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
 
 
@@ -47,4 +50,10 @@ class DecimalFormatter(
 
         return if (fractionPart == null) intPart else intPart + decimalSeparator + fractionPart
     }
+}
+
+@Composable
+fun formatBigDecimal(bigDecimal: BigDecimal): String {
+    val nf = LocalNumberFormat.current
+    return remember(bigDecimal) { nf.format(bigDecimal) }
 }

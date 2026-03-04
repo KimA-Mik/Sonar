@@ -53,15 +53,19 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
+import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
+import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
+import ru.kima.sonar.common.ui.util.formatBigDecimal
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
+import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsResultEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsUiEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsUserEvent
 import ru.kima.sonar.feature.portfolios.ui.details.model.DisplayItemEntry
@@ -99,17 +103,8 @@ private fun PortfolioDetailsScreenContent(
     val snackbarHostState = LocalSnackbarHostState.current
     val navigator = LocalNavigator.current
 
-    LaunchedEffect(uiEvent) {
-        uiEvent.consume { event ->
-            when (event) {
-                is PortfolioDetailsUiEvent.OpenAddEntriesScreen ->
-                    navigator.navigate(PortfoliosGraph.List.Details.AddEntries(event.portfolioId))
-
-                PortfolioDetailsUiEvent.OpenDeleteEntryDialog ->
-                    navigator.navigate(PortfoliosGraph.List.Details.DeleteEntryDialog)
-            }
-        }
-    }
+    LaunchedEffect(uiEvent) { consumeEvent(uiEvent, navigator) }
+    ResultEffect<PortfolioDetailsResultEvent> { consumeResultEvent(it, onEvent) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
@@ -163,7 +158,7 @@ internal fun PortfolioDetailsScreenBody(
         persistentListOf(
             DropdownMenuIte(
                 text = CommonStrings.action_edit,
-                onClick = { entryUid -> }
+                onClick = { onEvent(PortfolioDetailsUserEvent.EditEntryButtonClicked(it)) }
             ),
             DropdownMenuIte(
                 text = CommonStrings.action_delete,
@@ -226,14 +221,20 @@ private fun EntryItem(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "L: ${numberFormat.format(entry.lowPrice)}",
+                        text = stringResource(
+                            R.string.label_entry_low_price,
+                            formatBigDecimal(entry.lowPrice)
+                        ),
                         style = MaterialTheme.typography.bodySmall
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "H: ${numberFormat.format(entry.highPrice)}",
+                        text = stringResource(
+                            R.string.label_entry_high_price,
+                            formatBigDecimal(entry.highPrice)
+                        ),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -257,6 +258,33 @@ private fun EntryItem(
                 )
             }
         }
+    }
+}
+
+private fun consumeEvent(
+    uiEvent: SonarEvent<PortfolioDetailsUiEvent>,
+    navigator: Navigator,
+) {
+    uiEvent.consume { event ->
+        when (event) {
+            is PortfolioDetailsUiEvent.OpenAddEntriesScreen ->
+                navigator.navigate(PortfoliosGraph.List.Details.AddEntries(event.portfolioId))
+
+            PortfolioDetailsUiEvent.OpenDeleteEntryDialog ->
+                navigator.navigate(PortfoliosGraph.List.Details.DeleteEntryDialog)
+
+            is PortfolioDetailsUiEvent.OpenEditEntryDialog ->
+                navigator.navigate(PortfoliosGraph.List.Details.EditEntryDialog(event.entryId))
+        }
+    }
+}
+
+private fun consumeResultEvent(
+    result: PortfolioDetailsResultEvent,
+    onEvent: (PortfolioDetailsUserEvent) -> Unit
+) {
+    when (result) {
+        PortfolioDetailsResultEvent.EntryUpdated -> onEvent(PortfolioDetailsUserEvent.Refresh)
     }
 }
 

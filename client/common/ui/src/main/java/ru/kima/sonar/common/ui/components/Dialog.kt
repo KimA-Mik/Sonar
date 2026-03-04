@@ -76,8 +76,8 @@ fun BasicDialog(
             Box(
                 modifier = Modifier.weight(1f, fill = false)
             ) {
-            body()
-        }
+                body()
+            }
         }
 
         actions?.let {

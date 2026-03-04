@@ -14,4 +14,6 @@
     <string name="tittle_last_price">Last price</string>
     <string name="tittle_add_securities">Add securities</string>
     <string name="dialog_title_delete_entry">Delete %1$s?</string>
+    <string name="label_entry_low_price">L: %1$s</string>
+    <string name="label_entry_high_price">H: %1$s</string>
 </resources>

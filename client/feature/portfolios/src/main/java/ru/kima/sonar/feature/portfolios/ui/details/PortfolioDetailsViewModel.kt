@@ -120,7 +120,9 @@ internal class PortfolioDetailsViewModel(
     }
 
     private fun onEditEntryButtonClicked(entryUid: String) {
-
+        entries.value.firstOrNull { it.uid == entryUid }?.id?.let { id ->
+            _uiEvents.value = SonarEvent(PortfolioDetailsUiEvent.OpenEditEntryDialog(id))
+        }
     }
 
     private fun onRefresh() = refresh()
