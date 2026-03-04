@@ -273,10 +273,21 @@ internal class AddEntriesViewModel(
                     val lowPrice = if (security.lowPrice.isBlank()) {
                         BigDecimal.ZERO
                     } else {
-                        BigDecimal(security.lowPrice.replace(decimalSeparator, '.'))
+                        BigDecimal(
+                            security.lowPrice
+                                .replace(decimalSeparator, '.')
+                                .replace(" ", "")
+                        )
                     }
-                    val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
-                    else BigDecimal(security.highPrice.replace(decimalSeparator, '.'))
+                    val highPrice = if (security.highPrice.isBlank()) {
+                        BigDecimal.ZERO
+                    } else {
+                        BigDecimal(
+                            security.highPrice
+                                .replace(decimalSeparator, '.')
+                                .replace(" ", "")
+                        )
+                    }
                     homeApiDataSource.addEntry(
                         portfolioId = portfolioId,
                         name = security.ticker,
