@@ -37,6 +37,11 @@ internal class PortfolioDetailsViewModel(
         refresh()
     }
 
+    private var uidToDelete: String? = null
+    private val _deleteDialogTicker = MutableStateFlow<String?>(null)
+    val deleteDialogTicker = _deleteDialogTicker.asStateFlow()
+
+
     val state = combine(
         name,
         entries,
@@ -61,6 +66,25 @@ internal class PortfolioDetailsViewModel(
     fun onEvent(event: PortfolioDetailsUserEvent) {
         when (event) {
             PortfolioDetailsUserEvent.AddEntriesButtonClicked -> onAddEntriesButtonClicked()
+            is PortfolioDetailsUserEvent.DeleteEntryButtonClicked ->
+                onDeleteEntryButtonClicked(event.entryUid)
+
+            is PortfolioDetailsUserEvent.EditEntryButtonClicked -> onEditEntryButtonClicked(event.entryUid)
+            PortfolioDetailsUserEvent.Refresh -> onRefresh()
+        }
+    }
+
+    fun acceptDeleteEntry() {
+        uidToDelete?.let { entryUid ->
+            viewModelScope.launch {
+                val entry = entries.value.firstOrNull { it.uid == entryUid } ?: return@launch
+                val res = homeApiDataSource.deleteEntry(entry.id)
+                if (res.isSuccess()) {
+                    refresh()
+                } else {
+                    Log.e(TAG, "Failed to delete entry: ${res.data}")
+                }
+            }
         }
     }
 
@@ -87,5 +111,17 @@ internal class PortfolioDetailsViewModel(
         }
     }
 
+    private fun onDeleteEntryButtonClicked(entryUid: String) {
+        uidToDelete = entryUid
+        entries.value.firstOrNull { it.uid == entryUid }?.name?.let { ticker ->
+            _deleteDialogTicker.value = ticker
+            _uiEvents.value = SonarEvent(PortfolioDetailsUiEvent.OpenDeleteEntryDialog)
+        }
+    }
 
+    private fun onEditEntryButtonClicked(entryUid: String) {
+
+    }
+
+    private fun onRefresh() = refresh()
 }

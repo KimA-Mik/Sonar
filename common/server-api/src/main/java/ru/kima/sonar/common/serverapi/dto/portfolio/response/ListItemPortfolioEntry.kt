@@ -11,4 +11,5 @@ data class ListItemPortfolioEntry(
     val price: BigDecimalJson,
     val lowPrice: BigDecimalJson,
     val highPrice: BigDecimalJson,
+    val note: String
 )

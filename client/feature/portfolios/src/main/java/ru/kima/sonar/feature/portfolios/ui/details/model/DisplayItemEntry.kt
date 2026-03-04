@@ -11,4 +11,6 @@ internal data class DisplayItemEntry(
     val price: BigDecimal,
     val lowPrice: BigDecimal,
     val highPrice: BigDecimal,
+    val note: String,
+    val showNote: Boolean
 )
