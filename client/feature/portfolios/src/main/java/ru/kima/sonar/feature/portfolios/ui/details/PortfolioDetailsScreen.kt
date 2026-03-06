@@ -17,27 +17,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -53,11 +45,12 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
+import ru.kima.sonar.common.ui.components.SonarMenu
+import ru.kima.sonar.common.ui.components.SonarMenuItem
 import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
-import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
@@ -156,18 +149,7 @@ internal fun PortfolioDetailsScreenBody(
     modifier = modifier.fillMaxSize(),
     onRefresh = { onEvent(PortfolioDetailsUserEvent.Refresh) }
 ) {
-    val dropdownMenuItems = remember(onEvent) {
-        persistentListOf(
-            DropdownMenuIte(
-                text = CommonStrings.action_edit,
-                onClick = { onEvent(PortfolioDetailsUserEvent.EditEntryButtonClicked(it)) }
-            ),
-            DropdownMenuIte(
-                text = CommonStrings.action_delete,
-                onClick = { onEvent(PortfolioDetailsUserEvent.DeleteEntryButtonClicked(it)) }
-            )
-        )
-    }
+    val dropdownMenuItems = rememberMenuItems(onEvent)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -186,11 +168,28 @@ internal fun PortfolioDetailsScreenBody(
     }
 }
 
+@Composable
+private fun rememberMenuItems(
+    onEvent: (PortfolioDetailsUserEvent) -> Unit
+) = remember(onEvent) {
+    persistentListOf<SonarMenuItem<String>>(
+        SonarMenuItem(
+            title = CommonStrings.action_edit,
+            onClick = { onEvent(PortfolioDetailsUserEvent.EditEntryButtonClicked(it)) }
+        ),
+        SonarMenuItem(
+            title = CommonStrings.action_delete,
+            onClick = { onEvent(PortfolioDetailsUserEvent.DeleteEntryButtonClicked(it)) }
+        )
+    )
+
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EntryItem(
     entry: DisplayItemEntry,
-    dropdownMenuItems: ImmutableList<DropdownMenuIte>,
+    dropdownMenuItems: ImmutableList<SonarMenuItem<String>>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -254,8 +253,8 @@ private fun EntryItem(
 
             // Right column for optional actions / summary
             Box {
-                DropdownMenu(
-                    entryUid = entry.uid,
+                SonarMenu(
+                    input = entry.uid,
                     items = dropdownMenuItems
                 )
             }
@@ -296,48 +295,6 @@ private fun consumeAddEntriesResultEvent(
 ) {
     when (result) {
         AddEntriesResultEvent.Success -> onEvent(PortfolioDetailsUserEvent.Refresh)
-    }
-}
-
-@Immutable
-private data class DropdownMenuIte(
-    val text: Int,
-    val onClick: (String) -> Unit
-)
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun DropdownMenu(
-    entryUid: String,
-    items: ImmutableList<DropdownMenuIte>,
-    modifier: Modifier = Modifier
-) = Box(
-    modifier = modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    IconButton(onClick = { expanded = true }) {
-        Icon(
-            painter = painterResource(CommonDrawables.more_vert_24px),
-            contentDescription = null
-        )
-    }
-
-    DropdownMenuPopup(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
-    ) {
-        DropdownMenuGroup(
-            shapes = MenuDefaults.groupShape(1, items.size)
-        ) {
-            items.forEach { item ->
-                DropdownMenuItem(
-                    text = {
-                        Text(stringResource(item.text))
-                    },
-                    onClick = { item.onClick(entryUid) },
-                )
-            }
-        }
     }
 }
 
