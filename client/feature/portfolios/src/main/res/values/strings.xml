@@ -16,4 +16,6 @@
     <string name="dialog_title_delete_entry">Delete %1$s?</string>
     <string name="label_entry_low_price">L: %1$s</string>
     <string name="label_entry_high_price">H: %1$s</string>
+    <string name="title_delete_portfolio">Delete %1$s?</string>
+    <string name="label_error_delete_portfolio">An error occurred</string>
 </resources>

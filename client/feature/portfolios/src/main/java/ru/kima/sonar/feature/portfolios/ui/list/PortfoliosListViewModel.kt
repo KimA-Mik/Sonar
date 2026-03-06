@@ -81,6 +81,7 @@ internal class PortfoliosListViewModel(
             PortfolioListEvent.AcceptNewPortfolioDialog -> onAcceptNewPortfolioDialog()
             PortfolioListEvent.DismissNewPortfolioDialog -> onDismissNewPortfolioDialog()
             is PortfolioListEvent.RenamePortfolioClicked -> onRenamePortfolioClicked(event.portfolioId)
+            is PortfolioListEvent.DeletePortfolioClicked -> onDeletePortfolioClicked(event.portfolioId)
             PortfolioListEvent.AcceptRenamePortfolioDialog -> onAcceptRenamePortfolioDialog()
             PortfolioListEvent.DismissRenamePortfolioDialog -> onDismissRenamePortfolioDialog()
             is PortfolioListEvent.UpdatePortfolioName -> onUpdatePortfolioName(event.name)
@@ -134,6 +135,10 @@ internal class PortfoliosListViewModel(
         createDialogValue.value = portfolio.name
         createDialogError.value = PortfolioNameDialogState.DialogError.NONE
         _uiEvents.value = SonarEvent(PortfolioListUiEvent.OpenRenamePortfolioDialog)
+    }
+
+    private fun onDeletePortfolioClicked(portfolioId: Long) {
+        _uiEvents.value = SonarEvent(PortfolioListUiEvent.OpenDeletePortfolioDialog(portfolioId))
     }
 
     private fun onAcceptRenamePortfolioDialog() = viewModelScope.launch {

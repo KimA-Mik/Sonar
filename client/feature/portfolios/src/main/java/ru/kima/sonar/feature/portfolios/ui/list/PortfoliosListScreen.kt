@@ -38,6 +38,7 @@ import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
 import ru.kima.sonar.common.ui.components.SonarMenu
 import ru.kima.sonar.common.ui.components.SonarMenuItem
+import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
@@ -46,7 +47,7 @@ import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
-import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph.List.Details
+import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListDialogResultEvent
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListEvent
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListUiEvent
 import ru.kima.sonar.feature.portfolios.ui.list.model.DisplayPortfolio
@@ -93,6 +94,8 @@ private fun PortfoliosListScreenContent(
         )
     }
 
+    ResultEffect<PortfolioListDialogResultEvent> { collectResultEvents(it, onEvent) }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = modifier,
@@ -137,13 +140,27 @@ private fun collectUiEvents(
             is PortfolioListUiEvent.OpenCreatePortfolioDialog -> navigator.navigate(PortfoliosGraph.List.CreatePortfolioDialog)
             PortfolioListUiEvent.DismissDialog -> navigator.goBack()
             is PortfolioListUiEvent.NavigateToPortfolioDetails -> navigator.navigate(
-                Details(event.portfolioId)
+                PortfoliosGraph.List.Details(event.portfolioId)
+            )
+
+            is PortfolioListUiEvent.OpenDeletePortfolioDialog -> navigator.navigate(
+                PortfoliosGraph.List.DeletePortfolioDialog(event.portfolioId)
             )
 
             PortfolioListUiEvent.OpenRenamePortfolioDialog -> navigator.navigate(
                 PortfoliosGraph.List.RenamePortfolioDialog
             )
+
         }
+    }
+}
+
+private fun collectResultEvents(
+    event: PortfolioListDialogResultEvent,
+    onEvent: (PortfolioListEvent) -> Unit
+) {
+    when (event) {
+        PortfolioListDialogResultEvent.Success -> onEvent(PortfolioListEvent.Refresh)
     }
 }
 
@@ -217,7 +234,7 @@ private fun rememberMenuItems(onEvent: (PortfolioListEvent) -> Unit) = remember(
         ),
         SonarMenuItem(
             title = CommonStrings.action_delete,
-            onClick = { portfolioId -> }
+            onClick = { onEvent(PortfolioListEvent.DeletePortfolioClicked(it)) }
         )
     )
 }

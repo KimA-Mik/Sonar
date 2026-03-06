@@ -1,4 +1,4 @@
-package ru.kima.sonar.feature.portfolios.ui.list
+package ru.kima.sonar.feature.portfolios.ui.list.dialog
 
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -10,32 +10,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import org.koin.androidx.compose.koinViewModel
 import ru.kima.sonar.common.ui.components.SonarAlertDialog
+import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.clearFocusOnSoftKeyboardHide
 import ru.kima.sonar.feature.portfolios.R
+import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListViewModel
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListEvent
 import ru.kima.sonar.feature.portfolios.ui.list.state.PortfolioNameDialogState
 
-private const val TAG = "CreatePortfolioDialog"
-
 @Composable
-internal fun CreatePortfolioDialog(modifier: Modifier = Modifier) {
+fun EditPortilloDialog(
+    modifier: Modifier = Modifier
+) {
     val viewModel: PortfoliosListViewModel = koinViewModel()
     val dialogState by viewModel.dialogState.collectAsState()
 
     SonarAlertDialog(
         confirmButton = {
             TextButton(
-                onClick = { viewModel.onEvent(PortfolioListEvent.AcceptNewPortfolioDialog) }
+                onClick = { viewModel.onEvent(PortfolioListEvent.AcceptRenamePortfolioDialog) }
             ) {
-                Text(stringResource(R.string.action_create_portfolio))
+                Text(stringResource(CommonStrings.action_confirm))
             }
         },
         modifier = modifier,
         dismissButton = {
             TextButton(
-                onClick = { viewModel.onEvent(PortfolioListEvent.DismissNewPortfolioDialog) }
+                onClick = { viewModel.onEvent(PortfolioListEvent.DismissRenamePortfolioDialog) }
             ) {
-                Text(stringResource(ru.kima.sonar.common.ui.R.string.action_cancel))
+                Text(stringResource(CommonStrings.action_cancel))
             }
         },
         text = {
@@ -53,8 +55,5 @@ internal fun CreatePortfolioDialog(modifier: Modifier = Modifier) {
                 }
             )
         },
-        title = {
-            Text(stringResource(R.string.title_create_portfolio))
-        }
     )
 }
