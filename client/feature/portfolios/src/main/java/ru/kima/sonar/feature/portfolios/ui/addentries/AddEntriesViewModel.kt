@@ -1,6 +1,5 @@
 package ru.kima.sonar.feature.portfolios.ui.addentries
 
-import android.icu.text.DecimalFormatSymbols
 import android.icu.text.NumberFormat
 import android.util.Log
 import androidx.compose.runtime.Stable
@@ -265,29 +264,15 @@ internal class AddEntriesViewModel(
     private fun onSaveChangesClicked() = viewModelScope.launch {
         if (state.value.wasError) return@launch
         coroutineScope {
-            val symbols: DecimalFormatSymbols = DecimalFormatSymbols.getInstance()
-            val decimalSeparator = symbols.decimalSeparator
             val securities = selectedEntries.value
             val deferred = securities.map { security ->
                 async(Dispatchers.IO) {
-                    val lowPrice = if (security.lowPrice.isBlank()) {
-                        BigDecimal.ZERO
-                    } else {
-                        BigDecimal(
-                            security.lowPrice
-                                .replace(decimalSeparator, '.')
-                                .replace(" ", "")
-                        )
-                    }
-                    val highPrice = if (security.highPrice.isBlank()) {
-                        BigDecimal.ZERO
-                    } else {
-                        BigDecimal(
-                            security.highPrice
-                                .replace(decimalSeparator, '.')
-                                .replace(" ", "")
-                        )
-                    }
+                    val lowPrice = if (security.lowPrice.isBlank()) BigDecimal.ZERO
+                    else decimalFormatter.parseToBigDecimal(security.lowPrice)
+
+                    val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
+                    else decimalFormatter.parseToBigDecimal(security.highPrice)
+
                     homeApiDataSource.addEntry(
                         portfolioId = portfolioId,
                         name = security.ticker,

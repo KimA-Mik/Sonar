@@ -50,6 +50,11 @@ class DecimalFormatter(
 
         return if (fractionPart == null) intPart else intPart + decimalSeparator + fractionPart
     }
+
+    fun parseToBigDecimal(input: String): BigDecimal {
+        val cleaned = cleanup(input).replace(decimalSeparator, '.')
+        return if (cleaned.isBlank()) BigDecimal.ZERO else BigDecimal(cleaned)
+    }
 }
 
 @Composable

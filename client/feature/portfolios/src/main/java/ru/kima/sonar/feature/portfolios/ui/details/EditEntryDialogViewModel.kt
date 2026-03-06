@@ -1,6 +1,5 @@
 package ru.kima.sonar.feature.portfolios.ui.details
 
-import android.icu.text.DecimalFormatSymbols
 import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
@@ -102,29 +101,13 @@ internal class EditEntryDialogViewModel(
     }
 
     private fun onApplyChangesClicked() {
-        val symbols: DecimalFormatSymbols = DecimalFormatSymbols.getInstance()
-        val decimalSeparator = symbols.decimalSeparator
         val lowPrice = savedStateHandle.get<String>(LOW_PRICE_KEY) ?: ""
         val highPrice = savedStateHandle.get<String>(HIGH_PRICE_KEY) ?: ""
-        val lowPriceBd = if (lowPrice.isBlank()) {
-            BigDecimal.ZERO
-        } else {
-            //TODO: factor out instead of copypasting
-            BigDecimal(
-                lowPrice
-                    .replace(decimalSeparator, '.')
-                    .replace(" ", "")
-            )
-        }
-        val highPriceBd = if (highPrice.isBlank()) {
-            BigDecimal.ZERO
-        } else {
-            BigDecimal(
-                highPrice
-                    .replace(decimalSeparator, '.')
-                    .replace(" ", "")
-            )
-        }
+        val lowPriceBd = if (lowPrice.isBlank()) BigDecimal.ZERO
+        else sonarFormatter.parseToBigDecimal(lowPrice)
+
+        val highPriceBd = if (highPrice.isBlank()) BigDecimal.ZERO
+        else sonarFormatter.parseToBigDecimal(highPrice)
 
         viewModelScope.launch {
             val res = homeApi.updateEntry(
