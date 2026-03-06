@@ -290,7 +290,7 @@ internal class AddEntriesViewModel(
                 Log.d(TAG, "Unable to upload securities because of $e")
             } finally {
                 //TODO: make batch create. It's stupid this way
-                _uiEvents.value = SonarEvent(AddEntriesUiEvent.PopBack)
+                _uiEvents.value = SonarEvent(AddEntriesUiEvent.PopBackSuccess)
             }
         }
     }

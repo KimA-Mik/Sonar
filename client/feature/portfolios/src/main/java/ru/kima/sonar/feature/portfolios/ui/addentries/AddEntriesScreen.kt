@@ -46,7 +46,10 @@ import kotlinx.collections.immutable.persistentListOf
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
+import ru.kima.sonar.common.ui.event.LocalResultEventBus
+import ru.kima.sonar.common.ui.event.ResultEventBus
 import ru.kima.sonar.common.ui.event.SonarEvent
+import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.LocalNavigator
@@ -54,6 +57,7 @@ import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
+import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesResultEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
@@ -95,16 +99,8 @@ private fun AddEntriesScreenContent(
 ) {
     val navigator = LocalNavigator.current
     val snackbarHostState = LocalSnackbarHostState.current
-    LaunchedEffect(uiEvent) {
-        uiEvent.consume { event ->
-            when (event) {
-                AddEntriesUiEvent.OpenSelectSecuritiesDialog ->
-                    navigator.navigate(PortfoliosGraph.List.Details.AddEntries.SelectSecuritiesDialog)
-
-                AddEntriesUiEvent.PopBack -> navigator.goBack()
-            }
-        }
-    }
+    val resultEventBus = LocalResultEventBus.current
+    LaunchedEffect(uiEvent) { consumeUiEvent(uiEvent, navigator, resultEventBus) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
@@ -161,6 +157,24 @@ private fun AddEntriesScreenContent(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         )
+    }
+}
+
+private fun consumeUiEvent(
+    uiEvent: SonarEvent<AddEntriesUiEvent>,
+    navigator: Navigator,
+    resultEventBus: ResultEventBus
+) {
+    uiEvent.consume { event ->
+        when (event) {
+            AddEntriesUiEvent.OpenSelectSecuritiesDialog ->
+                navigator.navigate(PortfoliosGraph.List.Details.AddEntries.SelectSecuritiesDialog)
+
+            AddEntriesUiEvent.PopBackSuccess -> {
+                resultEventBus.sendResult<AddEntriesResultEvent>(AddEntriesResultEvent.Success)
+                navigator.goBack()
+            }
+        }
     }
 }
 

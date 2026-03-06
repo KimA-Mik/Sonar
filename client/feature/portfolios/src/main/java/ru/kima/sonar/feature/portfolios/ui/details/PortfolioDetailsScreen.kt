@@ -65,6 +65,7 @@ import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.common.ui.util.formatBigDecimal
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
+import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesResultEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsResultEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsUiEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsUserEvent
@@ -105,6 +106,7 @@ private fun PortfolioDetailsScreenContent(
 
     LaunchedEffect(uiEvent) { consumeEvent(uiEvent, navigator) }
     ResultEffect<PortfolioDetailsResultEvent> { consumeResultEvent(it, onEvent) }
+    ResultEffect<AddEntriesResultEvent> { consumeAddEntriesResultEvent(it, onEvent) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
@@ -285,6 +287,15 @@ private fun consumeResultEvent(
 ) {
     when (result) {
         PortfolioDetailsResultEvent.EntryUpdated -> onEvent(PortfolioDetailsUserEvent.Refresh)
+    }
+}
+
+private fun consumeAddEntriesResultEvent(
+    result: AddEntriesResultEvent,
+    onEvent: (PortfolioDetailsUserEvent) -> Unit
+) {
+    when (result) {
+        AddEntriesResultEvent.Success -> onEvent(PortfolioDetailsUserEvent.Refresh)
     }
 }
 
