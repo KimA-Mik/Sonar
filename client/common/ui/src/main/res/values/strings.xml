@@ -3,6 +3,7 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_confirm">Confirm</string>
     <string name="action_edit">Edit</string>
+    <string name="action_rename">Rename</string>
     <string name="action_delete">Delete</string>
     <string name="action_bar_up_description">Navigate up</string>
     <string name="action_reset">Reset</string>

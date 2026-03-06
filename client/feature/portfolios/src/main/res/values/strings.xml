@@ -4,7 +4,7 @@
     <string name="action_create_portfolio_content_description">Create portfolio</string>
     <string name="action_create_portfolio">Create</string>
     <string name="title_create_portfolio">New portfolio</string>
-    <string name="label_new_portfolio">Name</string>
+    <string name="label_portfolio_name">Name</string>
     <string name="error_blank_portfolio_name">Blank name</string>
     <string name="content_description_add_securities">Add securities</string>
     <string name="label_ticker">Ticker</string>

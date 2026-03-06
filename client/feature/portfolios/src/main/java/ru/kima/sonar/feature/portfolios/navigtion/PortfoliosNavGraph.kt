@@ -13,6 +13,7 @@ import ru.kima.sonar.feature.portfolios.ui.details.DeleteEntryDialog
 import ru.kima.sonar.feature.portfolios.ui.details.EditEntryDialog
 import ru.kima.sonar.feature.portfolios.ui.details.PortfolioDetailsScreen
 import ru.kima.sonar.feature.portfolios.ui.list.CreatePortfolioDialog
+import ru.kima.sonar.feature.portfolios.ui.list.EditPortilloDialog
 import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListScreen
 
 fun EntryProviderScope<NavKey>.portfoliosNavGraph(
@@ -26,6 +27,13 @@ fun EntryProviderScope<NavKey>.portfoliosNavGraph(
         metadata = SharedViewModelStoreNavEntryDecorator.parent(PortfoliosGraph.List.toContentKey())
                 + DialogSceneStrategy.dialog(DialogProperties(dismissOnClickOutside = false))
     ) { CreatePortfolioDialog() }
+
+    entry<PortfoliosGraph.List.RenamePortfolioDialog>(
+        metadata = SharedViewModelStoreNavEntryDecorator.parent(PortfoliosGraph.List.toContentKey())
+                + DialogSceneStrategy.dialog(DialogProperties(dismissOnClickOutside = false))
+    ) {
+        EditPortilloDialog()
+    }
 
     entry<PortfoliosGraph.List.Details>(
         clazzContentKey = { key -> key.toContentKey() }

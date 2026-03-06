@@ -3,6 +3,7 @@ package ru.kima.sonar.feature.portfolios.ui.list
 import android.content.res.Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,12 +20,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,13 +36,17 @@ import kotlinx.collections.immutable.persistentListOf
 import org.koin.androidx.compose.koinViewModel
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
+import ru.kima.sonar.common.ui.components.SonarMenu
+import ru.kima.sonar.common.ui.components.SonarMenuItem
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
+import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
+import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph.List.Details
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListEvent
 import ru.kima.sonar.feature.portfolios.ui.list.event.PortfolioListUiEvent
 import ru.kima.sonar.feature.portfolios.ui.list.model.DisplayPortfolio
@@ -128,9 +135,13 @@ private fun collectUiEvents(
     uiEvent.consume { event ->
         when (event) {
             is PortfolioListUiEvent.OpenCreatePortfolioDialog -> navigator.navigate(PortfoliosGraph.List.CreatePortfolioDialog)
-            PortfolioListUiEvent.DismissCreatePortfolioDialog -> navigator.goBack()
+            PortfolioListUiEvent.DismissDialog -> navigator.goBack()
             is PortfolioListUiEvent.NavigateToPortfolioDetails -> navigator.navigate(
-                PortfoliosGraph.List.Details(event.portfolioId)
+                Details(event.portfolioId)
+            )
+
+            PortfolioListUiEvent.OpenRenamePortfolioDialog -> navigator.navigate(
+                PortfoliosGraph.List.RenamePortfolioDialog
             )
         }
     }
@@ -148,6 +159,8 @@ private fun PortfoliosListScreenBody(
         onRefresh = { onEvent(PortfolioListEvent.Refresh) },
         modifier = modifier
     ) {
+        val menuItems = rememberMenuItems(onEvent)
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 32.dp),
@@ -155,18 +168,58 @@ private fun PortfoliosListScreenBody(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(portfolios, key = { it.id }) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onEvent(PortfolioListEvent.PortfolioClicked(it.id)) }
-                ) {
-                    Text(
-                        it.name,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
+                PortfolioListItem(
+                    portfolio = it,
+                    onEvent = onEvent,
+                    menuItems = menuItems,
+                )
             }
         }
     }
+}
+
+@Composable
+private fun PortfolioListItem(
+    portfolio: DisplayPortfolio,
+    onEvent: (PortfolioListEvent) -> Unit,
+    menuItems: ImmutableList<SonarMenuItem<Long>>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        onClick = { onEvent(PortfolioListEvent.PortfolioClicked(portfolio.id)) }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                portfolio.name,
+                modifier = Modifier.padding(16.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            SonarMenu(
+                input = portfolio.id,
+                items = menuItems,
+            )
+        }
+    }
+}
+
+@Composable
+private fun rememberMenuItems(onEvent: (PortfolioListEvent) -> Unit) = remember(onEvent) {
+    persistentListOf<SonarMenuItem<Long>>(
+        SonarMenuItem(
+            title = CommonStrings.action_rename,
+            onClick = { onEvent(PortfolioListEvent.RenamePortfolioClicked(it)) }
+        ),
+        SonarMenuItem(
+            title = CommonStrings.action_delete,
+            onClick = { portfolioId -> }
+        )
+    )
 }
 
 

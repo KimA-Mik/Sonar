@@ -3,7 +3,7 @@ package ru.kima.sonar.feature.portfolios.ui.list.state
 import androidx.compose.runtime.Immutable
 
 @Immutable
-internal data class CreatePortfolioDialogState(
+internal data class PortfolioNameDialogState(
     val newName: String,
     val error: DialogError
 ) {
@@ -14,7 +14,7 @@ internal data class CreatePortfolioDialogState(
         fun default(
             newName: String = "",
             error: DialogError = DialogError.NONE
-        ) = CreatePortfolioDialogState(
+        ) = PortfolioNameDialogState(
             newName = newName,
             error = error
         )

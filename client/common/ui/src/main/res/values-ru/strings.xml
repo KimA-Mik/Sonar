@@ -3,6 +3,7 @@
     <string name="action_cancel">Отмена</string>
     <string name="action_confirm">Принять</string>
     <string name="action_delete">Удалить</string>
+    <string name="action_rename">Переименовать</string>
     <string name="action_bar_up_description">Назад</string>
     <string name="action_reset">Сбросить</string>
     <string name="action_search">Искать</string>
