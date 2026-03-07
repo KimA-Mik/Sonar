@@ -10,6 +10,7 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryReq
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
+import ru.kima.sonar.common.serverapi.util.TITLE_LENGTH
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
@@ -43,10 +44,12 @@ internal class PortfoliosController(
             return
         }
 
+        var name = request.name.trim()
+        if (name.length > TITLE_LENGTH) name = name.take(TITLE_LENGTH)
         when (val res = portfoliosDataSource.insertPortfolio(
             Portfolio.default(
                 userId = user.id,
-                name = request.name
+                name = name
             )
         )) {
             is SonarResult.Success -> call.respond(res.data.toDto())
@@ -106,6 +109,19 @@ internal class PortfoliosController(
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
             is SonarResult.Error -> call.handleUserDataError(res.data)
         }
+    }
+
+    suspend fun getPortfolioEntry(call: RoutingCall, entryId: Long) {
+        val user = call.getUserOrISE { return }
+        val entry = when (val res = portfoliosDataSource.getEntryById(entryId)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                call.handleUserDataError(res.data)
+                return
+            }
+        }
+        call.returnIfNotOwn(user.id, entry.portfolioId) { return }
+        call.respond(entry.toDto(getCurrentPrices()[entry.securityUid] ?: BigDecimal.ZERO))
     }
 
     suspend fun addEntry(call: RoutingCall, portfolioId: Long) {
@@ -189,8 +205,8 @@ internal class PortfoliosController(
         val shares = marketDataRepository.tradableShares().first()
         val futures = marketDataRepository.tradableFutures().first()
         return buildMap(shares.size + futures.size) {
-            shares.forEach { put(it.ticker, it.price) }
-            futures.forEach { put(it.ticker, it.price) }
+            shares.forEach { put(it.uid, it.price) }
+            futures.forEach { put(it.uid, it.price) }
         }
     }
 

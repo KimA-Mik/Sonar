@@ -14,7 +14,10 @@ import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.resources.Resources
+import io.ktor.client.plugins.resources.delete
+import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
+import io.ktor.client.plugins.resources.put
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.webSocket
@@ -38,10 +41,18 @@ import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
 import ru.kima.sonar.common.serverapi.dto.auth.response.AuthorizationResult
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntryRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.PortfolioResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
+import ru.kima.sonar.common.serverapi.routing.PortfoliosRoute
 import ru.kima.sonar.common.serverapi.routing.SecurityRoute
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isSuccess
@@ -50,6 +61,7 @@ import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSour
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.data.homeapi.error.HomeApiError
 import ru.kima.sonar.data.homeapi.model.mapper.toNotificationProvider
+import java.math.BigDecimal
 import java.net.SocketTimeoutException
 
 private const val TAG = "KtorHomeApiDataSource"
@@ -155,6 +167,9 @@ internal class KtorHomeApiDataSource(
         val response = apiCall()
         when (response.status) {
             HttpStatusCode.OK -> SonarResult.Success(response.body<T>())
+            HttpStatusCode.BadRequest -> SonarResult.Error(HomeApiError.BadRequest)
+            HttpStatusCode.Forbidden -> SonarResult.Error(HomeApiError.Forbidden)
+            HttpStatusCode.InternalServerError -> SonarResult.Error(HomeApiError.InternalServerError)
             HttpStatusCode.Unauthorized -> {
                 if (logOutOnUnauthorized) localConfigDataSource.updateApiAccessToken(null)
                 SonarResult.Error(HomeApiError.Unauthorized)
@@ -187,6 +202,8 @@ internal class KtorHomeApiDataSource(
                 }
             } catch (_: SocketTimeoutException) {
                 send(SonarResult.Error(HomeApiError.NetworkError))
+            } catch (e: Exception) {
+                send(SonarResult.Error(HomeApiError.UnknownError(e)))
             }
         }
 
@@ -208,6 +225,83 @@ internal class KtorHomeApiDataSource(
                 }
             } catch (_: SocketTimeoutException) {
                 send(SonarResult.Error(HomeApiError.NetworkError))
+            } catch (e: Exception) {
+                send(SonarResult.Error(HomeApiError.UnknownError(e)))
             }
         }
+
+    override suspend fun portfolios(): SonarResult<List<ListItemPortfolio>, HomeApiError> =
+        safeApiCall<List<ListItemPortfolio>> { client.get(PortfoliosRoute()) }
+
+    override suspend fun createPortfolio(name: String): SonarResult<Unit, HomeApiError> =
+        safeApiCall<Unit> {
+            client.post(PortfoliosRoute.CreatePortfolio()) {
+                contentType(ContentType.Application.Json)
+                setBody(CreatePortfolioRequest(name = name))
+            }
+        }
+
+    override suspend fun getPortfolio(portfolioId: Long): SonarResult<PortfolioResponse, HomeApiError> =
+        safeApiCall { client.get(PortfoliosRoute.Portfolio(id = portfolioId)) }
+
+    override suspend fun updatePortfolio(
+        portfolioId: Long,
+        name: String
+    ): SonarResult<Unit, HomeApiError> = safeApiCall {
+        client.put(PortfoliosRoute.Portfolio.Update(PortfoliosRoute.Portfolio(id = portfolioId))) {
+            contentType(ContentType.Application.Json)
+            setBody(UpdatePortfolioRequest(name = name))
+        }
+    }
+
+    override suspend fun deletePortfolio(portfolioId: Long): SonarResult<Unit, HomeApiError> =
+        safeApiCall { client.delete(PortfoliosRoute.Portfolio.Delete(PortfoliosRoute.Portfolio(id = portfolioId))) }
+
+    override suspend fun getPortfolioEntry(entryId: Long): SonarResult<ListItemPortfolioEntry, HomeApiError> =
+        safeApiCall { client.get(PortfoliosRoute.Entry(id = entryId)) }
+
+    override suspend fun addEntry(
+        portfolioId: Long,
+        name: String,
+        securityUid: String,
+        lowPrice: BigDecimal,
+        highPrice: BigDecimal,
+        note: String
+    ): SonarResult<Unit, HomeApiError> = safeApiCall {
+        client.post(PortfoliosRoute.Portfolio.AddEntry(PortfoliosRoute.Portfolio(id = portfolioId))) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                AddPortfolioEntryRequest(
+                    name = name,
+                    securityUid = securityUid,
+                    lowPrice = lowPrice,
+                    highPrice = highPrice,
+                    note = note
+                )
+            )
+        }
+    }
+
+    override suspend fun updateEntry(
+        entryId: Long,
+        name: String,
+        lowPrice: BigDecimal,
+        highPrice: BigDecimal,
+        note: String
+    ): SonarResult<Unit, HomeApiError> = safeApiCall {
+        client.put(PortfoliosRoute.Entry.Update(PortfoliosRoute.Entry(id = entryId))) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                UpdatePortfolioEntryRequest(
+                    name = name,
+                    lowPrice = lowPrice,
+                    highPrice = highPrice,
+                    note = note
+                )
+            )
+        }
+    }
+
+    override suspend fun deleteEntry(entryId: Long): SonarResult<Unit, HomeApiError> =
+        safeApiCall { client.delete(PortfoliosRoute.Entry.Delete(PortfoliosRoute.Entry(id = entryId))) }
 }

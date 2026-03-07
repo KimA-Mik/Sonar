@@ -78,3 +78,14 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    if (project.findProperty("composeCompilerReports") == "true") {
+        compilerOptions.freeCompilerArgs.add("-P")
+        compilerOptions.freeCompilerArgs.add("plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${project.layout.buildDirectory.get().asFile.absolutePath}/compose_compiler")
+    }
+    if (project.findProperty("composeCompilerMetrics") == "true") {
+        compilerOptions.freeCompilerArgs.add("-P")
+        compilerOptions.freeCompilerArgs.add("plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${project.layout.buildDirectory.get().asFile.absolutePath}/compose_compiler")
+    }
+}

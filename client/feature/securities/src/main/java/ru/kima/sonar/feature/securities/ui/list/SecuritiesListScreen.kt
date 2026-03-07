@@ -44,13 +44,16 @@ import ru.kima.sonar.feature.securities.ui.list.model.DisplayListItemShare
 import java.math.BigDecimal
 
 @Composable
-fun SecuritiesLstScreen() {
+fun SecuritiesLstScreen(
+    bottomBar: @Composable () -> Unit
+) {
     val viewModel: SecuritiesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val onEvent = remember { { event: SecuritiesListEvent -> viewModel.onEvent(event) } }
     SecuritiesListScreenContent(
-        state,
-        onEvent
+        state = state,
+        onEvent = onEvent,
+        bottomBar = bottomBar
     )
 }
 
@@ -58,7 +61,8 @@ fun SecuritiesLstScreen() {
 @Composable
 private fun SecuritiesListScreenContent(
     state: SecuritiesListState,
-    onEvent: (SecuritiesListEvent) -> Unit
+    onEvent: (SecuritiesListEvent) -> Unit,
+    bottomBar: @Composable () -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -67,6 +71,7 @@ private fun SecuritiesListScreenContent(
                 title = { Text(stringResource(R.string.top_bar_title_securities_list)) }
             )
         },
+        bottomBar = bottomBar
     ) { paddingValues ->
         SecuritiesListScreenBody(
             state = state,

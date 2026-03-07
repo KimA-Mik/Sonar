@@ -27,5 +27,6 @@ fun PortfolioEntry.toDto(price: BigDecimal) = ListItemPortfolioEntry(
     name = name,
     price = price,
     lowPrice = lowPrice,
-    highPrice = highPrice
+    highPrice = highPrice,
+    note = note
 )

@@ -1,6 +1,7 @@
 package ru.kima.sonar.common.util
 
 import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 
@@ -54,5 +55,16 @@ inline fun <T, R> T.sonarRunCaching(block: T.() -> R): SonarResult<R, Exception>
         SonarResult.Success(block())
     } catch (e: Exception) {
         SonarResult.Error(e)
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun <S, E, R> SonarResult<S, E>.map(transform: (value: S) -> R): SonarResult<R, E> {
+    contract {
+        callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
+    }
+    return when (this) {
+        is SonarResult.Success -> SonarResult.Success(transform(data))
+        is SonarResult.Error -> SonarResult.Error(data)
     }
 }

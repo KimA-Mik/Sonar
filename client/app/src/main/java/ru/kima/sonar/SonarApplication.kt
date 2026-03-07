@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import ru.kima.sonar.common.ui.event.ResultEventBus
 import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSource
 import ru.kima.sonar.di.applicationModule
 
@@ -45,10 +46,16 @@ class SonarApplication : Application() {
         }
     }
 
+    override fun onLowMemory() {
+        super.onLowMemory()
+        resultEventBus.channelMap.clear()
+    }
+
     companion object {
         var initialized = false
             private set
         private val _loggedIn = MutableStateFlow(false)
         val loggedIn = _loggedIn.asStateFlow()
+        val resultEventBus = ResultEventBus()
     }
 }

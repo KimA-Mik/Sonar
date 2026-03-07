@@ -1,13 +1,11 @@
 package ru.kima.sonar
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -16,7 +14,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import ru.kima.sonar.common.ui.event.LocalResultEventBus
+import ru.kima.sonar.common.ui.navigation.NavigationState
 import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.navigation.rememberNavigationState
 import ru.kima.sonar.common.ui.util.LocalNavigator
@@ -36,13 +37,14 @@ private val TOP_LEVEL_ROUTES = mapOf<NavKey, NavBarItem>(
         selectedIcon = R.drawable.security_filled_24px,
         description = R.string.root_mame_securities
     ),
-    PortfoliosGraph.PortfoliosList to NavBarItem(
+    PortfoliosGraph.List to NavBarItem(
         icon = R.drawable.cases_24px,
         selectedIcon = R.drawable.cases_filled_24px,
         description = R.string.root_mame_portfolios
     )
 )
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun ApplicationScreen(authorised: Boolean) {
     val navigationState = rememberNavigationState(
@@ -51,44 +53,50 @@ fun ApplicationScreen(authorised: Boolean) {
     )
     val snackbarHostState = remember { SnackbarHostState() }
     val navigator = remember(navigationState) { Navigator(navigationState) }
+    val bottomBar = @Composable {
+        SonarBottomBar(navigationState, navigator)
+    }
     val entryProvider = entryProvider {
         authNavGraph()
-        portfoliosNavGraph()
-        securitiesNavGraph()
+        portfoliosNavGraph(bottomBar = bottomBar)
+        securitiesNavGraph(bottomBar = bottomBar)
     }
 
     CompositionLocalProvider(
         LocalNavigator provides navigator,
-        LocalSnackbarHostState provides snackbarHostState
+        LocalSnackbarHostState provides snackbarHostState,
+        LocalResultEventBus provides SonarApplication.resultEventBus
     ) {
-        Scaffold(
-            bottomBar = {
-                if (authorised) {
-                    BottomAppBar {
-                        TOP_LEVEL_ROUTES.forEach { (route, item) ->
-                            val selected = route == navigationState.topLevelRoute
-                            NavigationBarItem(
-                                icon = {
-                                    Icon(
-                                        painterResource(if (selected) item.selectedIcon else item.icon),
-                                        contentDescription = null
-                                    )
-                                },
-                                label = { Text(stringResource(item.description)) },
-                                selected = selected,
-                                onClick = { navigator.navigate(route) }
-                            )
-                        }
-                    }
-                }
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            println(navigator.state.backStacks.keys)
-            NavDisplay(
-                entries = navigationState.toDecoratedEntries(entryProvider),
-                onBack = { navigator.goBack() },
-                modifier = Modifier.padding(paddingValues)
+        val sceneStrategy = remember { DialogSceneStrategy<NavKey>() }
+        NavDisplay(
+            entries = navigationState.toDecoratedEntries(entryProvider),
+            onBack = { navigator.goBack() },
+            sceneStrategy = sceneStrategy
+        )
+    }
+}
+
+@Composable
+fun SonarBottomBar(
+    navigationState: NavigationState,
+    navigator: Navigator,
+    modifier: Modifier = Modifier
+) {
+    BottomAppBar(
+        modifier = modifier
+    ) {
+        TOP_LEVEL_ROUTES.forEach { (route, item) ->
+            val selected = route == navigationState.topLevelRoute
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        painterResource(if (selected) item.selectedIcon else item.icon),
+                        contentDescription = null
+                    )
+                },
+                label = { Text(stringResource(item.description)) },
+                selected = selected,
+                onClick = { navigator.navigate(route) }
             )
         }
     }

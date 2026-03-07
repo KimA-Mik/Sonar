@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="graph_name_portfolios">Портфели</string>
+    <string name="action_create_portfolio_content_description">Создать портфолио</string>
+    <string name="action_create_portfolio">Создать</string>
+    <string name="title_create_portfolio">Новый портфель</string>
+    <string name="label_portfolio_name">Название</string>
+    <string name="error_blank_portfolio_name">Пустое имя</string>
+    <string name="content_description_add_securities">Добавить бумаги</string>
+    <string name="label_ticker">Тикер</string>
+    <string name="label_bid_price">Цена покупки</string>
+    <string name="label_sell_price">Цена продажи</string>
+    <string name="label_note">Заметка</string>
+    <string name="tittle_last_price">Последняя цена</string>
+    <string name="tittle_add_securities">Добавить бумаги</string>
+    <string name="dialog_title_delete_entry">Удалить %1$s?</string>
+    <string name="label_entry_low_price">Н: %1$s</string>
+    <string name="label_entry_high_price">В: %1$s</string>
+    <string name="title_delete_portfolio">Удалить %1$s?</string>
+    <string name="label_error_delete_portfolio">Произошла ошибка</string>
 </resources>
