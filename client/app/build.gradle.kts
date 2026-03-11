@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.koin.compiler)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -62,10 +63,15 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.cloud.messaging)
+
     implementation(project(":client:common:ui"))
     implementation(project(":client:data:application-config"))
     implementation(project(":client:data:home-api"))
     implementation(project(":client:feature:authentication"))
+    implementation(project(":client:feature:notifications"))
     implementation(project(":client:feature:portfolios"))
     implementation(project(":client:feature:securities"))
     implementation(project(":common:server-api"))
