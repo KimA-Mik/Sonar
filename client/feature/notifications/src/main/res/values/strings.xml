@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="snackbar_permission_denied">You won\'t get notification</string>
+    <string name="snackbar_permission_granted">Permission granted</string>
+    <string name="title_grant_notifications_permission">Grant notifications permission?</string>
+    <string name="body_grant_notifications_permission">To receive notifications about important events, please enable notifications..</string>
+</resources>

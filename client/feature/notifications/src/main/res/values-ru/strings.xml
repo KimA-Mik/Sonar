@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="snackbar_permission_denied">Вы не будете получать уведомленя</string>
+    <string name="snackbar_permission_granted">Разршение предоставлено</string>
+    <string name="title_grant_notifications_permission">Разрешить отправку уведомлений?</string>
+    <string name="body_grant_notifications_permission">Чтобы получать уведомления о важных событиях, включите уведомления.</string>
+</resources>
