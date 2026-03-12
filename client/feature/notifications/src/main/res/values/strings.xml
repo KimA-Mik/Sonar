@@ -4,4 +4,6 @@
     <string name="snackbar_permission_granted">Permission granted</string>
     <string name="title_grant_notifications_permission">Grant notifications permission?</string>
     <string name="body_grant_notifications_permission">To receive notifications about important events, please enable notifications..</string>
+    <string name="notification_channel_name_portfolio_events">Portfolio_events</string>
+    <string name="notification_channel_description_portfolio_events">Portfolio_events</string>
 </resources>

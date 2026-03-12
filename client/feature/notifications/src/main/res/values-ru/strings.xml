@@ -4,4 +4,6 @@
     <string name="snackbar_permission_granted">Разршение предоставлено</string>
     <string name="title_grant_notifications_permission">Разрешить отправку уведомлений?</string>
     <string name="body_grant_notifications_permission">Чтобы получать уведомления о важных событиях, включите уведомления.</string>
+    <string name="notification_channel_name_portfolio_events">События портфеля</string>
+    <string name="notification_channel_description_portfolio_events">События портфеля</string>
 </resources>

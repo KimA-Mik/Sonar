@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.resources)
     implementation(libs.koin.ktor)
+    implementation(libs.firebase.admin)
 
     implementation(project(":common:server-api"))
     implementation(project(":common:util"))
