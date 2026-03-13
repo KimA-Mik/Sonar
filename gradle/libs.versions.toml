@@ -16,6 +16,7 @@ junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxCollectionsImmutable = "0.4.0"
+kotlinxDatetime = "0.7.1"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 composeBom = "2026.03.00"
@@ -39,6 +40,7 @@ lifecycleViewmodelCompose = "2.10.0"
 firebaseBom = "34.10.0"
 googleServices = "4.4.4"
 accompanistPermissions = "0.37.3"
+ta4j = "0.22.3"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -109,6 +111,8 @@ ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", versio
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebaseAdmin" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+ta4j-core = { module = "org.ta4j:ta4j-core", version.ref = "ta4j" }
 #Argon2 password hashing
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcprovJdk18on" }
 commons-logging = { module = "commons-logging:commons-logging", version.ref = "commonsLogging" }
