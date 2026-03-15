@@ -8,9 +8,14 @@ internal fun PortfolioEntryEntity.toDomainModel(): PortfolioEntry = PortfolioEnt
     portfolioId = portfolioId,
     securityUid = securityUid,
     name = name,
+    targetDeviation = targetDeviation,
     lowPrice = lowPrice,
     highPrice = highPrice,
-    note = note
+    note = note,
+    enabled = enabled,
+    shouldNotify = shouldNotify,
+    lastUnboundUpdate = lastUnboundUpdate,
+    lastUnboundUpdatePrice = lastUnboundUpdatePrice
 )
 
 internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
@@ -20,4 +25,8 @@ internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
     lowPrice = domainObject.lowPrice
     highPrice = domainObject.highPrice
     note = domainObject.note
+    enabled = domainObject.enabled
+    shouldNotify = domainObject.shouldNotify
+    lastUnboundUpdate = domainObject.lastUnboundUpdate
+    lastUnboundUpdatePrice = domainObject.lastUnboundUpdatePrice
 }

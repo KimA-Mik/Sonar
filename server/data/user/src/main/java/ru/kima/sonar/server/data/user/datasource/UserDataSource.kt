@@ -4,6 +4,7 @@ import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.data.user.model.Session
 import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserAndSession
+import ru.kima.sonar.server.data.user.model.UserAndSessions
 import ru.kima.sonar.server.data.user.model.UserDataError
 
 interface UserDataSource {
@@ -18,4 +19,6 @@ interface UserDataSource {
     suspend fun getSessionsByUserId(userId: Long): SonarResult<List<Session>, UserDataError>
     suspend fun deleteSessionByToken(token: String): SonarResult<Unit, UserDataError>
     suspend fun getUserAndSessionsByToken(token: String): SonarResult<UserAndSession, UserDataError>
+
+    suspend fun getUsersAndSessions(): SonarResult<List<UserAndSessions>, UserDataError>
 }
