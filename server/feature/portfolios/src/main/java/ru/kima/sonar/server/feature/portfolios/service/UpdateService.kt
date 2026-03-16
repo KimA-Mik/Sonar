@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.toLocalDateTime
 import org.slf4j.LoggerFactory
-import ru.kima.sonar.common.serverapi.events.BoundPriceEven
+import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.common.serverapi.model.LastPrice
 import ru.kima.sonar.common.util.valueOr
@@ -265,13 +265,13 @@ class UpdateService(
                 indicators = indicators,
                 lastPrice = lastPrice,
                 priceType = when {
-                    shouldNotifyHigh && shouldNotifyLow -> BoundPriceEven.PriceType.All(
+                    shouldNotifyHigh && shouldNotifyLow -> BoundPriceEvent.PriceType.All(
                         highDeviation = currentHighDeviation,
                         lowDeviation = currentLowDeviation
                     )
 
-                    shouldNotifyHigh -> BoundPriceEven.PriceType.High(currentHighDeviation)
-                    else -> BoundPriceEven.PriceType.Low(currentLowDeviation)
+                    shouldNotifyHigh -> BoundPriceEvent.PriceType.High(currentHighDeviation)
+                    else -> BoundPriceEvent.PriceType.Low(currentLowDeviation)
                 }
             )
 

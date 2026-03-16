@@ -10,4 +10,5 @@ fun portfoliosModule() = module {
     single<PortfoliosController>()
     single<UpdateServiceUpdateHandler>()
     single<UpdateService>()
+    single<UpdateServiceUpdateHandler>()
 }

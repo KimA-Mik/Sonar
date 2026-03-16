@@ -28,6 +28,7 @@ import ru.kima.sonar.server.feature.auth.AuthManager
 import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 import ru.kima.sonar.server.feature.auth.routing.authRoute
 import ru.kima.sonar.server.feature.portfolios.routing.portfoliosRoute
+import ru.kima.sonar.server.feature.portfolios.service.runUpdateService
 import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
 
@@ -68,6 +69,7 @@ class Program : CliktCommand() {
             authRoute()
             securitiesRoute()
             portfoliosRoute()
+            runUpdateService()
             shutdownHook()
         }.start(wait = true)
     }
