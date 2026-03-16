@@ -140,6 +140,7 @@ internal class PortfoliosController(
                 portfolioId = portfolioId,
                 securityUid = request.securityUid,
                 name = request.name,
+                targetDeviation = request.targetDeviation,
                 lowPrice = request.lowPrice,
                 highPrice = request.highPrice,
                 note = request.note

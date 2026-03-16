@@ -27,10 +27,10 @@ data class PortfolioEntry(
             lowPrice: BigDecimal,
             highPrice: BigDecimal,
             note: String,
-            enabled: Boolean,
-            shouldNotify: Boolean,
-            lastUnboundUpdate: Instant,
-            lastUnboundUpdatePrice: BigDecimal
+            enabled: Boolean = true,
+            shouldNotify: Boolean = true,
+            lastUnboundUpdate: Instant = Instant.DISTANT_PAST,
+            lastUnboundUpdatePrice: BigDecimal = BigDecimal.ZERO
         ) = PortfolioEntry(
             id = id,
             portfolioId = portfolioId,
