@@ -2,6 +2,7 @@ package ru.kima.sonar.server.data.user.mappers
 
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntryEntity
+import kotlin.time.Instant
 
 internal fun PortfolioEntryEntity.toDomainModel(): PortfolioEntry = PortfolioEntry(
     id = id.value,
@@ -14,7 +15,7 @@ internal fun PortfolioEntryEntity.toDomainModel(): PortfolioEntry = PortfolioEnt
     note = note,
     enabled = enabled,
     shouldNotify = shouldNotify,
-    lastUnboundUpdate = lastUnboundUpdate,
+    lastUnboundUpdate = Instant.fromEpochMilliseconds(lastUnboundUpdate),
     lastUnboundUpdatePrice = lastUnboundUpdatePrice
 )
 
@@ -27,6 +28,6 @@ internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
     note = domainObject.note
     enabled = domainObject.enabled
     shouldNotify = domainObject.shouldNotify
-    lastUnboundUpdate = domainObject.lastUnboundUpdate
+    lastUnboundUpdate = domainObject.lastUnboundUpdate.toEpochMilliseconds()
     lastUnboundUpdatePrice = domainObject.lastUnboundUpdatePrice
 }
