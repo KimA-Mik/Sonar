@@ -1,5 +1,6 @@
 package ru.kima.sonar.server.feature.portfolios.service.model
 
+import org.slf4j.LoggerFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.indicators.RSIIndicator
 import org.ta4j.core.indicators.StochasticRSIIndicator
@@ -10,8 +11,7 @@ import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.feature.portfolios.techanalysis.BollingerBands
 import ru.kima.sonar.server.feature.portfolios.techanalysis.mappers.toSeries
-import ru.kima.sonar.server.feature.portfolios.util.lastDecimal
-import java.math.BigDecimal
+import ru.kima.sonar.server.feature.portfolios.util.lastDouble
 import kotlin.time.ExperimentalTime
 
 private const val DEFAULT_BAR_COUNT = 14
@@ -44,33 +44,38 @@ class IndicatorsCache(
         val hourlyRsiInd = RSIIndicator(hourlyClose, DEFAULT_BAR_COUNT)
         val hour4RsiInd = RSIIndicator(hour4Close, DEFAULT_BAR_COUNT)
         val dailyRsiInd = RSIIndicator(dailyClose, DEFAULT_BAR_COUNT)
-
-        return CacheEntry(
-            min15Rsi = min15RsiInd.lastDecimal(),
-            hourlyRsi = hourlyRsiInd.lastDecimal(),
-            hour4Rsi = hour4RsiInd.lastDecimal(),
-            dailyRsi = dailyRsiInd.lastDecimal(),
-            min15bb = BollingerBands.calculate(min15Close),
-            hourlyBb = BollingerBands.calculate(hourlyClose),
-            hour4Bb = BollingerBands.calculate(hour4Close),
-            dailyBb = BollingerBands.calculate(dailyClose),
-            min15Mfi = MoneyFlowIndexIndicator(seriesResult.min15, DEFAULT_BAR_COUNT)
-                .lastDecimal(),
-            hourlyMfi = MoneyFlowIndexIndicator(
-                seriesResult.hourly,
-                DEFAULT_BAR_COUNT
-            ).lastDecimal(),
-            hour4Mfi = MoneyFlowIndexIndicator(seriesResult.hour4, DEFAULT_BAR_COUNT).lastDecimal(),
-            dailyMfi = MoneyFlowIndexIndicator(seriesResult.daily, DEFAULT_BAR_COUNT).lastDecimal(),
-            min15Srsi = StochasticRSIIndicator(min15RsiInd, DEFAULT_BAR_COUNT)
-                .lastDecimal() * factor,
-            hourlySrsi = StochasticRSIIndicator(hourlyRsiInd, DEFAULT_BAR_COUNT)
-                .lastDecimal() * factor,
-            hour4Srsi = StochasticRSIIndicator(hour4RsiInd, DEFAULT_BAR_COUNT)
-                .lastDecimal() * factor,
-            dailySrsi = StochasticRSIIndicator(dailyRsiInd, DEFAULT_BAR_COUNT)
-                .lastDecimal() * factor,
-        )
+        return try {
+            CacheEntry(
+                min15Rsi = min15RsiInd.lastDouble(),
+                hourlyRsi = hourlyRsiInd.lastDouble(),
+                hour4Rsi = hour4RsiInd.lastDouble(),
+                dailyRsi = dailyRsiInd.lastDouble(),
+                min15bb = BollingerBands.calculate(min15Close),
+                hourlyBb = BollingerBands.calculate(hourlyClose),
+                hour4Bb = BollingerBands.calculate(hour4Close),
+                dailyBb = BollingerBands.calculate(dailyClose),
+                min15Mfi = MoneyFlowIndexIndicator(seriesResult.min15, DEFAULT_BAR_COUNT)
+                    .lastDouble(),
+                hourlyMfi = MoneyFlowIndexIndicator(seriesResult.hourly, DEFAULT_BAR_COUNT)
+                    .lastDouble(),
+                hour4Mfi = MoneyFlowIndexIndicator(seriesResult.hour4, DEFAULT_BAR_COUNT)
+                    .lastDouble(),
+                dailyMfi = MoneyFlowIndexIndicator(seriesResult.daily, DEFAULT_BAR_COUNT)
+                    .lastDouble(),
+                min15Srsi = StochasticRSIIndicator(min15RsiInd, DEFAULT_BAR_COUNT)
+                    .lastDouble() * factor,
+                hourlySrsi = StochasticRSIIndicator(hourlyRsiInd, DEFAULT_BAR_COUNT)
+                    .lastDouble() * factor,
+                hour4Srsi = StochasticRSIIndicator(hour4RsiInd, DEFAULT_BAR_COUNT)
+                    .lastDouble() * factor,
+                dailySrsi = StochasticRSIIndicator(dailyRsiInd, DEFAULT_BAR_COUNT)
+                    .lastDouble() * factor,
+            )
+        } catch (e: Exception) {
+            val logger = LoggerFactory.getLogger(this::class.java)
+            logger.error(e.toString())
+            null
+        }
     }
 
     /**
@@ -111,6 +116,6 @@ class IndicatorsCache(
     )
 
     companion object {
-        private val factor = BigDecimal("100.0")
+        private const val factor = 100.0
     }
 }

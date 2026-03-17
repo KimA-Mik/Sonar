@@ -3,7 +3,7 @@ package ru.kima.sonar.server.feature.portfolios.techanalysis.mappers
 import org.ta4j.core.BarSeries
 import org.ta4j.core.BaseBarSeriesBuilder
 import org.ta4j.core.bars.TimeBarBuilder
-import org.ta4j.core.num.DecimalNumFactory
+import org.ta4j.core.num.DoubleNumFactory
 import ru.kima.sonar.common.serverapi.model.HistoricCandle
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -14,9 +14,9 @@ fun List<HistoricCandle>.toSeries(
     seriesName: String = ""
 ): BarSeries {
     val series = BaseBarSeriesBuilder()
-        .withNumFactory(DecimalNumFactory.getInstance())
+        .withNumFactory(DoubleNumFactory.getInstance())
         .withName(seriesName).build()
-    val barBuilder = TimeBarBuilder()
+    val barBuilder = TimeBarBuilder(DoubleNumFactory.getInstance())
     for (candle in this) {
         val bar = barBuilder
             .timePeriod(duration.toJavaDuration())

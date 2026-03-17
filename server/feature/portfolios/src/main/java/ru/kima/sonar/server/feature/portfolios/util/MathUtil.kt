@@ -1,5 +1,6 @@
 package ru.kima.sonar.server.feature.portfolios.util
 
+import ru.kima.sonar.common.util.BigDecimalUtil
 import ru.kima.sonar.server.feature.portfolios.techanalysis.BollingerBands
 import java.math.BigDecimal
 import kotlin.math.abs
@@ -16,15 +17,15 @@ object MathUtil {
         rsi <= low || rsi >= high
 
     const val BOLLINGER_BARS_COUNT = 20
-    val BB_CRITICAL_HIGH = BigDecimal("0.95")
-    val BB_CRITICAL_LOW = BigDecimal("0.05")
+    const val BB_CRITICAL_HIGH = 0.95
+    const val BB_CRITICAL_LOW = 0.05
     const val RSI_FOR_BB_HIGH = 69.0
     const val RSI_FOR_BB_LOW = 31.0
     fun isBbCritical(
-        value: BigDecimal,
+        value: Double,
         bb: BollingerBands.BollingerBandsData,
-        lowPercent: BigDecimal = BB_CRITICAL_LOW,
-        highPercent: BigDecimal = BB_CRITICAL_HIGH
+        lowPercent: Double = BB_CRITICAL_LOW,
+        highPercent: Double = BB_CRITICAL_HIGH
     ): Boolean {
         if (bb.upper == bb.lower) return false // avoid division by zero
         val percent = (value - bb.lower) / (bb.upper - bb.lower)

@@ -8,8 +8,7 @@ import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator
 import ru.kima.sonar.server.feature.portfolios.util.MathUtil
-import ru.kima.sonar.server.feature.portfolios.util.lastDecimal
-import java.math.BigDecimal
+import ru.kima.sonar.server.feature.portfolios.util.lastDouble
 
 object BollingerBands {
     fun calculate(series: BarSeries, barsCount: Int = MathUtil.BOLLINGER_BARS_COUNT) =
@@ -26,15 +25,15 @@ object BollingerBands {
         val upper = BollingerBandsUpperIndicator(middle, deviation)
 
         return BollingerBandsData(
-            lower = lower.lastDecimal(),
-            middle = middle.lastDecimal(),
-            upper = upper.lastDecimal()
+            lower = lower.lastDouble(),
+            middle = middle.lastDouble(),
+            upper = upper.lastDouble()
         )
     }
 
     data class BollingerBandsData(
-        val lower: BigDecimal,
-        val middle: BigDecimal,
-        val upper: BigDecimal
+        val lower: Double,
+        val middle: Double,
+        val upper: Double
     )
 }
