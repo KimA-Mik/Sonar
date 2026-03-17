@@ -7,7 +7,7 @@ import ru.kima.sonar.common.serverapi.model.LastPrice
 import ru.kima.sonar.common.serverapi.util.BigDecimalJson
 
 @Serializable
-@SerialName("bound_price_event")
+@SerialName("boundPriceEvent")
 data class BoundPriceEvent(
     val portfolioId: Long,
     val portfolioName: String,

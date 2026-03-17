@@ -40,7 +40,7 @@ lifecycleViewmodelCompose = "2.10.0"
 firebaseBom = "34.10.0"
 googleServices = "4.4.4"
 accompanistPermissions = "0.37.3"
-ta4j = "0.22.3"
+ta4j = "0.22.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }

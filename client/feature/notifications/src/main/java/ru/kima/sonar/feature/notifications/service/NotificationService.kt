@@ -32,12 +32,11 @@ class NotificationService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val notification = message.notification ?: return
         val messageId = message.sentTime.toInt()
         notificationsManager.showPortfolioNotification(
             messageId,
-            notification.title ?: "",
-            notification.body ?: ""
+            "Notification",
+            message.data.toString()
         )
     }
 }

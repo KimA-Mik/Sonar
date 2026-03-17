@@ -17,7 +17,6 @@ import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.common.serverapi.model.LastPrice
 import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.common.util.time.DateUtil
-import ru.kima.sonar.server.common.util.time.TimeUtil
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
 import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
@@ -29,10 +28,9 @@ import ru.kima.sonar.server.feature.portfolios.service.model.CacheEntry
 import ru.kima.sonar.server.feature.portfolios.service.model.IndicatorsCache
 import ru.kima.sonar.server.feature.portfolios.util.MathUtil
 import java.math.BigDecimal
-import kotlin.random.Random
-import kotlin.random.nextLong
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class UpdateService(
     private val userDataSource: UserDataSource,
@@ -53,8 +51,9 @@ class UpdateService(
         if (activeJob != null) return
         activeJob = scope.launch {
             while (isActive) {
-                delay((15L + Random.nextLong(0L..15L)) * TimeUtil.SECOND_MILLIS)
+                delay(10.seconds)
                 checkForUpdates()
+//                delay((15L + Random.nextLong(0L..15L)) * TimeUtil.SECOND_MILLIS)
                 delayNonWorkingHours(8, 45, 23, 59)
             }
         }
@@ -166,7 +165,7 @@ class UpdateService(
             val price = lastPrices[entry.securityUid] ?: continue
             val cacheEntry = cache[entry.securityUid] ?: continue
 
-            var current = handlePrice(user, portfolio.portfolio, entry, price, cacheEntry)
+            val current = handlePrice(user, portfolio.portfolio, entry, price, cacheEntry)
 
             if (current != entry) {
                 updatedEntries.add(current)

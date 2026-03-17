@@ -7,3 +7,5 @@ import java.math.BigDecimal
 fun Indicator<Num>.lastDecimal(): BigDecimal {
     return getValue(barSeries.endIndex).bigDecimalValue()
 }
+
+fun Indicator<Num>.lastDouble() = getValue(barSeries.endIndex).doubleValue()
