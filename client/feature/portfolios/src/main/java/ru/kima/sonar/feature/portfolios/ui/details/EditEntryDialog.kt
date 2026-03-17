@@ -102,6 +102,10 @@ private fun EditEntryDialogContent(
                     EditEntryContent(
                         price = state.price,
                         lowPrice = state.lowPrice,
+                        targetDeviation = state.targetDeviation,
+                        onTargetDeviationUpdate = {
+                            onEvent(EditEntryUserEvent.TargetDeviationUpdated(it))
+                        },
                         onLowPriceUpdate = { onEvent(EditEntryUserEvent.LowPriceUpdated(it)) },
                         highPrice = state.highPrice,
                         onHighPriceUpdate = { onEvent(EditEntryUserEvent.HighPriceUpdated(it)) },

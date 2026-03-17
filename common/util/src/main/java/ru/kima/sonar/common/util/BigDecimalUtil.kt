@@ -1,4 +1,4 @@
-package ru.kima.sonar.server.feature.portfolios.util
+package ru.kima.sonar.common.util
 
 import java.math.BigDecimal
 

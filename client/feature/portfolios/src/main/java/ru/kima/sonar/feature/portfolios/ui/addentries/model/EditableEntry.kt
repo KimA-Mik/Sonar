@@ -8,6 +8,7 @@ internal data class EditableEntry(
     val uid: String,
     val ticker: String,
     val price: BigDecimal,
+    val targetDeviation: String,
     val lowPrice: String,
     val lowPriceError: Boolean,
     val highPrice: String,

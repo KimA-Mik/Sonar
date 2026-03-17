@@ -32,6 +32,7 @@ interface HomeApiDataSource {
     suspend fun addEntry(
         portfolioId: Long,
         name: String,
+        targetDeviation: BigDecimal,
         securityUid: String,
         lowPrice: BigDecimal,
         highPrice: BigDecimal,
@@ -41,6 +42,7 @@ interface HomeApiDataSource {
     suspend fun updateEntry(
         entryId: Long,
         name: String,
+        targetDeviation: BigDecimal,
         lowPrice: BigDecimal,
         highPrice: BigDecimal,
         note: String

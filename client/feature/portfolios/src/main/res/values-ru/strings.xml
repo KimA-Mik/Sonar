@@ -18,4 +18,5 @@
     <string name="label_entry_high_price">В: %1$s</string>
     <string name="title_delete_portfolio">Удалить %1$s?</string>
     <string name="label_error_delete_portfolio">Произошла ошибка</string>
+    <string name="label_target_deviation">Расхождение</string>
 </resources>

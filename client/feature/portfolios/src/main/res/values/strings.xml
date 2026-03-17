@@ -18,4 +18,5 @@
     <string name="label_entry_high_price">H: %1$s</string>
     <string name="title_delete_portfolio">Delete %1$s?</string>
     <string name="label_error_delete_portfolio">An error occurred</string>
+    <string name="label_target_deviation">Target deviation</string>
 </resources>
