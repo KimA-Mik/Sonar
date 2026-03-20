@@ -27,4 +27,8 @@
     <string name="indicator_mfi" translatable="false">"MFI (%1$s): "</string>
 
     <string name="note_headline">Note: </string>
+    <string name="event_unbound_price_above">%1$s now more expensive than %2$s</string>
+    <string name="event_unbound_price_below">%1$s now cheaper than %2$s</string>
+    <string name="event_unbound_price_is_greater"> is %1$s\% greater than %2$s</string>
+    <string name="event_unbound_price_is_lower"> is %1$s\% lower than %2$s</string>
 </resources>

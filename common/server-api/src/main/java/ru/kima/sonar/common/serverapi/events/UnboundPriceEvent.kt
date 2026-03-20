@@ -21,10 +21,16 @@ data class UnboundPriceEvent(
     sealed interface PriceType {
         @Serializable
         @SerialName("Above")
-        data class Above(val price: BigDecimalJson) : PriceType
+        data class Above(
+            val targetPrice: BigDecimalJson,
+            val deviation: BigDecimalJson
+        ) : PriceType
 
         @Serializable
         @SerialName("Below")
-        data class Below(val price: BigDecimalJson) : PriceType
+        data class Below(
+            val targetPrice: BigDecimalJson,
+            val deviation: BigDecimalJson
+        ) : PriceType
     }
 }

@@ -6,8 +6,9 @@ import ru.kima.sonar.common.util.MathUtil
 import ru.kima.sonar.feature.notifications.R
 import java.text.DecimalFormat
 
+internal const val NOTIFICATION_BODY_CAPACITY = 2048
 
-fun StringBuilder.appendIndicatorsToSecurityAlert(
+internal fun StringBuilder.appendIndicatorsToSecurityAlert(
     i: Indicators?, currentPrice: Double,
     //TODO: Have fun with mfi
     renderMFI: Boolean = false,

@@ -22,4 +22,9 @@
     <string name="event_ask_price_deviation">Отклонение от цены покуоки: %1$s\%</string>
     <string name="indicators_headline">Индикаторы</string>
     <string name="note_headline">"Заметка: "</string>
+
+    <string name="event_unbound_price_above">%1$s стоит дороже, чем %2$s</string>
+    <string name="event_unbound_price_below">%1$s стоит дешевле, чем %2$s</string>
+    <string name="event_unbound_price_is_greater"> на %1$s\% больше, чем %2$s</string>
+    <string name="event_unbound_price_is_lower"> на %1$s\% меньше, чем %2$s</string>
 </resources>

@@ -2,7 +2,7 @@ package ru.kima.sonar.feature.notifications.notifications
 
 import ru.kima.sonar.common.util.MathUtil
 
-object PresentationUtil {
+internal object PresentationUtil {
     const val GREEN = "🟢"
     const val RED = "🔴"
     const val YELLOW = "🟡"

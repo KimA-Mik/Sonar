@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.firebase.cloud.messaging)
 
     implementation(project(":common:util"))
+    implementation(project(":common:server-api"))
     implementation(project(":client:common:ui"))
     implementation(project(":client:data:application-config"))
 

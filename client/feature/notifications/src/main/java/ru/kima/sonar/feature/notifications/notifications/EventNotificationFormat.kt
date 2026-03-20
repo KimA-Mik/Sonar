@@ -6,7 +6,7 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
-interface EventNotificationFormat<T : NotificationEvent> {
+internal interface EventNotificationFormat<T : NotificationEvent> {
     fun title(event: T, resources: Resources): String
     fun body(event: T, resources: Resources): String
 

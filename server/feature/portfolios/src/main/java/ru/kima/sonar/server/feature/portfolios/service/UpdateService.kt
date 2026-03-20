@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.common.serverapi.model.LastPrice
+import ru.kima.sonar.common.util.MathUtil
 import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.common.util.time.DateUtil
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
@@ -26,7 +27,6 @@ import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 import ru.kima.sonar.server.feature.portfolios.service.model.CacheEntry
 import ru.kima.sonar.server.feature.portfolios.service.model.IndicatorsCache
-import ru.kima.sonar.server.feature.portfolios.util.MathUtil
 import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -208,16 +208,18 @@ class UpdateService(
             return entry
         }
 
+        val highDeviation = MathUtil.absolutePercentageDifference(lastPrice.price, entry.highPrice)
+        val lowDeviation = MathUtil.absolutePercentageDifference(lastPrice.price, entry.lowPrice)
         val priceType = when {
-            lastPrice.price > entry.highPrice && MathUtil.absolutePercentageDifference(
-                lastPrice.price,
-                entry.highPrice
-            ) > unboundThreshold -> UnboundPriceEvent.PriceType.Above(entry.highPrice)
+            lastPrice.price > entry.highPrice && highDeviation > unboundThreshold -> UnboundPriceEvent.PriceType.Above(
+                entry.highPrice,
+                deviation = highDeviation
+            )
 
-            lastPrice.price < entry.lowPrice && MathUtil.absolutePercentageDifference(
-                lastPrice.price,
-                entry.lowPrice
-            ) > unboundThreshold -> UnboundPriceEvent.PriceType.Below(entry.lowPrice)
+            lastPrice.price < entry.lowPrice && lowDeviation > unboundThreshold -> UnboundPriceEvent.PriceType.Below(
+                targetPrice = entry.lowPrice,
+                deviation = lowDeviation
+            )
 
             else -> null
         }
