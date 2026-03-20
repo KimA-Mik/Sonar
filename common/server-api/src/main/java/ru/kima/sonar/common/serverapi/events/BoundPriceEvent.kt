@@ -22,16 +22,24 @@ data class BoundPriceEvent(
         @Serializable
         @SerialName("all")
         data class All(
+            val lowTargetPrice: BigDecimalJson,
             val lowDeviation: BigDecimalJson,
+            val highTargetPrice: BigDecimalJson,
             val highDeviation: BigDecimalJson,
         ) : PriceType
 
         @Serializable
         @SerialName("high")
-        data class High(val deviation: BigDecimalJson) : PriceType
+        data class High(
+            val targetPrice: BigDecimalJson,
+            val deviation: BigDecimalJson
+        ) : PriceType
 
         @Serializable
         @SerialName("low")
-        data class Low(val deviation: BigDecimalJson) : PriceType
+        data class Low(
+            val targetPrice: BigDecimalJson,
+            val deviation: BigDecimalJson
+        ) : PriceType
     }
 }

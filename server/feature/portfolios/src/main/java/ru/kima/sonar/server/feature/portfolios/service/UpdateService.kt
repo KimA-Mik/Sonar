@@ -212,12 +212,12 @@ class UpdateService(
             lastPrice.price > entry.highPrice && MathUtil.absolutePercentageDifference(
                 lastPrice.price,
                 entry.highPrice
-            ) > unboundThreshold -> UnboundPriceEvent.PriceType.ABOVE
+            ) > unboundThreshold -> UnboundPriceEvent.PriceType.Above(entry.highPrice)
 
             lastPrice.price < entry.lowPrice && MathUtil.absolutePercentageDifference(
                 lastPrice.price,
                 entry.lowPrice
-            ) > unboundThreshold -> UnboundPriceEvent.PriceType.BELOW
+            ) > unboundThreshold -> UnboundPriceEvent.PriceType.Below(entry.lowPrice)
 
             else -> null
         }
@@ -265,12 +265,21 @@ class UpdateService(
                 lastPrice = lastPrice,
                 priceType = when {
                     shouldNotifyHigh && shouldNotifyLow -> BoundPriceEvent.PriceType.All(
-                        highDeviation = currentHighDeviation,
-                        lowDeviation = currentLowDeviation
+                        lowTargetPrice = entry.lowPrice,
+                        lowDeviation = currentLowDeviation,
+                        highTargetPrice = entry.highPrice,
+                        highDeviation = currentHighDeviation
                     )
 
-                    shouldNotifyHigh -> BoundPriceEvent.PriceType.High(currentHighDeviation)
-                    else -> BoundPriceEvent.PriceType.Low(currentLowDeviation)
+                    shouldNotifyHigh -> BoundPriceEvent.PriceType.High(
+                        targetPrice = entry.highPrice,
+                        deviation = currentHighDeviation
+                    )
+
+                    else -> BoundPriceEvent.PriceType.Low(
+                        targetPrice = entry.lowPrice,
+                        deviation = currentLowDeviation
+                    )
                 }
             )
 

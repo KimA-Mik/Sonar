@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.kima.sonar.common.serverapi.events.model.Indicators
 import ru.kima.sonar.common.serverapi.model.LastPrice
+import ru.kima.sonar.common.serverapi.util.BigDecimalJson
 
 @Serializable
 @SerialName("UnboundPriceEvent")
@@ -16,7 +17,14 @@ data class UnboundPriceEvent(
     val priceType: PriceType,
     val note: String
 ) : NotificationEvent {
-    enum class PriceType {
-        ABOVE, BELOW
+    @Serializable
+    sealed interface PriceType {
+        @Serializable
+        @SerialName("Above")
+        data class Above(val price: BigDecimalJson) : PriceType
+
+        @Serializable
+        @SerialName("Below")
+        data class Below(val price: BigDecimalJson) : PriceType
     }
 }
