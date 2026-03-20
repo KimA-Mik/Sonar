@@ -7,7 +7,9 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.koin.android.ext.android.inject
+import ru.kima.sonar.common.serverapi.events.NotificationEvent
 import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSource
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.feature.notifications.manager.SonarNotificationsManager
@@ -33,10 +35,18 @@ class NotificationService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val messageId = message.sentTime.toInt()
-        notificationsManager.showPortfolioNotification(
-            messageId,
-            "Notification",
-            message.data.toString()
-        )
+        val raw = message.data[NotificationEvent.DATA_KEY]
+        if (raw == null) {
+            Log.e(TAG, "No ${NotificationEvent.DATA_KEY} enty in $message")
+            return
+        }
+        val event = try {
+            Json.decodeFromString<NotificationEvent>(raw)
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to decode event because of $e")
+            return
+        }
+
+        notificationsManager.showNotificationEvent(messageId, event)
     }
 }

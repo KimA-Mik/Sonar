@@ -4,8 +4,10 @@ import android.content.res.Resources
 import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
 import ru.kima.sonar.feature.notifications.R
 
-internal object BoundPriceNotification : EventNotificationFormat<BoundPriceEvent> {
-    override fun title(event: BoundPriceEvent, resources: Resources): String {
+internal class BoundPriceNotification(
+    private val event: BoundPriceEvent
+) : EventNotificationFormat {
+    override fun title(resources: Resources): String {
         val df = decimalFormat()
         val price = df.format(event.priceType)
         return when (event.priceType) {
@@ -34,10 +36,7 @@ internal object BoundPriceNotification : EventNotificationFormat<BoundPriceEvent
         }
     }
 
-    override fun body(
-        event: BoundPriceEvent,
-        resources: Resources
-    ): String = buildString(NOTIFICATION_BODY_CAPACITY) {
+    override fun body(resources: Resources): String = buildString(NOTIFICATION_BODY_CAPACITY) {
         val df = decimalFormat()
         val price = df.format(event.lastPrice.price)
 

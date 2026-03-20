@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.cloud.messaging)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(project(":common:util"))
     implementation(project(":common:server-api"))

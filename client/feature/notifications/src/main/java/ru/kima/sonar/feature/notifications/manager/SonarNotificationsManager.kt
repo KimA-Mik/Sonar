@@ -4,10 +4,16 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
+import ru.kima.sonar.common.serverapi.events.NotificationEvent
+import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.feature.notifications.R
+import ru.kima.sonar.feature.notifications.notifications.BoundPriceNotification
+import ru.kima.sonar.feature.notifications.notifications.UnboundPriceNotification
 
 class SonarNotificationsManager(
     private val context: Context
@@ -36,14 +42,45 @@ class SonarNotificationsManager(
         return channel
     }
 
-    fun showPortfolioNotification(id: Int, title: String, text: String) {
+    fun showBasicNotification(id: Int, title: String, text: String) {
+        val notificationLayout = RemoteViews(context.packageName, R.layout.notification_small)
+        val notificationLayoutExpanded =
+            RemoteViews(context.packageName, R.layout.notification_large)
+        notificationLayout.setTextViewText(R.id.notification_small_title, title)
+        notificationLayoutExpanded.setTextViewText(R.id.notification_large_title, title)
+        notificationLayoutExpanded.setTextViewText(R.id.notification_body, text)
         val notification = NotificationCompat
             .Builder(context, PORTFOLIO_EVENTS_NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(CommonDrawables.settings_24px)
-            .setContentText(title)
-            .setContentText(text)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setSmallIcon(CommonDrawables.exclamation_24px)
+            .setCustomContentView(notificationLayout)
+            .setCustomBigContentView(notificationLayoutExpanded)
             .build()
         notificationManager.notify(id, notification)
+    }
+
+    fun showNotificationEvent(messageId: Int, event: NotificationEvent) {
+        val format = when (event) {
+            is BoundPriceEvent -> BoundPriceNotification(event)
+            is UnboundPriceEvent -> UnboundPriceNotification(event)
+        }
+        val title = format.title(context.resources)
+        val text = format.body(context.resources)
+        val notificationLayout = RemoteViews(context.packageName, R.layout.notification_small)
+        val notificationLayoutExpanded =
+            RemoteViews(context.packageName, R.layout.notification_large)
+        notificationLayout.setTextViewText(R.id.notification_small_title, title)
+        notificationLayoutExpanded.setTextViewText(R.id.notification_large_title, title)
+        notificationLayoutExpanded.setTextViewText(R.id.notification_body, text)
+
+        val notification = NotificationCompat
+            .Builder(context, PORTFOLIO_EVENTS_NOTIFICATION_CHANNEL_ID)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setSmallIcon(CommonDrawables.exclamation_24px)
+            .setCustomContentView(notificationLayout)
+            .setCustomBigContentView(notificationLayoutExpanded)
+            .build()
+        notificationManager.notify(messageId, notification)
     }
 
     companion object {

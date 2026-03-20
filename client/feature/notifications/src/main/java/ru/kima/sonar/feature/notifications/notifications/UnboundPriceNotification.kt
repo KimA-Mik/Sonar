@@ -4,29 +4,27 @@ import android.content.res.Resources
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.feature.notifications.R
 
-internal object UnboundPriceNotification : EventNotificationFormat<UnboundPriceEvent> {
-    override fun title(
-        event: UnboundPriceEvent,
-        resources: Resources
-    ): String {
+internal class UnboundPriceNotification(
+    private val event: UnboundPriceEvent
+) : EventNotificationFormat {
+    override fun title(resources: Resources): String {
         val df = decimalFormat()
         return when (event.priceType) {
             is UnboundPriceEvent.PriceType.Above -> resources.getString(
                 R.string.event_unbound_price_above,
-                event.securityName, df.format(event.lastPrice.price)
+                event.securityName,
+                df.format((event.priceType as UnboundPriceEvent.PriceType.Above).targetPrice)
             )
 
             is UnboundPriceEvent.PriceType.Below -> resources.getString(
                 R.string.event_unbound_price_below,
-                event.securityName, df.format(event.lastPrice.price)
+                event.securityName,
+                df.format((event.priceType as UnboundPriceEvent.PriceType.Below).targetPrice)
             )
         }
     }
 
-    override fun body(
-        event: UnboundPriceEvent,
-        resources: Resources
-    ): String = buildString(NOTIFICATION_BODY_CAPACITY) {
+    override fun body(resources: Resources): String = buildString(NOTIFICATION_BODY_CAPACITY) {
         val df = decimalFormat()
         val price = df.format(event.lastPrice.price)
 
