@@ -7,7 +7,7 @@ import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator
-import ru.kima.sonar.server.feature.portfolios.util.MathUtil
+import ru.kima.sonar.common.util.MathUtil
 import ru.kima.sonar.server.feature.portfolios.util.lastDouble
 
 object BollingerBands {

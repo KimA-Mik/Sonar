@@ -6,4 +6,20 @@
     <string name="body_grant_notifications_permission">Чтобы получать уведомления о важных событиях, включите уведомления.</string>
     <string name="notification_channel_name_portfolio_events">События портфеля</string>
     <string name="notification_channel_description_portfolio_events">События портфеля</string>
+    <string name="event_security_costs">%1$s стоит %2$s</string>
+    <string name="bound_price_event_title_high">%1$s стоит %2$s, на %3$s\% меньше цены продажи</string>
+    <string name="bound_price_event_title_low">%1$s стоит %2$s, на %3$s\% больше цены покупки</string>
+
+    <string name="candle_interval_15m">15м</string>
+    <string name="candle_interval_1h">1ч</string>
+    <string name="candle_interval_4h">4ч</string>
+    <string name="candle_interval_1d">1д</string>
+    <string name="event_current_security_price">Текущая цена: %1$s</string>
+    <string name="event_planned_bid_price">Планируемая цена продажи: %1$s</string>
+    <string name="event_planned_ask_price">Планируемая цена покупки: %1$s</string>
+    <string name="event_price_deviation">Отклонение: %1$s\%</string>
+    <string name="event_bid_price_deviation">Отклонение от цены продажи: %1$s\%</string>
+    <string name="event_ask_price_deviation">Отклонение от цены покуоки: %1$s\%</string>
+    <string name="indicators_headline">Индикаторы</string>
+    <string name="note_headline">"Заметка: "</string>
 </resources>
