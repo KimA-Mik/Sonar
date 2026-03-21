@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.indicators.RSIIndicator
 import org.ta4j.core.indicators.StochasticRSIIndicator
+import org.ta4j.core.indicators.averages.SMAIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
 import org.ta4j.core.indicators.volume.MoneyFlowIndexIndicator
 import ru.kima.sonar.common.serverapi.model.CandleInterval
@@ -15,6 +16,7 @@ import ru.kima.sonar.server.feature.portfolios.util.lastDouble
 import kotlin.time.ExperimentalTime
 
 private const val DEFAULT_BAR_COUNT = 14
+private const val STOCHASTIC_SMOOTHING_STEPS = 3
 
 class IndicatorsCache(
     private val marketData: MarketDataRepository,
@@ -62,14 +64,22 @@ class IndicatorsCache(
                     .lastDouble(),
                 dailyMfi = MoneyFlowIndexIndicator(seriesResult.daily, DEFAULT_BAR_COUNT)
                     .lastDouble(),
-                min15Srsi = StochasticRSIIndicator(min15RsiInd, DEFAULT_BAR_COUNT)
-                    .lastDouble() * factor,
-                hourlySrsi = StochasticRSIIndicator(hourlyRsiInd, DEFAULT_BAR_COUNT)
-                    .lastDouble() * factor,
-                hour4Srsi = StochasticRSIIndicator(hour4RsiInd, DEFAULT_BAR_COUNT)
-                    .lastDouble() * factor,
-                dailySrsi = StochasticRSIIndicator(dailyRsiInd, DEFAULT_BAR_COUNT)
-                    .lastDouble() * factor,
+                min15Srsi = SMAIndicator(
+                    StochasticRSIIndicator(min15RsiInd, DEFAULT_BAR_COUNT),
+                    STOCHASTIC_SMOOTHING_STEPS
+                ).lastDouble(),
+                hourlySrsi = SMAIndicator(
+                    StochasticRSIIndicator(hourlyRsiInd, DEFAULT_BAR_COUNT),
+                    STOCHASTIC_SMOOTHING_STEPS
+                ).lastDouble(),
+                hour4Srsi = SMAIndicator(
+                    StochasticRSIIndicator(hour4RsiInd, DEFAULT_BAR_COUNT),
+                    STOCHASTIC_SMOOTHING_STEPS
+                ).lastDouble(),
+                dailySrsi = SMAIndicator(
+                    StochasticRSIIndicator(dailyRsiInd, DEFAULT_BAR_COUNT),
+                    STOCHASTIC_SMOOTHING_STEPS
+                ).lastDouble(),
             )
         } catch (e: Exception) {
             val logger = LoggerFactory.getLogger(this::class.java)
@@ -114,8 +124,4 @@ class IndicatorsCache(
         val hour4: BarSeries,
         val daily: BarSeries
     )
-
-    companion object {
-        private const val factor = 100.0
-    }
 }
