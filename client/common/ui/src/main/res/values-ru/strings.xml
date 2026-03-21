@@ -5,6 +5,7 @@
     <string name="action_delete">Удалить</string>
     <string name="action_rename">Переименовать</string>
     <string name="action_retry">Повторить</string>s
+    <string name="action_grant">Предоставить</string>
     <string name="action_bar_up_description">Назад</string>
     <string name="action_reset">Сбросить</string>
     <string name="action_search">Искать</string>

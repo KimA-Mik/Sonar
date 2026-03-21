@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
+import ru.kima.sonar.common.util.BigDecimalUtil
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
@@ -82,6 +83,11 @@ internal class AddEntriesViewModel(
             is AddEntriesUserEvent.ExpandClicked -> onExpandClicked(event.uid)
             is AddEntriesUserEvent.UpdateHighPrice -> onUpdateHighPrice(event.uid, event.price)
             is AddEntriesUserEvent.UpdateLowPrice -> onUpdateLowPrice(event.uid, event.price)
+            is AddEntriesUserEvent.UpdateTargetDeviation -> onUpdateTargetDeviation(
+                event.uid,
+                event.deviation
+            )
+
             is AddEntriesUserEvent.NoteUpdated -> onUpdateNote(event.uid, event.note)
             is AddEntriesUserEvent.RemoveEntryClicked -> onRemoveEntry(event.uid)
             AddEntriesUserEvent.SaveChangesClicked -> onSaveChangesClicked()
@@ -244,6 +250,19 @@ internal class AddEntriesViewModel(
         }
     }
 
+    private fun onUpdateTargetDeviation(
+        uid: String,
+        deviation: String
+    ) {
+        val cleanedPrice = decimalFormatter.cleanup(deviation)
+        updateEntry(uid) {
+            it.copy(
+                targetDeviation = cleanedPrice,
+//                lowPriceError = validBigDecimal(cleanedPrice)
+            )
+        }
+    }
+
     private fun onUpdateNote(uid: String, note: String) {
         updateEntry(uid) {
             it.copy(
@@ -273,9 +292,13 @@ internal class AddEntriesViewModel(
                     val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
                     else decimalFormatter.parseToBigDecimal(security.highPrice)
 
+                    val targetDeviation = if (security.targetDeviation.isBlank()) BigDecimal.ONE
+                    else decimalFormatter.parseToBigDecimal(security.targetDeviation)
+
                     homeApiDataSource.addEntry(
                         portfolioId = portfolioId,
                         name = security.ticker,
+                        targetDeviation = targetDeviation,
                         securityUid = security.uid,
                         lowPrice = lowPrice,
                         highPrice = highPrice,
@@ -316,14 +339,16 @@ internal class AddEntriesViewModel(
             editableEntries.removeIf { selectDialogRemovals.contains(it.uid) }
         }
 
-        val percent = 0.1f
+        val percent = 1f
         val bdPercent = BigDecimal(percent.toString())
         for ((_, security) in selectDialogAdditions) {
-            val priceDeviation = security.price * bdPercent
+            val priceDeviation = security.price * bdPercent / BigDecimalUtil.HUNDRED
             val newEntry = EditableEntry(
                 uid = security.uid,
                 ticker = security.ticker,
                 price = security.price,
+                //TODO: Factor out default target deviation somewhere
+                targetDeviation = nf.format(bdPercent),
                 lowPrice = nf.format(security.price - priceDeviation),
                 lowPriceError = false,
                 highPrice = nf.format(security.price + priceDeviation),

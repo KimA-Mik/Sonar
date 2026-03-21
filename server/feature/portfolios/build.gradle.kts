@@ -23,9 +23,13 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.resources)
     implementation(libs.koin.ktor)
+    implementation(libs.firebase.admin)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.ta4j.core)
 
     implementation(project(":common:server-api"))
     implementation(project(":common:util"))
+    implementation(project(":server:common:util"))
     implementation(project(":server:data:user"))
     implementation(project(":server:data:market"))
     implementation(project(":server:feature:auth"))

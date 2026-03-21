@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,6 +39,7 @@ import org.koin.androidx.compose.koinViewModel
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
+import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.feature.securities.R
 import ru.kima.sonar.feature.securities.ui.list.model.DisplayListItemFuture
 import ru.kima.sonar.feature.securities.ui.list.model.DisplayListItemShare
@@ -71,7 +73,8 @@ private fun SecuritiesListScreenContent(
                 title = { Text(stringResource(R.string.top_bar_title_securities_list)) }
             )
         },
-        bottomBar = bottomBar
+        bottomBar = bottomBar,
+        snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) }
     ) { paddingValues ->
         SecuritiesListScreenBody(
             state = state,

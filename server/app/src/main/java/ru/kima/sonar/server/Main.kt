@@ -28,6 +28,8 @@ import ru.kima.sonar.server.feature.auth.AuthManager
 import ru.kima.sonar.server.feature.auth.MAIN_BEARER_NAME
 import ru.kima.sonar.server.feature.auth.routing.authRoute
 import ru.kima.sonar.server.feature.portfolios.routing.portfoliosRoute
+import ru.kima.sonar.server.feature.portfolios.service.core.initializeFirebase
+import ru.kima.sonar.server.feature.portfolios.service.runUpdateService
 import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
 
@@ -36,6 +38,9 @@ class Program : CliktCommand() {
     val marketDbName by option("--market-db-name").default("marketdata.db")
     val usersDbName by option("--users-db-name").default("users.db")
     val tToken by option("--t-invest-token").required().help("T-Invest API token")
+    val firebaseCredentialsPath by option("--firebase-credentials").required()
+        .help("Firebase credentials path")
+    val firebaseProjectId by option("--firebase-project-id").required().help("Firebase project ID")
     override fun run() {
         embeddedServer(Netty, port = port) {
             install(CallLogging)
@@ -65,9 +70,11 @@ class Program : CliktCommand() {
                 }
             }
 
+            initializeFirebase(firebaseProjectId, firebaseCredentialsPath)
             authRoute()
             securitiesRoute()
             portfoliosRoute()
+            runUpdateService()
             shutdownHook()
         }.start(wait = true)
     }

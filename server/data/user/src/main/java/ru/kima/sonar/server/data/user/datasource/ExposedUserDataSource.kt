@@ -7,6 +7,7 @@ import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
 import ru.kima.sonar.server.data.user.model.Session
 import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserAndSession
+import ru.kima.sonar.server.data.user.model.UserAndSessions
 import ru.kima.sonar.server.data.user.model.UserDataError
 import ru.kima.sonar.server.data.user.scema.SessionEntity
 import ru.kima.sonar.server.data.user.scema.SessionTable
@@ -207,6 +208,26 @@ internal class ExposedUserDataSource(
             } else {
                 SonarResult.Error(UserDataError.NotFound)
             }
+        } catch (e: Exception) {
+            logger.error("Error getting user and sessions by token", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getUsersAndSessions(): SonarResult<List<UserAndSessions>, UserDataError> {
+        return try {
+            val result = usersDatabaseConnector.suspendTransaction {
+                val users = UserEntity.all()
+                users.map { user ->
+                    UserAndSessions(
+                        user = user.toDomainModel(),
+                        //TODO: remake with proper join
+                        sessions = user.sessions.map { it.toDomainModel() }
+                    )
+                }
+            }
+
+            SonarResult.Success(result)
         } catch (e: Exception) {
             logger.error("Error getting user and sessions by token", e)
             SonarResult.Error(UserDataError.UnknownError(e))

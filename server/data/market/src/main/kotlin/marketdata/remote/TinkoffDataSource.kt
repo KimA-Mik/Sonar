@@ -16,6 +16,7 @@ import ru.kima.sonar.common.serverapi.model.schema.InstrumentStatus
 import ru.kima.sonar.common.serverapi.model.schema.LastPriceType
 import ru.kima.sonar.common.serverapi.model.security.Future
 import ru.kima.sonar.common.serverapi.model.security.Share
+import ru.kima.sonar.common.util.sonarRunCaching
 import ru.kima.sonar.server.data.market.marketdata.remote.service.InstrumentsService
 import ru.kima.sonar.server.data.market.marketdata.remote.service.MarketDataService
 import ru.kima.sonar.server.data.market.marketdata.remote.service.futures
@@ -253,7 +254,7 @@ class TinkoffDataSource(token: String) {
         interval: CandleInterval,
         candleSource: CandleSource
     ) = rateLimiter.rateLimitedResult {
-        runCatching {
+        sonarRunCaching {
             marketDataService.getCandles(
                 uid = uid,
                 from = from,

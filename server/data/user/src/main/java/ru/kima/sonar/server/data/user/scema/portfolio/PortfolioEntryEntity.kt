@@ -10,9 +10,14 @@ internal class PortfolioEntryEntity(id: EntityID<Long>) : LongEntity(id) {
     var portfolioId by PortfolioEntryTable.portfolioId
     var securityUid by PortfolioEntryTable.securityUid
     var name by PortfolioEntryTable.name
+    var targetDeviation by PortfolioEntryTable.targetDeviation
     var lowPrice by PortfolioEntryTable.lowPrice
     var highPrice by PortfolioEntryTable.highPrice
     var note by PortfolioEntryTable.note
+    var enabled by PortfolioEntryTable.enabled
+    var shouldNotify by PortfolioEntryTable.shouldNotify
+    var lastUnboundUpdate by PortfolioEntryTable.lastUnboundUpdate
+    var lastUnboundUpdatePrice by PortfolioEntryTable.lastUnboundUpdatePrice
 
     val portfolio by PortfolioEntity referencedOn PortfolioEntryTable.portfolioId
 }

@@ -65,14 +65,16 @@ internal class EditEntryDialogViewModel(
         isLoading,
         savedStateHandle.getStateFlow(NAME_KEY, ""),
         savedStateHandle.getStateFlow(PRICE_KEY, BigDecimal.ZERO),
+        savedStateHandle.getStateFlow(TARGET_DEVIATION_KEY, "1"),
         savedStateHandle.getStateFlow(LOW_PRICE_KEY, ""),
         savedStateHandle.getStateFlow(HIGH_PRICE_KEY, ""),
         savedStateHandle.getStateFlow(NOTE_KEY, "")
-    ) { isLoading, name, price, lowPrice, highPrice, note ->
+    ) { isLoading, name, price, targetDeviation, lowPrice, highPrice, note ->
         EditEntryDialogState(
             isLoading = isLoading,
             name = name,
             price = price,
+            targetDeviation = targetDeviation,
             lowPrice = lowPrice,
             highPrice = highPrice,
             note = note
@@ -83,6 +85,7 @@ internal class EditEntryDialogViewModel(
         when (event) {
             is EditEntryUserEvent.HighPriceUpdated -> onHighPriceUpdated(event.highPrice)
             is EditEntryUserEvent.LowPriceUpdated -> onLowPriceUpdated(event.lowPrice)
+            is EditEntryUserEvent.TargetDeviationUpdated -> onTargetDeviationUpdated(event.targetDeviation)
             is EditEntryUserEvent.NoteUpdated -> onNoteUpdated(event.note)
             EditEntryUserEvent.ApplyChangesClicked -> onApplyChangesClicked()
         }
@@ -96,6 +99,10 @@ internal class EditEntryDialogViewModel(
         savedStateHandle[LOW_PRICE_KEY] = sonarFormatter.cleanup(lowPrice)
     }
 
+    private fun onTargetDeviationUpdated(targetDeviation: String) {
+        savedStateHandle[TARGET_DEVIATION_KEY] = sonarFormatter.cleanup(targetDeviation)
+    }
+
     private fun onNoteUpdated(note: String) {
         savedStateHandle[NOTE_KEY] = if (note.length > NOTE_LENGTH) note.take(NOTE_LENGTH) else note
     }
@@ -103,16 +110,21 @@ internal class EditEntryDialogViewModel(
     private fun onApplyChangesClicked() {
         val lowPrice = savedStateHandle.get<String>(LOW_PRICE_KEY) ?: ""
         val highPrice = savedStateHandle.get<String>(HIGH_PRICE_KEY) ?: ""
+        val targetDeviation = savedStateHandle.get<String>(TARGET_DEVIATION_KEY) ?: "1"
         val lowPriceBd = if (lowPrice.isBlank()) BigDecimal.ZERO
         else sonarFormatter.parseToBigDecimal(lowPrice)
 
         val highPriceBd = if (highPrice.isBlank()) BigDecimal.ZERO
         else sonarFormatter.parseToBigDecimal(highPrice)
 
+        val targetDeviationBd = if (targetDeviation.isBlank()) BigDecimal.ONE
+        else sonarFormatter.parseToBigDecimal(targetDeviation)
+
         viewModelScope.launch {
             val res = homeApi.updateEntry(
                 entryId = entryId,
                 name = savedStateHandle.get<String>(NAME_KEY) ?: "",
+                targetDeviation = targetDeviationBd,
                 lowPrice = lowPriceBd,
                 highPrice = highPriceBd,
                 note = savedStateHandle.get<String>(NOTE_KEY) ?: ""
@@ -130,6 +142,7 @@ internal class EditEntryDialogViewModel(
         private const val ENTRY_ID_KEY = "entryId"
         private const val NAME_KEY = "name"
         private const val PRICE_KEY = "price"
+        private const val TARGET_DEVIATION_KEY = "targetDeviation"
         private const val LOW_PRICE_KEY = "lowPrice"
         private const val HIGH_PRICE_KEY = "highPrice"
         private const val NOTE_KEY = "note"

@@ -9,10 +9,10 @@ import java.math.BigDecimal
 typealias TinkoffHistoricCandle = ru.tinkoff.piapi.contract.v1.HistoricCandle
 
 fun TinkoffHistoricCandle.toHistoricalCandle() = HistoricCandle(
-    open = open.toBigDecimal(),
-    high = high.toBigDecimal(),
-    low = low.toBigDecimal(),
-    close = close.toBigDecimal(),
+    open = open.toDouble(),
+    high = high.toDouble(),
+    low = low.toDouble(),
+    close = close.toDouble(),
     volume = volume,
     time = time.toInstant(),
     isComplete = isComplete
@@ -20,3 +20,4 @@ fun TinkoffHistoricCandle.toHistoricalCandle() = HistoricCandle(
 
 //TODO: Make sane converter
 fun Quotation.toBigDecimal(): BigDecimal = BigDecimal(units).add(BigDecimal(nano).movePointLeft(9))
+fun Quotation.toDouble(): Double = units + nano / 1_000_000_000.0

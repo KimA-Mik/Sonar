@@ -133,6 +133,25 @@ internal class ExposedPortfolioDataSource(
         }
     }
 
+    override suspend fun updatePortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError> {
+        return try {
+            // Didn't find a way to perform bach update using dao api
+            // 1.0 release btw
+            databaseConnector.suspendTransaction {
+                for (entry in entries) {
+                    PortfolioEntryEntity.findByIdAndUpdate(entry.id) { entity ->
+                        entity.putInside(entry)
+                    }
+                }
+            }
+
+            SonarResult.Success(Unit)
+        } catch (e: Exception) {
+            logger.error("Error updating portfolio entries", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
     override suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError> {
         return try {
             var found = false
@@ -186,6 +205,25 @@ internal class ExposedPortfolioDataSource(
             } else {
                 SonarResult.Error(UserDataError.NotFound)
             }
+        } catch (e: Exception) {
+            logger.error("Error getting portfolio with entries by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getPortfolios(): SonarResult<List<PortfolioWithEntries>, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                val portfolios = PortfolioEntity.all()
+                portfolios.map { portfolio ->
+                    PortfolioWithEntries(
+                        portfolio = portfolio.toDomainModel(),
+                        entries = portfolio.entries.map { it.toDomainModel() }
+                    )
+                }
+            }
+
+            SonarResult.Success(result)
         } catch (e: Exception) {
             logger.error("Error getting portfolio with entries by id", e)
             SonarResult.Error(UserDataError.UnknownError(e))

@@ -258,6 +258,10 @@ internal fun EditableEntryBody(
     EditEntryContent(
         price = entry.price,
         lowPrice = entry.lowPrice,
+        targetDeviation = entry.targetDeviation,
+        onTargetDeviationUpdate = {
+            onEvent(AddEntriesUserEvent.UpdateTargetDeviation(entry.uid, it))
+        },
         onLowPriceUpdate = { onEvent(AddEntriesUserEvent.UpdateLowPrice(entry.uid, it)) },
         lowPriceError = entry.lowPriceError,
         highPrice = entry.highPrice,
@@ -280,6 +284,7 @@ private fun AddEntriesScreenPreview() = SonarPreview {
                     uid = "ASD",
                     ticker = "SBER",
                     price = BigDecimal("123"),
+                    targetDeviation = nf.format(BigDecimal("1")),
                     lowPrice = nf.format(BigDecimal("120")),
                     lowPriceError = false,
                     highPrice = nf.format(BigDecimal("125")),

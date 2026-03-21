@@ -140,6 +140,7 @@ internal class PortfoliosController(
                 portfolioId = portfolioId,
                 securityUid = request.securityUid,
                 name = request.name,
+                targetDeviation = request.targetDeviation,
                 lowPrice = request.lowPrice,
                 highPrice = request.highPrice,
                 note = request.note
@@ -171,6 +172,7 @@ internal class PortfoliosController(
         when (val res = portfoliosDataSource.updatePortfolioEntry(
             oldEntry.copy(
                 name = request.name,
+                targetDeviation = request.targetDeviation,
                 lowPrice = request.lowPrice,
                 highPrice = request.highPrice,
                 note = request.note

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="snackbar_permission_denied">You won\'t get notification</string>
+    <string name="snackbar_permission_granted">Permission granted</string>
+    <string name="title_grant_notifications_permission">Grant notifications permission?</string>
+    <string name="body_grant_notifications_permission">To receive notifications about important events, please enable notifications..</string>
+    <string name="notification_channel_name_portfolio_events">Portfolio_events</string>
+    <string name="notification_channel_description_portfolio_events">Portfolio_events</string>
+    <string name="event_security_costs">%1$s costs %2$s</string>
+    <string name="bound_price_event_title_high">%1$s costs %2$s, %3$s%% less than sell price</string>
+    <string name="bound_price_event_title_low">%1$s costs %2$s, %3$s%% more than bid price</string>
+
+    <string name="candle_interval_15m">15m</string>
+    <string name="candle_interval_1h">1h</string>
+    <string name="candle_interval_4h">4h</string>
+    <string name="candle_interval_1d">1d</string>
+    <string name="event_current_security_price">Current price: %1$s</string>
+    <string name="event_planned_bid_price">Planned bid price: %1$s</string>
+    <string name="event_planned_ask_price">Planned ask price: %1$s</string>
+    <string name="event_price_deviation">Price deviation: %1$s%%</string>
+    <string name="event_bid_price_deviation">Bid price deviation: %1$s%%</string>
+    <string name="event_ask_price_deviation">Ask price deviation: %1$s%%</string>
+
+    <string name="indicators_headline">Indicators: </string>
+    <string name="indicator_rsi" translatable="false">"RSI (%1$s): "</string>
+    <string name="indicator_srsi" translatable="false">"SRSI (%1$s): "</string>
+    <string name="indicator_mfi" translatable="false">"MFI (%1$s): "</string>
+
+    <string name="note_headline">Note: </string>
+    <string name="event_unbound_price_above">%1$s now more expensive than %2$s</string>
+    <string name="event_unbound_price_below">%1$s now cheaper than %2$s</string>
+    <string name="event_unbound_price_is_greater"> is %1$s%% greater than %2$s</string>
+    <string name="event_unbound_price_is_lower"> is %1$s%% lower than %2$s</string>
+</resources>

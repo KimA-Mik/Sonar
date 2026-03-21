@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.konan.properties.loadProperties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.koin.compiler)
 }
 
 val localProperties = loadProperties(rootProject.file("local.properties").toString())

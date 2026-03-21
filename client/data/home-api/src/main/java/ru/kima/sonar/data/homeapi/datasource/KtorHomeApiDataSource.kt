@@ -263,6 +263,7 @@ internal class KtorHomeApiDataSource(
     override suspend fun addEntry(
         portfolioId: Long,
         name: String,
+        targetDeviation: BigDecimal,
         securityUid: String,
         lowPrice: BigDecimal,
         highPrice: BigDecimal,
@@ -273,6 +274,7 @@ internal class KtorHomeApiDataSource(
             setBody(
                 AddPortfolioEntryRequest(
                     name = name,
+                    targetDeviation = targetDeviation,
                     securityUid = securityUid,
                     lowPrice = lowPrice,
                     highPrice = highPrice,
@@ -285,6 +287,7 @@ internal class KtorHomeApiDataSource(
     override suspend fun updateEntry(
         entryId: Long,
         name: String,
+        targetDeviation: BigDecimal,
         lowPrice: BigDecimal,
         highPrice: BigDecimal,
         note: String
@@ -294,6 +297,7 @@ internal class KtorHomeApiDataSource(
             setBody(
                 UpdatePortfolioEntryRequest(
                     name = name,
+                    targetDeviation = targetDeviation,
                     lowPrice = lowPrice,
                     highPrice = highPrice,
                     note = note
