@@ -36,4 +36,8 @@ internal class AuthController(
             notificationProviderClientId = notificationProviderId
         )
     }
+
+    suspend fun register(login: String, password: String): Boolean {
+        return authManager.createUser(login, password)
+    }
 }

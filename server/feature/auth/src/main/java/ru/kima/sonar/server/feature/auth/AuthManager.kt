@@ -7,6 +7,7 @@ import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
 import ru.kima.sonar.server.data.user.model.Session
+import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserAndSession
 import ru.kima.sonar.server.feature.auth.impl.generateToken
 import kotlin.time.Clock
@@ -62,6 +63,17 @@ class AuthManager(private val userDataSource: UserDataSource) {
         }
 
         return token
+    }
+
+    suspend fun createUser(login: String, password: String): Boolean {
+        val res = userDataSource.insertUser(
+            User(
+                id = 0,
+                email = login,
+                passwordHash = argon2.encode(password)!!
+            )
+        )
+        return res.isSuccess()
     }
 
     fun hashPassword(password: String): String {

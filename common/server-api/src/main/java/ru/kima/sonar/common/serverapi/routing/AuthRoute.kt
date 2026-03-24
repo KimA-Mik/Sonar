@@ -7,6 +7,9 @@ class AuthRoute {
     @Resource("/login")
     class Login(val parent: AuthRoute = AuthRoute())
 
+    @Resource("/slap_user")
+    class Register(val parent: AuthRoute = AuthRoute())
+
     companion object {
         const val ROOT = "auth"
     }

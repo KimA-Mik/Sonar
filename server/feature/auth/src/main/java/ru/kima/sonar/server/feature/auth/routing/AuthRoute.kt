@@ -8,8 +8,11 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
+import ru.kima.sonar.common.serverapi.clientrequests.RegisterRequest
 import ru.kima.sonar.common.serverapi.dto.auth.response.AuthorizationResult
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
+import ru.kima.sonar.common.util.sonarRunCaching
+import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.feature.auth.AuthController
 
 fun Application.authRoute() = routing {
@@ -25,6 +28,20 @@ fun Application.authRoute() = routing {
         authController.login(request)?.let { token ->
             call.respond(AuthorizationResult(token))
         } ?: call.respond(HttpStatusCode.Unauthorized)
+    }
+
+    post<AuthRoute.Register> {
+        val request = sonarRunCaching { call.receive<RegisterRequest>() }
+            .valueOr {
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
+
+        if (authController.register(request.login, request.password)) {
+            call.respond(HttpStatusCode.Created)
+        } else {
+            call.respond(HttpStatusCode.Forbidden)
+        }
     }
 }
 
