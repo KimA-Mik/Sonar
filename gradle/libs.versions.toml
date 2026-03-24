@@ -41,6 +41,7 @@ firebaseBom = "34.11.0"
 googleServices = "4.4.4"
 accompanistPermissions = "0.37.3"
 ta4j = "0.22.2"
+shadow = "9.4.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -127,3 +128,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

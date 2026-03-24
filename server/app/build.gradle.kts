@@ -1,8 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.shadow)
 }
+
+val file: File = rootProject.file("local.properties")
+val localProperties = if (file.exists()) loadProperties(file.toString())
+else null
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -12,6 +18,13 @@ java {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
+    }
+}
+
+tasks.shadowJar {
+    enabled = localProperties?.getProperty("shadow.disable")?.toBooleanStrictOrNull() ?: true
+    manifest {
+        attributes["Main-Class"] = "ru.kima.sonar.server.MainKt"
     }
 }
 
