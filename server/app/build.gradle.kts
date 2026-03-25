@@ -23,6 +23,7 @@ kotlin {
 
 tasks.shadowJar {
     enabled = localProperties?.getProperty("shadow.disable")?.toBooleanStrictOrNull() ?: true
+    mergeServiceFiles() // https://github.com/grpc/grpc-java/issues/10853
     manifest {
         attributes["Main-Class"] = "ru.kima.sonar.server.MainKt"
     }
