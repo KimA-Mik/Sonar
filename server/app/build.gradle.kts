@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar.Companion.shadowJar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.konan.properties.loadProperties
 
@@ -23,6 +24,7 @@ kotlin {
 
 tasks.shadowJar {
     enabled = localProperties?.getProperty("shadow.disable")?.toBooleanStrictOrNull() ?: true
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles() // https://github.com/grpc/grpc-java/issues/10853
     manifest {
         attributes["Main-Class"] = "ru.kima.sonar.server.MainKt"
