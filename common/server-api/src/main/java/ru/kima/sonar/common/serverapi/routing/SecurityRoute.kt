@@ -1,7 +1,8 @@
 package ru.kima.sonar.common.serverapi.routing
 
+const val WEBSOCKET = "ws"
 object SecurityRoute {
-    const val ROOT = "securities"
+    const val ROOT = "$WEBSOCKET/securities"
 
     object Shares {
         const val PATH = "$ROOT/shares"
