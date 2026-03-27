@@ -7,7 +7,6 @@ import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
-import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -17,8 +16,6 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.resources.Resources
-import io.ktor.server.websocket.WebSockets
-import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.Koin
 import ru.kima.sonar.server.di.dataModule
@@ -46,9 +43,6 @@ class Program : CliktCommand() {
             install(CallLogging)
             install(Resources)
             install(ContentNegotiation) { json() }
-            install(WebSockets) {
-                contentConverter = KotlinxWebsocketSerializationConverter(Json)
-            }
             install(Koin) {
                 modules(
                     dataModule(
