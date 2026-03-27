@@ -41,7 +41,6 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.resources)
     implementation(libs.ktor.server.websockets)
-    implementation(libs.ktor.network.tls.certificates)
     //TODO: Remove logback and use ktor's logging with slf4j and log4j
     implementation(libs.logback.classic)
     implementation(libs.ktor.serialization.kotlinx.json)
