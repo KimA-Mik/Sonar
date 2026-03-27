@@ -1,24 +1,23 @@
 package ru.kima.sonar.common.serverapi.routing
 
-object SecurityRoute {
-    const val ROOT = "securities"
 
-    object Shares {
-        const val PATH = "$ROOT/shares"
+import io.ktor.resources.Resource
 
-        object Share {
-            const val TICKER_KEY = "ticker"
-            const val PATH = "${Shares.PATH}/{$TICKER_KEY}"
-        }
+@Resource("/${SecurityRoute.ROOT}")
+class SecurityRoute {
+    @Resource("shares")
+    data class Shares(val parent: SecurityRoute = SecurityRoute()) {
+        @Resource("{ticker}")
+        data class Share(val parent: Shares = Shares(), val ticker: String)
     }
 
-    object Futures {
-        const val PATH = "$ROOT/futures"
+    @Resource("futures")
+    data class Futures(val parent: SecurityRoute = SecurityRoute()) {
+        @Resource("{ticker}")
+        data class Future(val parent: Futures = Futures(), val ticker: String)
+    }
 
-
-        object Future {
-            const val TICKER_KEY = "ticker"
-            const val PATH = "${Futures.PATH}/{$TICKER_KEY}"
-        }
+    companion object {
+        const val ROOT = "securities"
     }
 }
