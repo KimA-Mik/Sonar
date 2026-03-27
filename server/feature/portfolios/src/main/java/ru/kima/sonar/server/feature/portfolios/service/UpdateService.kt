@@ -18,6 +18,7 @@ import ru.kima.sonar.common.serverapi.model.LastPrice
 import ru.kima.sonar.common.util.MathUtil
 import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.common.util.time.DateUtil
+import ru.kima.sonar.server.common.util.time.TimeUtil
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
 import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
@@ -28,9 +29,10 @@ import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 import ru.kima.sonar.server.feature.portfolios.service.model.CacheEntry
 import ru.kima.sonar.server.feature.portfolios.service.model.IndicatorsCache
 import java.math.BigDecimal
+import kotlin.random.Random
+import kotlin.random.nextLong
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 class UpdateService(
     private val userDataSource: UserDataSource,
@@ -51,10 +53,10 @@ class UpdateService(
         if (activeJob != null) return
         activeJob = scope.launch {
             while (isActive) {
-                delay(10.seconds)
+//                delay(10.seconds)
                 checkForUpdates()
-//                delay((15L + Random.nextLong(0L..15L)) * TimeUtil.SECOND_MILLIS)
-                delayNonWorkingHours(8, 45, 23, 59)
+                delay((15L + Random.nextLong(0L..15L)) * TimeUtil.SECOND_MILLIS)
+//                delayNonWorkingHours(8, 45, 23, 59)
             }
         }
     }
@@ -189,7 +191,7 @@ class UpdateService(
         }
     }
 
-    private val unboundUpdateIntervalSec = 1.minutes
+    private val unboundUpdateIntervalSec = 5.minutes
     private val unboundThreshold = BigDecimal("0.1")
 
     private suspend fun handleUnboundPrice(
@@ -211,12 +213,12 @@ class UpdateService(
         val highDeviation = MathUtil.absolutePercentageDifference(lastPrice.price, entry.highPrice)
         val lowDeviation = MathUtil.absolutePercentageDifference(lastPrice.price, entry.lowPrice)
         val priceType = when {
-            lastPrice.price > entry.highPrice && highDeviation > unboundThreshold -> UnboundPriceEvent.PriceType.Above(
+            lastPrice.price > entry.highPrice -> UnboundPriceEvent.PriceType.Above(
                 entry.highPrice,
                 deviation = highDeviation
             )
 
-            lastPrice.price < entry.lowPrice && lowDeviation > unboundThreshold -> UnboundPriceEvent.PriceType.Below(
+            lastPrice.price < entry.lowPrice -> UnboundPriceEvent.PriceType.Below(
                 targetPrice = entry.lowPrice,
                 deviation = lowDeviation
             )
