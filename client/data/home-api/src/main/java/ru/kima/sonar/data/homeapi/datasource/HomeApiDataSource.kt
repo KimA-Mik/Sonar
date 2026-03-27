@@ -10,6 +10,8 @@ import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.data.homeapi.error.HomeApiError
 import java.math.BigDecimal
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 interface HomeApiDataSource {
     suspend fun login(
@@ -19,8 +21,8 @@ interface HomeApiDataSource {
         notificationProviderClientId: String?
     ): SonarResult<String, HomeApiError>
 
-    fun tradableShares(): Flow<SonarResult<List<ListItemShare>, HomeApiError>>
-    fun tradableFutures(): Flow<SonarResult<List<ListItemFuture>, HomeApiError>>
+    fun tradableShares(period: Duration = 5.seconds): Flow<SonarResult<List<ListItemShare>, HomeApiError>>
+    fun tradableFutures(period: Duration = 5.seconds): Flow<SonarResult<List<ListItemFuture>, HomeApiError>>
 
     suspend fun portfolios(): SonarResult<List<ListItemPortfolio>, HomeApiError>
     suspend fun createPortfolio(name: String): SonarResult<Unit, HomeApiError>
