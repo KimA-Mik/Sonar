@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 import io.ktor.network.tls.certificates.buildKeyStore
+import io.ktor.network.tls.certificates.saveToFile
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
@@ -152,12 +153,18 @@ fun ApplicationEngine.Configuration.configureEnv(
     }
 
     val keyStoreFile = File(keystorePath!!)
-    val keyStore = buildKeyStore {}
-    keyStore.load(keyStoreFile.inputStream(), keystorePassword!!.toCharArray())
+    val keyStore = buildKeyStore {
+        certificate(certificateAlias!!) {
+            password = certificatePassword!!
+            domains = domainsList
+        }
+    }
+    keyStore.saveToFile(keyStoreFile, "123456")
+
     sslConnector(
         keyStore = keyStore,
         keyAlias = certificateAlias!!,
-        keyStorePassword = { keystorePassword.toCharArray() },
+        keyStorePassword = { keystorePassword!!.toCharArray() },
         privateKeyPassword = { certificatePassword!!.toCharArray() }) {
         port = httpsPort
         keyStorePath = keyStoreFile
