@@ -87,4 +87,11 @@ class AuthManager(private val userDataSource: UserDataSource) {
         session = userDataSource.updateSession(session).valueOr { return null }
         return userAndSession.copy(session = session)
     }
+
+    suspend fun removeSessionBasedOnFirebase(token: String): Boolean {
+        val session = userDataSource
+            .getSessionByNotificationProvider(NotificationProvider.FIREBASE, token)
+            .valueOr { return false }
+        return userDataSource.deleteSessionByToken(session.token).isSuccess()
+    }
 }

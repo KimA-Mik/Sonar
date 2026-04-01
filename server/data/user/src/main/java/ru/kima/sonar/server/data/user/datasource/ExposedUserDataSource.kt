@@ -1,7 +1,9 @@
 package ru.kima.sonar.server.data.user.datasource
 
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.slf4j.LoggerFactory
+import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
 import ru.kima.sonar.server.data.user.model.Session
@@ -164,6 +166,28 @@ internal class ExposedUserDataSource(
             }
         } catch (e: Exception) {
             logger.error("Error getting session by token", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getSessionByNotificationProvider(
+        notificationProvider: NotificationProvider,
+        notificationProviderId: String
+    ): SonarResult<Session, UserDataError> {
+        return try {
+            val session = usersDatabaseConnector.suspendTransaction {
+                SessionEntity.find {
+                    (SessionTable.notificationProvider eq notificationProvider) and
+                            (SessionTable.notificationProviderId eq notificationProviderId)
+                }.firstOrNull()
+            }
+            if (session != null) {
+                SonarResult.Success(session.toDomainModel())
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting session by notification provider", e)
             SonarResult.Error(UserDataError.UnknownError(e))
         }
     }

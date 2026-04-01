@@ -4,9 +4,11 @@ import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.server.feature.portfolios.service.mapper.toNotificationEvent
 import ru.kima.sonar.server.feature.portfolios.service.provider.FirebaseNotificationProvider
 
-class UpdateServiceUpdateHandler {
+class UpdateServiceUpdateHandler(
+    firebaseNotificationProvider: FirebaseNotificationProvider
+) {
     private val providers = mapOf(
-        NotificationProvider.FIREBASE to FirebaseNotificationProvider()
+        NotificationProvider.FIREBASE to firebaseNotificationProvider
     )
 
     suspend fun consume(update: UpdateServiceEvent) {

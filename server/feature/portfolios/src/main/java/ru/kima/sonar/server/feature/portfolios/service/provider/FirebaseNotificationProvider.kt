@@ -1,5 +1,6 @@
 package ru.kima.sonar.server.feature.portfolios.service.provider
 
+import com.google.firebase.ErrorCode
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
@@ -8,8 +9,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.serverapi.events.NotificationEvent
+import ru.kima.sonar.server.feature.auth.AuthManager
 
-class FirebaseNotificationProvider : NotificationProvider {
+class FirebaseNotificationProvider(
+    private val authManager: AuthManager
+) : NotificationProvider {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val firebaseMessaging = FirebaseMessaging.getInstance()
     override suspend fun provideNotification(
@@ -25,7 +29,10 @@ class FirebaseNotificationProvider : NotificationProvider {
             try {
                 firebaseMessaging.send(message)
             } catch (e: FirebaseMessagingException) {
-                logger.error("Unable to send firebase message: $e")
+                when (e.errorCode) {
+                    ErrorCode.NOT_FOUND -> authManager.removeSessionBasedOnFirebase(deviceId)
+                    else -> logger.error("Unable to send firebase message: $e")
+                }
             }
         }
     }

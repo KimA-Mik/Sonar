@@ -1,5 +1,6 @@
 package ru.kima.sonar.server.data.user.datasource
 
+import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.data.user.model.Session
 import ru.kima.sonar.server.data.user.model.User
@@ -16,6 +17,11 @@ interface UserDataSource {
     suspend fun insertSession(session: Session): SonarResult<Session, UserDataError>
     suspend fun updateSession(session: Session): SonarResult<Session, UserDataError>
     suspend fun getSessionByToken(token: String): SonarResult<Session, UserDataError>
+    suspend fun getSessionByNotificationProvider(
+        notificationProvider: NotificationProvider,
+        notificationProviderId: String
+    ): SonarResult<Session, UserDataError>
+
     suspend fun getSessionsByUserId(userId: Long): SonarResult<List<Session>, UserDataError>
     suspend fun deleteSessionByToken(token: String): SonarResult<Unit, UserDataError>
     suspend fun getUserAndSessionsByToken(token: String): SonarResult<UserAndSession, UserDataError>
