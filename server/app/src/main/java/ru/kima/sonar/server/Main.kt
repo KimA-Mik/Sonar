@@ -1,5 +1,6 @@
 package ru.kima.sonar.server
 
+import ch.qos.logback.classic.Level
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.options.default
@@ -29,6 +30,7 @@ import ru.kima.sonar.server.feature.portfolios.service.core.initializeFirebase
 import ru.kima.sonar.server.feature.portfolios.service.runUpdateService
 import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
+import ru.kima.sonar.server.util.setLogbackLevel
 
 class Program : CliktCommand() {
     val port by option("-p", "--port").int().default(1337)
@@ -39,6 +41,7 @@ class Program : CliktCommand() {
         .help("Firebase credentials path")
     val firebaseProjectId by option("--firebase-project-id").required().help("Firebase project ID")
     override fun run() {
+        setLogbackLevel(Level.INFO)
         embeddedServer(Netty, port = port) {
             install(CallLogging)
             install(Resources)
