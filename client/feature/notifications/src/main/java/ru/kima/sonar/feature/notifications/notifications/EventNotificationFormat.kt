@@ -9,5 +9,5 @@ internal interface EventNotificationFormat {
     fun title(resources: Resources): String
     fun body(resources: Resources): String
 
-    fun decimalFormat() = DecimalFormat("##0.00", DecimalFormatSymbols(Locale.getDefault()))
+    fun decimalFormat() = DecimalFormat("##0.###", DecimalFormatSymbols(Locale.getDefault()))
 }
