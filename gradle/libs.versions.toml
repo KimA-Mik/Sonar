@@ -40,7 +40,7 @@ lifecycleViewmodelCompose = "2.10.0"
 firebaseBom = "34.11.0"
 googleServices = "4.4.4"
 accompanistPermissions = "0.37.3"
-ta4j = "0.22.2"
+ta4j = "0.22.5"
 shadow = "9.4.1"
 
 [libraries]
