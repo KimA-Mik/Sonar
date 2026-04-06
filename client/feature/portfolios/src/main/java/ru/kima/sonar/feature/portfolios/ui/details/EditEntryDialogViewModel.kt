@@ -52,6 +52,7 @@ internal class EditEntryDialogViewModel(
             savedStateHandle[ENTRY_ID_KEY] = entryId
             savedStateHandle[NAME_KEY] = entry.name
             savedStateHandle[PRICE_KEY] = entry.price
+            savedStateHandle[TARGET_DEVIATION_KEY] = numberFormat.format(entry.targetDeviation)
             savedStateHandle[LOW_PRICE_KEY] = numberFormat.format(entry.lowPrice)
             savedStateHandle[HIGH_PRICE_KEY] = numberFormat.format(entry.highPrice)
             savedStateHandle[NOTE_KEY] = entry.note

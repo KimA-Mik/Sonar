@@ -25,6 +25,7 @@ fun PortfolioEntry.toDto(price: BigDecimal) = ListItemPortfolioEntry(
     id = id,
     uid = securityUid,
     name = name,
+    targetDeviation = targetDeviation,
     price = price,
     lowPrice = lowPrice,
     highPrice = highPrice,

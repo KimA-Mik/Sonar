@@ -8,6 +8,7 @@ data class ListItemPortfolioEntry(
     val id: Long,
     val uid: String,
     val name: String,
+    val targetDeviation: BigDecimalJson,
     val price: BigDecimalJson,
     val lowPrice: BigDecimalJson,
     val highPrice: BigDecimalJson,

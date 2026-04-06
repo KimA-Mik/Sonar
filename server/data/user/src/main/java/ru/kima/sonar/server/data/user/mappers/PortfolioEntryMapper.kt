@@ -23,6 +23,7 @@ internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
     portfolioId = domainObject.portfolioId
     securityUid = domainObject.securityUid
     name = domainObject.name
+    targetDeviation = domainObject.targetDeviation
     lowPrice = domainObject.lowPrice
     highPrice = domainObject.highPrice
     note = domainObject.note
