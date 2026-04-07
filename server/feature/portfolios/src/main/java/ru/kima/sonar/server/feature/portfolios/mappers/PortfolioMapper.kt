@@ -2,7 +2,7 @@ package ru.kima.sonar.server.feature.portfolios.mappers
 
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.PortfolioResponse
+import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
@@ -15,7 +15,7 @@ fun Portfolio.toDto() = ListItemPortfolio(
 )
 
 private val emptyPrice = BigDecimal(BigInteger.ZERO)
-fun PortfolioWithEntries.toDto(prices: Map<String, BigDecimal>) = PortfolioResponse(
+fun PortfolioWithEntries.toDto(prices: Map<String, BigDecimal>) = SonarPortfolio(
     id = portfolio.id,
     name = portfolio.name,
     entries = entries.map { it.toDto(prices[it.securityUid] ?: emptyPrice) }

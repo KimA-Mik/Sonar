@@ -44,10 +44,10 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntry
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.PortfolioResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
+import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
 import ru.kima.sonar.common.serverapi.routing.PortfoliosRoute
 import ru.kima.sonar.common.serverapi.routing.SecurityRoute
@@ -212,7 +212,7 @@ internal class KtorHomeApiDataSource(
             }
         }
 
-    override suspend fun getPortfolio(portfolioId: Long): SonarResult<PortfolioResponse, HomeApiError> =
+    override suspend fun getPortfolio(portfolioId: Long): SonarResult<SonarPortfolio, HomeApiError> =
         safeApiCall { client.get(PortfoliosRoute.Portfolio(id = portfolioId)) }
 
     override suspend fun updatePortfolio(
