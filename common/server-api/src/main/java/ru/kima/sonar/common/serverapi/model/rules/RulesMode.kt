@@ -5,12 +5,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class RulesMode {
-    @SerialName("rules_only")
-    RULES_ONLY,
+    /**
+     * Rules are disabled, securities notifications work as usual
+     */
+    @SerialName("disabled")
+    RULES_DISABLED,
 
-    @SerialName("securities_only")
+    /**
+     * Rules are used to limit securities notifications
+     */
+    @SerialName("limit")
     LIMIT_SECURITIES,
 
+    /**
+     * Only rule notifications
+     */
+    @SerialName("rules_notifications")
+    RULES_NOTIFICATIONS,
+
+    /**
+     * Enables two type of notifications
+     */
     @SerialName("rules_and_securities")
     RULES_AND_SECURITIES
 }

@@ -242,7 +242,14 @@ internal class ExposedPortfolioDataSource(
                 val portfolio = PortfolioEntity.findById(portfolioId)
                     ?: return@suspendTransaction null
 
-                return@suspendTransaction portfolio.toLightPortfolioWithRule()
+                var rule = portfolio.rules.firstOrNull()?.toDomainModel()
+                if (rule == null) {
+                    rule = RulesEntity.new {
+                        pitInside(PortfolioRule.default(portfolioId = portfolioId))
+                    }.toDomainModel()
+                }
+
+                return@suspendTransaction portfolio.toLightPortfolioWithRule(rule)
             }
             if (res != null) {
                 SonarResult.Success(res)
@@ -267,23 +274,11 @@ internal class ExposedPortfolioDataSource(
                 if (newRule == null) {
                     SonarResult.Error(UserDataError.NotFound)
                 } else {
-                    SonarResult.Success(old.toLightPortfolioWithRule().copy(rule = newRule))
+                    SonarResult.Success(old.toLightPortfolioWithRule(newRule))
                 }
             }
         } catch (e: Exception) {
             logger.error("Error updating portfolio rule", e)
-            SonarResult.Error(UserDataError.UnknownError(e))
-        }
-    }
-
-    override suspend fun insertPortfolioRule(portfolio: PortfolioRule): SonarResult<PortfolioRule, UserDataError> {
-        return try {
-            val new = RulesEntity.new {
-                pitInside(portfolio)
-            }.toDomainModel()
-            SonarResult.Success(new)
-        } catch (e: Exception) {
-            logger.error("Error inserting portfolio rule", e)
             SonarResult.Error(UserDataError.UnknownError(e))
         }
     }

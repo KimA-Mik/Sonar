@@ -26,5 +26,4 @@ interface PortfolioDataSource {
 
     suspend fun getPortfolioRule(portfolioId: Long): SonarResult<LightPortfolioWithRule, UserDataError>
     suspend fun updatePortfolioRule(rule: PortfolioRule): SonarResult<LightPortfolioWithRule, UserDataError>
-    suspend fun insertPortfolioRule(portfolio: PortfolioRule): SonarResult<PortfolioRule, UserDataError>
 }

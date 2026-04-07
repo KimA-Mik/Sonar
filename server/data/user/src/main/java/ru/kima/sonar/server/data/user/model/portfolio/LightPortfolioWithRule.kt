@@ -4,5 +4,5 @@ data class LightPortfolioWithRule(
     val id: Long,
     val userId: Long,
     val name: String,
-    val rule: PortfolioRule?
+    val rule: PortfolioRule
 )

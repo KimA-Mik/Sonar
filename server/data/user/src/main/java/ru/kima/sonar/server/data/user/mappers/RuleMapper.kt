@@ -5,11 +5,11 @@ import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.RulesEntity
 
-internal fun PortfolioEntity.toLightPortfolioWithRule() = LightPortfolioWithRule(
+internal fun PortfolioEntity.toLightPortfolioWithRule(rule: PortfolioRule) = LightPortfolioWithRule(
     id = id.value,
     userId = userId,
     name = name,
-    rule = rules.firstOrNull()?.toDomainModel()
+    rule = rule
 )
 
 internal fun RulesEntity.toDomainModel() = PortfolioRule(
