@@ -16,4 +16,5 @@ kotlin {
 
 dependencies {
     implementation(libs.exposed.jdbc)
+    implementation(libs.ktor.server.core)
 }

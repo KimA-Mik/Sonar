@@ -10,8 +10,10 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryReq
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdateRuleRequest
 import ru.kima.sonar.common.serverapi.util.TITLE_LENGTH
 import ru.kima.sonar.common.util.SonarResult
+import ru.kima.sonar.server.common.util.ktor.receiveOrBadRequest
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
 import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
@@ -19,6 +21,7 @@ import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserDataError
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
+import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.feature.portfolios.mappers.toDto
 import java.math.BigDecimal
 
@@ -103,9 +106,35 @@ internal class PortfoliosController(
 
     suspend fun deletePortfolio(call: RoutingCall, portfolioId: Long) {
         val user = call.getUserOrISE { return }
-        call.returnIfNotOwn(user.id, portfolioId) { return }
+        call.getPortfolioReturnIfNotOwn(user.id, portfolioId) { return }
 
         when (val res = portfoliosDataSource.deletePortfolioById(portfolioId)) {
+            is SonarResult.Success -> call.respond(HttpStatusCode.OK)
+            is SonarResult.Error -> call.handleUserDataError(res.data)
+        }
+    }
+
+    suspend fun getPortfolioRules(call: RoutingCall, portfolioId: Long) {
+        val user = call.getUserOrISE { return }
+        val portfolioRules = call.getPortfolioRuleOrReturnIfNotOwn(user.id, portfolioId) { return }
+        call.respond(portfolioRules.toDto())
+    }
+
+    suspend fun updatePortfolioRules(call: RoutingCall, portfolioId: Long) {
+        val user = call.getUserOrISE { return }
+        val portfolioRules = call.getPortfolioRuleOrReturnIfNotOwn(user.id, portfolioId) { return }
+        val request = call.receiveOrBadRequest<UpdateRuleRequest> { return }
+
+        val res = portfoliosDataSource.updatePortfolioRule(
+            PortfolioRule(
+                id = portfolioRules.rule.id,
+                portfolioId = portfolioId,
+                mode = request.mode,
+                rule = request.rule
+            )
+        )
+
+        when (res) {
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
             is SonarResult.Error -> call.handleUserDataError(res.data)
         }
@@ -120,13 +149,13 @@ internal class PortfoliosController(
                 return
             }
         }
-        call.returnIfNotOwn(user.id, entry.portfolioId) { return }
+        call.getPortfolioReturnIfNotOwn(user.id, entry.portfolioId) { return }
         call.respond(entry.toDto(getCurrentPrices()[entry.securityUid] ?: BigDecimal.ZERO))
     }
 
     suspend fun addEntry(call: RoutingCall, portfolioId: Long) {
         val user = call.getUserOrISE { return }
-        call.returnIfNotOwn(user.id, portfolioId) { return }
+        call.getPortfolioReturnIfNotOwn(user.id, portfolioId) { return }
 
         val request = try {
             call.receive<AddPortfolioEntryRequest>()
@@ -160,7 +189,7 @@ internal class PortfoliosController(
                 return
             }
         }
-        call.returnIfNotOwn(user.id, oldEntry.portfolioId) { return }
+        call.getPortfolioReturnIfNotOwn(user.id, oldEntry.portfolioId) { return }
 
         val request = try {
             call.receive<UpdatePortfolioEntryRequest>()
@@ -192,7 +221,7 @@ internal class PortfoliosController(
                 return
             }
         }
-        call.returnIfNotOwn(user.id, entry.portfolioId) { return }
+        call.getPortfolioReturnIfNotOwn(user.id, entry.portfolioId) { return }
 
         when (val res = portfoliosDataSource.deletePortfolioEntry(entryId)) {
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
@@ -229,7 +258,7 @@ internal class PortfoliosController(
         }
     }
 
-    private suspend inline fun RoutingCall.returnIfNotOwn(
+    private suspend inline fun RoutingCall.getPortfolioReturnIfNotOwn(
         userId: Long,
         portfolioId: Long,
         onInvalid: () -> Nothing
@@ -244,6 +273,24 @@ internal class PortfoliosController(
 
         if (oldPortfolio.userId != userId) {
             respond(HttpStatusCode.Forbidden)
+            onInvalid()
+        }
+    }
+
+    private suspend inline fun RoutingCall.getPortfolioRuleOrReturnIfNotOwn(
+        userId: Long,
+        portfolioId: Long,
+        onInvalid: () -> Nothing
+    ) = when (val res = portfoliosDataSource.getPortfolioRule(portfolioId)) {
+        is SonarResult.Success -> if (res.data.userId != userId) {
+            respond(HttpStatusCode.Forbidden)
+            onInvalid()
+        } else {
+            res.data
+        }
+
+        is SonarResult.Error -> {
+            handleUserDataError(res.data)
             onInvalid()
         }
     }

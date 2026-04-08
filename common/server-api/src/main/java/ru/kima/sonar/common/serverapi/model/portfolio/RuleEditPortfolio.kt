@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class RuleEditPortfolio(
     val id: Long,
     val name: String,
-    val rule: SonarRule?
+    val rule: SonarRule
 )
