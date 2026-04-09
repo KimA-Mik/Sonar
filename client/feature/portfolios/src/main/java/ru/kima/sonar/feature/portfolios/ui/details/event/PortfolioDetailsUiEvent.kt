@@ -4,4 +4,5 @@ internal sealed interface PortfolioDetailsUiEvent {
     data class OpenAddEntriesScreen(val portfolioId: Long) : PortfolioDetailsUiEvent
     data object OpenDeleteEntryDialog : PortfolioDetailsUiEvent
     data class OpenEditEntryDialog(val entryId: Long) : PortfolioDetailsUiEvent
+    data class OpenRulesScreen(val portfolioId: Long) : PortfolioDetailsUiEvent
 }

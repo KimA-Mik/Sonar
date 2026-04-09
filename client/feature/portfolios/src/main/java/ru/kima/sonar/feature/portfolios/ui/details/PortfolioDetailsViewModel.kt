@@ -71,6 +71,7 @@ internal class PortfolioDetailsViewModel(
 
             is PortfolioDetailsUserEvent.EditEntryButtonClicked -> onEditEntryButtonClicked(event.entryUid)
             PortfolioDetailsUserEvent.Refresh -> onRefresh()
+            PortfolioDetailsUserEvent.OpenRulesScreenClicked -> onOpenRulesScreenClicked()
         }
     }
 
@@ -126,4 +127,10 @@ internal class PortfolioDetailsViewModel(
     }
 
     private fun onRefresh() = refresh()
+
+    private fun onOpenRulesScreenClicked() {
+        if (!wasError.value) {
+            _uiEvents.value = SonarEvent(PortfolioDetailsUiEvent.OpenRulesScreen(portfolioId))
+        }
+    }
 }

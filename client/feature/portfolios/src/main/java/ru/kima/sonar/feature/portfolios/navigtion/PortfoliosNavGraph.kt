@@ -16,6 +16,7 @@ import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListScreen
 import ru.kima.sonar.feature.portfolios.ui.list.dialog.CreatePortfolioDialog
 import ru.kima.sonar.feature.portfolios.ui.list.dialog.EditPortilloDialog
 import ru.kima.sonar.feature.portfolios.ui.list.dialog.RemovePortfolioDialog
+import ru.kima.sonar.feature.portfolios.ui.rules.PortfolioRulesScreen
 
 fun EntryProviderScope<NavKey>.portfoliosNavGraph(
     bottomBar: @Composable () -> Unit
@@ -46,6 +47,10 @@ fun EntryProviderScope<NavKey>.portfoliosNavGraph(
         clazzContentKey = { key -> key.toContentKey() }
     ) { key ->
         PortfolioDetailsScreen(key.portfolioId)
+    }
+
+    entry<PortfoliosGraph.List.Details.Rules> { key ->
+        PortfolioRulesScreen(key.portfolioId)
     }
 
     entry<PortfoliosGraph.List.Details.DeleteEntryDialog>(
