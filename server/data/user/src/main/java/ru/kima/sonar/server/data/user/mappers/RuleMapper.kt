@@ -20,6 +20,7 @@ internal fun RulesEntity.toDomainModel() = PortfolioRule(
 )
 
 internal fun RulesEntity.pitInside(portfolioRule: PortfolioRule) {
+    portfolioId = portfolioRule.portfolioId
     rulesMode = portfolioRule.mode
     rule = portfolioRule.rule
 }
