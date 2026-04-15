@@ -19,4 +19,11 @@
     <string name="title_delete_portfolio">Delete %1$s?</string>
     <string name="label_error_delete_portfolio">An error occurred</string>
     <string name="label_target_deviation">Target deviation</string>
+    <string name="rule_title_group">Group</string>
+    <string name="rule_title_rsi" translatable="false">RSI</string>
+    <string name="rule_title_srsi" translatable="false">SRSI</string>
+    <string name="rule_title_mfi" translatable="false">MFI</string>
+    <string name="rule_title_bb">Bollinger bands</string>
+    <string name="label_timeframes">Timeframes</string>
+    <string name="label_truth_threshold">Truth threshold</string>
 </resources>

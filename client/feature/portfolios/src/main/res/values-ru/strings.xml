@@ -19,4 +19,8 @@
     <string name="title_delete_portfolio">Удалить %1$s?</string>
     <string name="label_error_delete_portfolio">Произошла ошибка</string>
     <string name="label_target_deviation">Расхождение</string>
+    <string name="rule_title_group">Группа</string>
+    <string name="rule_title_bb">Полосы Боллинджера</string>
+    <string name="label_timeframes">Таймфреймы</string>
+    <string name="label_truth_threshold">Порог срабатывания</string>
 </resources>

@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.math.BigDecimal
 
-internal typealias BigDecimalJson = @Serializable(with = BigDecimalSerializer::class) BigDecimal
+typealias BigDecimalJson = @Serializable(with = BigDecimalSerializer::class) BigDecimal
 
 internal class BigDecimalSerializer : KSerializer<BigDecimal> {
     override val descriptor: SerialDescriptor =
