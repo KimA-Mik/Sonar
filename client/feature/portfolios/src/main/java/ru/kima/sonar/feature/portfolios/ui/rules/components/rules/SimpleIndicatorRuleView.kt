@@ -186,7 +186,8 @@ private fun SimpleIndicatorRulePreview() = SonarPreview {
             depth = 0,
             threshold = 1,
             low = 24f,
-            high = 69f
+            high = 69f,
+            parent = null
         ),
         onAction = {},
         modifier = Modifier

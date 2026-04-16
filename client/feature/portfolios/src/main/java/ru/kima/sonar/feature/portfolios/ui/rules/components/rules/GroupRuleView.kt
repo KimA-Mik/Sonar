@@ -70,7 +70,7 @@ internal fun GroupRuleView(
 @Composable
 private fun GroupRulePreview() = SonarPreview {
     GroupRuleView(
-        group = DisplayRule.Group(key = 1L, 1, 0),
+        group = DisplayRule.Group(key = 1L, 1, 0, parent = null),
         onAction = {},
         modifier = Modifier.padding(16.dp)
     )

@@ -5,13 +5,15 @@ import androidx.compose.runtime.Immutable
 sealed interface DisplayRule {
     val key: Long
     val depth: Int
+    val parent: ParentRule?
 
     @Immutable
     data class Group(
         override val key: Long,
         val threshold: Int,
-        override val depth: Int
-    ) : DisplayRule
+        override val depth: Int,
+        override val parent: ParentRule?
+    ) : DisplayRule, ParentRule
 
     sealed interface Indicator : DisplayRule {
         val low: Float
@@ -24,7 +26,8 @@ sealed interface DisplayRule {
             override val depth: Int,
             override val low: Float,
             override val high: Float,
-            override val threshold: Int
+            override val threshold: Int,
+            override val parent: ParentRule?
         ) : Indicator
 
         @Immutable
@@ -33,7 +36,8 @@ sealed interface DisplayRule {
             override val depth: Int,
             override val low: Float,
             override val high: Float,
-            override val threshold: Int
+            override val threshold: Int,
+            override val parent: ParentRule?
         ) : Indicator
 
         @Immutable
@@ -42,7 +46,8 @@ sealed interface DisplayRule {
             override val depth: Int,
             override val low: Float,
             override val high: Float,
-            override val threshold: Int
+            override val threshold: Int,
+            override val parent: ParentRule?
         ) : Indicator
 
         @Immutable
@@ -51,7 +56,8 @@ sealed interface DisplayRule {
             override val depth: Int,
             override val low: Float,
             override val high: Float,
-            override val threshold: Int
+            override val threshold: Int,
+            override val parent: ParentRule?
         ) : Indicator
     }
 }
