@@ -22,15 +22,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ru.kima.sonar.common.serverapi.model.rules.BbRule
-import ru.kima.sonar.common.serverapi.model.rules.MfiRule
-import ru.kima.sonar.common.serverapi.model.rules.RsiRule
-import ru.kima.sonar.common.serverapi.model.rules.SimpleIndicatorRule
-import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.feature.portfolios.R
-import java.math.BigDecimal
+import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 
 //val requiredCount: Int
 //val lowThreshold: BigDecimalJson
@@ -38,10 +33,9 @@ import java.math.BigDecimal
 
 @Composable
 internal fun SimpleIndicatorRuleView(
-    rule: SimpleIndicatorRule,
+    rule: DisplayRule.Indicator,
     onAction: (RulesAction) -> Unit,
     modifier: Modifier = Modifier,
-    depth: Int = 0,
     titleContent: @Composable (RowScope.() -> Unit)? = null
 ) {
     IndicatorRuleBody(
@@ -51,10 +45,10 @@ internal fun SimpleIndicatorRuleView(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 val id = when (rule) {
-                    is BbRule -> R.string.rule_title_bb
-                    is MfiRule -> R.string.rule_title_mfi
-                    is RsiRule -> R.string.rule_title_rsi
-                    is SrsiRule -> R.string.rule_title_srsi
+                    is DisplayRule.Indicator.Bb -> R.string.rule_title_bb
+                    is DisplayRule.Indicator.Mfi -> R.string.rule_title_mfi
+                    is DisplayRule.Indicator.Rsi -> R.string.rule_title_rsi
+                    is DisplayRule.Indicator.Srsi -> R.string.rule_title_srsi
                 }
                 Text(stringResource(id))
                 titleContent?.let {
@@ -62,61 +56,69 @@ internal fun SimpleIndicatorRuleView(
                 }
             }
         },
-        value = rule.lowThreshold.toFloat()..rule.highThreshold.toFloat(),
+        value = rule.low..rule.high,
         onValueChange = { range ->
             val action = when (rule) {
-                is BbRule -> RulesAction.UpdateBbRuleAction(
-                    requiredCount = rule.requiredCount,
-                    lowThreshold = BigDecimal(range.start.toDouble()),
-                    highThreshold = BigDecimal(range.endInclusive.toDouble())
+                is DisplayRule.Indicator.Bb -> RulesAction.UpdateBbRuleAction(
+                    key = rule.key,
+                    requiredCount = rule.threshold,
+                    lowThreshold = range.start,
+                    highThreshold = range.endInclusive
                 )
 
-                is MfiRule -> RulesAction.UpdateMfiRuleAction(
-                    requiredCount = rule.requiredCount,
-                    lowThreshold = BigDecimal(range.start.toDouble()),
-                    highThreshold = BigDecimal(range.endInclusive.toDouble())
+                is DisplayRule.Indicator.Mfi -> RulesAction.UpdateMfiRuleAction(
+                    key = rule.key,
+                    requiredCount = rule.threshold,
+                    lowThreshold = range.start,
+                    highThreshold = range.endInclusive
                 )
 
-                is RsiRule -> RulesAction.UpdateRsiRuleAction(
-                    requiredCount = rule.requiredCount,
-                    lowThreshold = BigDecimal(range.start.toDouble()),
-                    highThreshold = BigDecimal(range.endInclusive.toDouble())
+                is DisplayRule.Indicator.Rsi -> RulesAction.UpdateRsiRuleAction(
+                    key = rule.key,
+                    requiredCount = rule.threshold,
+                    lowThreshold = range.start,
+                    highThreshold = range.endInclusive
                 )
 
-                is SrsiRule -> RulesAction.UpdateSrsiRuleAction(
-                    requiredCount = rule.requiredCount,
-                    lowThreshold = BigDecimal(range.start.toDouble()),
-                    highThreshold = BigDecimal(range.endInclusive.toDouble())
+                is DisplayRule.Indicator.Srsi -> RulesAction.UpdateSrsiRuleAction(
+                    key = rule.key,
+                    requiredCount = rule.threshold,
+                    lowThreshold = range.start,
+                    highThreshold = range.endInclusive
                 )
             }
             onAction(action)
         },
-        timeframes = rule.requiredCount,
+        timeframes = rule.threshold,
         onTimeframesChange = { timeframes ->
             val count = timeframes.toIntOrNull() ?: return@IndicatorRuleBody
             val action = when (rule) {
-                is BbRule -> RulesAction.UpdateBbRuleAction(
+                is DisplayRule.Indicator.Bb -> RulesAction.UpdateBbRuleAction(
+                    key = rule.key,
                     requiredCount = count,
-                    lowThreshold = rule.lowThreshold,
-                    highThreshold = rule.highThreshold
+                    lowThreshold = rule.low,
+                    highThreshold = rule.high
                 )
 
-                is MfiRule -> RulesAction.UpdateMfiRuleAction(
+                is DisplayRule.Indicator.Mfi -> RulesAction.UpdateMfiRuleAction(
+                    key = rule.key,
                     requiredCount = count,
-                    lowThreshold = rule.lowThreshold,
-                    highThreshold = rule.highThreshold
+                    lowThreshold = rule.low,
+                    highThreshold = rule.high
                 )
 
-                is RsiRule -> RulesAction.UpdateRsiRuleAction(
+                is DisplayRule.Indicator.Rsi -> RulesAction.UpdateRsiRuleAction(
+                    key = rule.key,
                     requiredCount = count,
-                    lowThreshold = rule.lowThreshold,
-                    highThreshold = rule.highThreshold
+                    lowThreshold = rule.low,
+                    highThreshold = rule.high
                 )
 
-                is SrsiRule -> RulesAction.UpdateSrsiRuleAction(
+                is DisplayRule.Indicator.Srsi -> RulesAction.UpdateSrsiRuleAction(
+                    key = rule.key,
                     requiredCount = count,
-                    lowThreshold = rule.lowThreshold,
-                    highThreshold = rule.highThreshold
+                    lowThreshold = rule.low,
+                    highThreshold = rule.high
                 )
             }
             onAction(action)
@@ -179,10 +181,12 @@ private fun IndicatorRuleBody(
 @Composable
 private fun SimpleIndicatorRulePreview() = SonarPreview {
     SimpleIndicatorRuleView(
-        rule = RsiRule(
-            requiredCount = 1,
-            lowThreshold = BigDecimal(24),
-            highThreshold = BigDecimal(69)
+        rule = DisplayRule.Indicator.Rsi(
+            key = 0L,
+            depth = 0,
+            threshold = 1,
+            low = 24f,
+            high = 69f
         ),
         onAction = {},
         modifier = Modifier

@@ -13,6 +13,8 @@ import ru.kima.sonar.common.serverapi.model.rules.Rule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
+import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
+import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
 import ru.kima.sonar.feature.portfolios.ui.rules.state.RulesLoadingStatus
 
 @Stable
@@ -33,6 +35,9 @@ internal class PortfolioRulesViewModel(
     private val _rule = MutableStateFlow<Rule>(GroupRule(0, emptyList()))
     val rule = _rule.asStateFlow()
 
+    private val _displayRules = MutableStateFlow<List<DisplayRule>>(emptyList())
+    val displayRules = _displayRules.asStateFlow()
+
     init {
         loadRules()
     }
@@ -48,6 +53,7 @@ internal class PortfolioRulesViewModel(
                     _title.value = res.data.name
                     _mode.value = res.data.rule.mode
                     _rule.value = res.data.rule.rule
+                    _displayRules.value = res.data.rule.rule.toFlatDisplayRuleList()
                 }
             }
         }

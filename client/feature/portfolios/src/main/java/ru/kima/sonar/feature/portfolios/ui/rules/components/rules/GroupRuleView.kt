@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,18 +17,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ru.kima.sonar.common.serverapi.model.rules.GroupRule
-import ru.kima.sonar.common.serverapi.model.rules.RsiRule
-import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.feature.portfolios.R
+import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 
 @Composable
 internal fun GroupRuleView(
-    group: GroupRule,
+    group: DisplayRule.Group,
     onAction: (RulesAction) -> Unit,
     modifier: Modifier = Modifier,
-    depth: Int = 0,
     titleContent: @Composable (RowScope.() -> Unit)? = null
 ) {
     RuleCommonView(
@@ -48,13 +44,13 @@ internal fun GroupRuleView(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val truthThresholdString =
-                remember(group.truthThreshold) { group.truthThreshold.toString() }
+                remember(group.threshold) { group.threshold.toString() }
             OutlinedTextField(
                 value = truthThresholdString,
                 onValueChange = {
                     it.toIntOrNull()?.let {
                         onAction(
-                            RulesAction.UpdateGroupRuleTruthThreshold(it)
+                            RulesAction.UpdateGroupRuleTruthThreshold(group.key, it)
                         )
                     }
                 },
@@ -66,28 +62,6 @@ internal fun GroupRuleView(
                     keyboardType = KeyboardType.Number
                 )
             )
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                userScrollEnabled = depth == 0
-            ) {
-                items(group.rules.size) { index ->
-                    RuleView(
-                        rule = group.rules[index],
-                        onAction = { action ->
-                            onAction(
-                                RulesAction.GroupRuleAction(
-                                    index,
-                                    action
-                                )
-                            )
-                        },
-                        modifier = Modifier
-                            .padding(start = 16.dp)
-                            .fillMaxWidth(),
-                        depth = depth + 1
-                    )
-                }
-            }
         }
     }
 }
@@ -96,21 +70,7 @@ internal fun GroupRuleView(
 @Composable
 private fun GroupRulePreview() = SonarPreview {
     GroupRuleView(
-        group = GroupRule(
-            truthThreshold = 1,
-            rules = listOf(
-                RsiRule(
-                    requiredCount = 1,
-                    lowThreshold = 30.toBigDecimal(),
-                    highThreshold = 70.toBigDecimal()
-                ),
-                SrsiRule(
-                    requiredCount = 1,
-                    lowThreshold = 20.toBigDecimal(),
-                    highThreshold = 80.toBigDecimal()
-                )
-            )
-        ),
+        group = DisplayRule.Group(key = 1L, 1, 0),
         onAction = {},
         modifier = Modifier.padding(16.dp)
     )
@@ -119,43 +79,43 @@ private fun GroupRulePreview() = SonarPreview {
 //@Preview
 //@Composable
 //private fun GroupGroupRulePreview() = SonarPreview {
-//    GroupRuleView(
-//        group = GroupRule(
-//            truthThreshold = 1,
-//            rules = listOf(
-//                GroupRule(
-//                    truthThreshold = 1,
-//                    rules = listOf(
-//                        RsiRule(
-//                            requiredCount = 1,
-//                            lowThreshold = 30.toBigDecimal(),
-//                            highThreshold = 70.toBigDecimal()
-//                        ),
-//                        SrsiRule(
-//                            requiredCount = 1,
-//                            lowThreshold = 20.toBigDecimal(),
-//                            highThreshold = 80.toBigDecimal()
-//                        )
+//    val group = GroupRule(
+//        truthThreshold = 1,
+//        rules = listOf(
+//            GroupRule(
+//                truthThreshold = 1,
+//                rules = listOf(
+//                    RsiRule(
+//                        requiredCount = 1,
+//                        lowThreshold = 30.toBigDecimal(),
+//                        highThreshold = 70.toBigDecimal()
+//                    ),
+//                    SrsiRule(
+//                        requiredCount = 1,
+//                        lowThreshold = 20.toBigDecimal(),
+//                        highThreshold = 80.toBigDecimal()
 //                    )
-//                ),
-//                GroupRule(
-//                    truthThreshold = 1,
-//                    rules = listOf(
-//                        RsiRule(
-//                            requiredCount = 1,
-//                            lowThreshold = 30.toBigDecimal(),
-//                            highThreshold = 70.toBigDecimal()
-//                        ),
-//                        SrsiRule(
-//                            requiredCount = 1,
-//                            lowThreshold = 20.toBigDecimal(),
-//                            highThreshold = 80.toBigDecimal()
-//                        )
+//                )
+//            ),
+//            GroupRule(
+//                truthThreshold = 1,
+//                rules = listOf(
+//                    MfiRule(
+//                        requiredCount = 1,
+//                        lowThreshold = 30.toBigDecimal(),
+//                        highThreshold = 70.toBigDecimal()
+//                    ),
+//                    BbRule(
+//                        requiredCount = 1,
+//                        lowThreshold = 20.toBigDecimal(),
+//                        highThreshold = 80.toBigDecimal()
 //                    )
 //                )
 //            )
-//        ),
-//        onAction = {},
-//        modifier = Modifier.padding(16.dp)
+//        )
 //    )
+//
+//    val display = group.toFlatDisplayRuleList()
+//    val asd = display.groupBy { it.key }//.mapValues { it.value.size }
+//    Text(display.toString())
 //}
