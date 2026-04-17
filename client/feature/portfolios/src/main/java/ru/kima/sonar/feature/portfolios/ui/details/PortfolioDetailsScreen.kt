@@ -46,8 +46,8 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
-import ru.kima.sonar.common.ui.components.SonarMenu
-import ru.kima.sonar.common.ui.components.SonarMenuItem
+import ru.kima.sonar.common.ui.components.SonarListMenu
+import ru.kima.sonar.common.ui.components.SonarListMenuItem
 import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
@@ -190,12 +190,12 @@ internal fun PortfolioDetailsScreenBody(
 private fun rememberMenuItems(
     onEvent: (PortfolioDetailsUserEvent) -> Unit
 ) = remember(onEvent) {
-    persistentListOf<SonarMenuItem<String>>(
-        SonarMenuItem(
+    persistentListOf<SonarListMenuItem<String>>(
+        SonarListMenuItem(
             title = CommonStrings.action_edit,
             onClick = { onEvent(PortfolioDetailsUserEvent.EditEntryButtonClicked(it)) }
         ),
-        SonarMenuItem(
+        SonarListMenuItem(
             title = CommonStrings.action_delete,
             onClick = { onEvent(PortfolioDetailsUserEvent.DeleteEntryButtonClicked(it)) }
         )
@@ -207,7 +207,7 @@ private fun rememberMenuItems(
 @Composable
 private fun EntryItem(
     entry: DisplayItemEntry,
-    dropdownMenuItems: ImmutableList<SonarMenuItem<String>>,
+    dropdownMenuItems: ImmutableList<SonarListMenuItem<String>>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -271,7 +271,7 @@ private fun EntryItem(
 
             // Right column for optional actions / summary
             Box {
-                SonarMenu(
+                SonarListMenu(
                     input = entry.uid,
                     items = dropdownMenuItems
                 )
