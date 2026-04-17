@@ -39,6 +39,9 @@ internal fun RulesList(
             RuleView(
                 rule = rule,
                 onAction = onAction,
+                titleContent = {
+                    RuleTitleContent(rule, onAction = onAction)
+                },
                 modifier = Modifier
                     .padding(start = (rule.depth * 16).dp)
                     .fillMaxWidth()

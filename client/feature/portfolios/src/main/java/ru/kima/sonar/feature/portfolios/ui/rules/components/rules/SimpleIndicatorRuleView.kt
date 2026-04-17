@@ -41,8 +41,9 @@ internal fun SimpleIndicatorRuleView(
     IndicatorRuleBody(
         title = {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 val id = when (rule) {
                     is DisplayRule.Indicator.Bb -> R.string.rule_title_bb

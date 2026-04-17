@@ -35,4 +35,8 @@ internal sealed interface RulesAction {
         override val key: Long,
         val truthThreshold: Int
     ) : RulesAction
+
+    data class DeleteRule(
+        override val key: Long
+    ) : RulesAction
 }

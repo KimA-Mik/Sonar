@@ -32,7 +32,8 @@ internal fun GroupRuleView(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.rule_title_group))
                 titleContent?.invoke(this)
