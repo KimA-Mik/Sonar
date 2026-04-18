@@ -11,8 +11,8 @@ data class BbRule(
     override val lowThreshold: BigDecimalJson,
     override val highThreshold: BigDecimalJson,
 ) : SimpleIndicatorRule {
-    override val defaultHighThreshold: Double
-        get() = 90.0
-    override val defaultLowThreshold: Double
-        get() = 10.0
+    override val defaultHighThreshold
+        get() = 90.0f
+    override val defaultLowThreshold
+        get() = 10.0f
 }

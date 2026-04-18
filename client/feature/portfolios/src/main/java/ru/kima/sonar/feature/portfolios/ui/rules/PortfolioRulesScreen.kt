@@ -2,6 +2,7 @@ package ru.kima.sonar.feature.portfolios.ui.rules
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,11 +41,13 @@ import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.serverapi.model.rules.GroupRule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.ui.components.AppBar
+import ru.kima.sonar.common.ui.components.SonarDropdownMenu
 import ru.kima.sonar.common.ui.components.SonarDropdownMenuItem
 import ru.kima.sonar.common.ui.components.SonarExposedDropdownMenu
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.LocalNavigator
+import ru.kima.sonar.data.homeapi.model.rules.RuleType
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.RulesList
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
@@ -118,6 +121,14 @@ private fun PortfolioRulesScreenContent(
             onSelect = { onEvent(RulesScreenUserEvent.SetMode(it)) },
             modifier = Modifier.fillMaxWidth()
         )
+
+        RootRoleSelector(
+            rootRule = rules.firstOrNull(),
+            onSelect = { onEvent(RulesScreenUserEvent.SetRootRule(it)) },
+            enabled = mode != RulesMode.RULES_DISABLED,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         RulesList(rules = rules, onAction = {})
     }
 }
@@ -195,6 +206,112 @@ private fun ModeSelector(
             onDismissRequest = { expanded = false }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RootRoleSelector(
+    rootRule: DisplayRule?,
+    onSelect: (RuleType) -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) = Box(
+    modifier = modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    LaunchedEffect(enabled) { if (!enabled) expanded = false }
+    val rotation by animateFloatAsState(if (expanded) 180f else 0f)
+    val state = rememberTextFieldState()
+    val resources = LocalResources.current
+    LaunchedEffect(rootRule) {
+        val id = when (rootRule) {
+            is DisplayRule.Group -> R.string.menu_label_rule_type_group
+            is DisplayRule.Indicator.Bb -> R.string.rule_title_bb
+            is DisplayRule.Indicator.Mfi -> R.string.rule_title_mfi
+            is DisplayRule.Indicator.Rsi -> R.string.rule_title_rsi
+            is DisplayRule.Indicator.Srsi -> R.string.rule_title_srsi
+            null -> null
+        }
+        id?.let {
+            state.setTextAndPlaceCursorAtEnd(resources.getString(id))
+        }
+    }
+
+    TextField(
+        state = state,
+        modifier = Modifier
+            .fillMaxWidth(),
+        enabled = enabled,
+        readOnly = true,
+        label = { Text(stringResource(R.string.label_root_rule)) },
+        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+        lineLimits = TextFieldLineLimits.SingleLine,
+        trailingIcon = {
+            IconButton(
+                onClick = { expanded = true },
+                enabled = enabled
+            ) {
+                Icon(
+                    painterResource(CommonDrawables.arrow_drop_down_24px),
+                    contentDescription = null,
+                    modifier = Modifier.graphicsLayer {
+                        rotationZ = rotation
+                    }
+                )
+            }
+        }
+    )
+
+    val menuItems = rememberRulesMenu {
+        onSelect(it)
+        expanded = false
+    }
+
+    SonarDropdownMenu(
+        expanded = expanded,
+        items = menuItems,
+        onDismissRequest = { expanded = false }
+    )
+}
+
+@Composable
+private fun rememberRulesMenu(
+    onSelect: (RuleType) -> Unit
+): ImmutableList<SonarDropdownMenuItem> = remember(onSelect) {
+    persistentListOf(
+        SonarDropdownMenuItem.ItemsGroup(
+            title = R.string.menu_label_rules_group_group,
+            trailingIcon = CommonDrawables.arrow_right_24px,
+            children = persistentListOf(
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.menu_label_rule_type_group,
+                    onClick = { onSelect(RuleType.GROUP) }
+                )
+            )
+        ),
+        SonarDropdownMenuItem.ItemsGroup(
+            title = R.string.menu_label_rules_group_indicators,
+            trailingIcon = CommonDrawables.arrow_right_24px,
+            children = persistentListOf(
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.rule_title_rsi,
+                    onClick = { onSelect(RuleType.RSI) }
+                ),
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.rule_title_srsi,
+                    onClick = { onSelect(RuleType.SRSI) }
+                ),
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.rule_title_mfi,
+                    onClick = { onSelect(RuleType.MFI) }
+                ),
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.rule_title_bb,
+                    onClick = { onSelect(RuleType.BB) }
+                )
+            )
+        )
+    )
 }
 
 @Preview

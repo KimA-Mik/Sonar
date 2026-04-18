@@ -110,19 +110,87 @@ sealed interface SonarDropdownMenuItem {
     ) : SonarDropdownMenuItem
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SonarDropdownMenu(
     expanded: Boolean,
     items: ImmutableList<SonarDropdownMenuItem>,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-) = DropdownMenuPopup(
+    depth: Int = 0,
+    itemContentPadding: PaddingValues = ExposedDropdownMenuDefaults.ItemContentPadding,
+): Unit = DropdownMenuPopup(
     expanded = expanded,
     onDismissRequest = onDismissRequest,
     modifier = modifier
 ) {
-    RecursiveSonarMenuGroup(items)
+    DropdownMenuGroup(
+        shapes = MenuDefaults.groupShape(depth, items.size),
+        modifier = modifier
+    ) {
+        items.forEach { item ->
+            when (item) {
+                is SonarDropdownMenuItem.SimpleItem -> DropdownMenuItem(
+                    text = {
+                        Text(stringResource(item.title))
+                    },
+                    onClick = { item.onClick() },
+                    leadingIcon = item.leadingIcon?.let {
+                        {
+                            Icon(
+                                painter = painterResource(it),
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    trailingIcon = item.trailingIcon?.let {
+                        {
+                            Icon(
+                                painter = painterResource(it),
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    contentPadding = itemContentPadding
+                )
+
+                is SonarDropdownMenuItem.ItemsGroup -> {
+                    var groupExpanded by remember { mutableStateOf(false) }
+                    DropdownMenuItem(
+                        text = {
+                            Text(stringResource(item.title))
+                        },
+                        onClick = { groupExpanded = true },
+                        leadingIcon = item.leadingIcon?.let {
+                            {
+                                Icon(
+                                    painter = painterResource(it),
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        trailingIcon = item.trailingIcon?.let {
+                            {
+                                Icon(
+                                    painter = painterResource(it),
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        contentPadding = itemContentPadding
+                    )
+
+                    SonarDropdownMenu(
+                        expanded = groupExpanded,
+                        items = item.children,
+                        onDismissRequest = { groupExpanded = false },
+                        depth = depth + 1,
+                        itemContentPadding = itemContentPadding
+                    )
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -167,78 +235,5 @@ fun ExposedDropdownMenuBoxScope.SonarExposedDropdownMenu(
             },
             contentPadding = itemContentPadding
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
-@Composable
-fun RecursiveSonarMenuGroup(
-    items: ImmutableList<SonarDropdownMenuItem>,
-    modifier: Modifier = Modifier,
-    index: Int = 0,
-    itemContentPadding: PaddingValues = ExposedDropdownMenuDefaults.ItemContentPadding
-) {
-    DropdownMenuGroup(
-        shapes = MenuDefaults.groupShape(index, items.size),
-        modifier = modifier
-    ) {
-        items.forEachIndexed { index, item ->
-            when (item) {
-                is SonarDropdownMenuItem.SimpleItem -> DropdownMenuItem(
-                    text = {
-                        Text(stringResource(item.title))
-                    },
-                    onClick = { item.onClick() },
-                    leadingIcon = item.leadingIcon?.let {
-                        {
-                            Icon(
-                                painter = painterResource(it),
-                                contentDescription = null
-                            )
-                        }
-                    },
-                    trailingIcon = item.trailingIcon?.let {
-                        {
-                            Icon(
-                                painter = painterResource(it),
-                                contentDescription = null
-                            )
-                        }
-                    },
-                    contentPadding = itemContentPadding
-                )
-
-                is SonarDropdownMenuItem.ItemsGroup -> {
-                    var expanded by remember { mutableStateOf(false) }
-                    DropdownMenuItem(
-                        text = {
-                            Text(stringResource(item.title))
-                        },
-                        onClick = { expanded = true },
-                        leadingIcon = item.leadingIcon?.let {
-                            {
-                                Icon(
-                                    painter = painterResource(it),
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        trailingIcon = item.trailingIcon?.let {
-                            {
-                                Icon(
-                                    painter = painterResource(it),
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        contentPadding = itemContentPadding
-                    )
-
-                    if (expanded) {
-                        RecursiveSonarMenuGroup(item.children, index = index + 1)
-                    }
-                }
-            }
-        }
     }
 }

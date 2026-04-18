@@ -9,8 +9,8 @@ sealed interface SimpleIndicatorRule : Rule {
     val lowThreshold: BigDecimalJson
     val highThreshold: BigDecimalJson
 
-    val defaultLowThreshold
-        get() = 30.0
-    val defaultHighThreshold
-        get() = 70.0
+    val defaultLowThreshold: Float
+        get() = 30.0f
+    val defaultHighThreshold: Float
+        get() = 70.0f
 }

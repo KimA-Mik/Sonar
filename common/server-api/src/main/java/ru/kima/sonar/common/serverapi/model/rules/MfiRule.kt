@@ -11,8 +11,8 @@ data class MfiRule(
     override val lowThreshold: BigDecimalJson,
     override val highThreshold: BigDecimalJson,
 ) : SimpleIndicatorRule {
-    override val defaultHighThreshold: Double
-        get() = 80.0
-    override val defaultLowThreshold: Double
-        get() = 20.0
+    override val defaultHighThreshold
+        get() = 80.0f
+    override val defaultLowThreshold
+        get() = 20.0f
 }

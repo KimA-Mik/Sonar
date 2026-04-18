@@ -11,13 +11,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
+import ru.kima.sonar.common.serverapi.model.rules.BbRule
+import ru.kima.sonar.common.serverapi.model.rules.MfiRule
+import ru.kima.sonar.common.serverapi.model.rules.RsiRule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
+import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
+import ru.kima.sonar.data.homeapi.model.rules.RuleType
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
 import ru.kima.sonar.feature.portfolios.ui.rules.state.RulesLoadingStatus
+import java.math.BigDecimal
 
 @Stable
 internal class PortfolioRulesViewModel(
@@ -60,10 +66,77 @@ internal class PortfolioRulesViewModel(
     fun onEvent(event: RulesScreenUserEvent) {
         when (event) {
             is RulesScreenUserEvent.SetMode -> onSetMode(event.mode)
+            is RulesScreenUserEvent.SetRootRule -> setRootRule(event.ruleType)
         }
     }
 
     private fun onSetMode(mode: RulesMode) {
         _mode.value = mode
     }
+
+    private fun setRootRule(ruleType: RuleType) {
+        var oldLow: Float? = null
+        var oldHigh: Float? = null
+        var oldThreshold = 2
+
+        val oldRoot = _rules.value.firstOrNull()
+        if (oldRoot is DisplayRule.Indicator) {
+            oldLow = oldRoot.low
+            oldHigh = oldRoot.high
+            oldThreshold = oldRoot.threshold
+        }
+
+        val newRoot = when (ruleType) {
+            RuleType.RSI -> DisplayRule.Indicator.Rsi(
+                key = 1,
+                depth = 0,
+                low = oldLow ?: dummyRsi.defaultLowThreshold,
+                high = oldHigh ?: dummyRsi.defaultHighThreshold,
+                threshold = oldThreshold,
+                parent = null
+            )
+
+            RuleType.SRSI -> DisplayRule.Indicator.Srsi(
+                key = 1,
+                depth = 0,
+                low = oldLow ?: dummySrsi.defaultLowThreshold,
+                high = oldHigh ?: dummySrsi.defaultHighThreshold,
+                threshold = oldThreshold,
+                parent = null
+            )
+
+            RuleType.MFI -> DisplayRule.Indicator.Mfi(
+                key = 1,
+                depth = 0,
+                low = oldLow ?: dummyMfi.defaultLowThreshold,
+                high = oldHigh ?: dummyMfi.defaultHighThreshold,
+                threshold = oldThreshold,
+                parent = null
+            )
+
+            RuleType.BB -> DisplayRule.Indicator.Bb(
+                key = 1,
+                depth = 0,
+                low = oldLow ?: dummyBb.defaultLowThreshold,
+                high = oldHigh ?: dummyBb.defaultHighThreshold,
+                threshold = oldThreshold,
+                parent = null
+            )
+
+            RuleType.GROUP -> DisplayRule.Group(
+                key = 1,
+                threshold = 1,
+                depth = 0,
+                parent = null
+            )
+        }
+
+        _rules.value = persistentListOf(newRoot)
+    }
+
+    private val dummyRsi = RsiRule(0, BigDecimal(0), BigDecimal(0))
+    private val dummySrsi = SrsiRule(0, BigDecimal(0), BigDecimal(0))
+    private val dummyMfi = MfiRule(0, BigDecimal(0), BigDecimal(0))
+    private val dummyBb = BbRule(0, BigDecimal(0), BigDecimal(0))
+
 }
