@@ -2,6 +2,7 @@ package ru.kima.sonar.feature.portfolios.ui.rules.components.rules
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import ru.kima.sonar.common.serverapi.model.rules.MfiRule
 import ru.kima.sonar.common.serverapi.model.rules.RsiRule
 import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
 import ru.kima.sonar.common.ui.preview.SonarPreview
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesAction
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
 
@@ -29,10 +31,12 @@ import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleL
 internal fun RulesList(
     rules: ImmutableList<DisplayRule>,
     onAction: (RulesAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues.Zero
 ) {
     LazyColumn(
         modifier = modifier,
+        contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(rules, key = { it.key }) { rule ->

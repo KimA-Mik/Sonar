@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import ru.kima.sonar.common.ui.util.CommonDrawables
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesAction
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 
 @Composable

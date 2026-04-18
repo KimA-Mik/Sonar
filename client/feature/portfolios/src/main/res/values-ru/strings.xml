@@ -23,4 +23,11 @@
     <string name="rule_title_bb">Полосы Боллинджера</string>
     <string name="label_timeframes">Таймфреймы</string>
     <string name="label_truth_threshold">Порог срабатывания</string>
+    <string name="menu_label_rules_group_group">Групповые</string>
+    <string name="menu_label_rules_disabled">Выключены</string>
+    <string name="menu_label_rules_limit">Ограничевают уведомления</string>
+    <string name="menu_label_rules_notifications">Уведомления на основе правила</string>
+    <string name="menu_label_rules_notifications_and_securities">Уведомления на основе правила и бумаги</string>
+    <string name="menu_label_rules_group_indicators">Индикаторы</string>
+    <string name="label_rules_mode">Режим прваил</string>
 </resources>

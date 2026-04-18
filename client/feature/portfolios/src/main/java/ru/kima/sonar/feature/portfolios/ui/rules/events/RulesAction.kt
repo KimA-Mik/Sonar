@@ -1,4 +1,4 @@
-package ru.kima.sonar.feature.portfolios.ui.rules.components.rules
+package ru.kima.sonar.feature.portfolios.ui.rules.events
 
 internal sealed interface RulesAction {
     val key: Long

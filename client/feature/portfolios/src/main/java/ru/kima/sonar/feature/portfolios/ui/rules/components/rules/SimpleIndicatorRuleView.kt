@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.feature.portfolios.R
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesAction
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 
 //val requiredCount: Int

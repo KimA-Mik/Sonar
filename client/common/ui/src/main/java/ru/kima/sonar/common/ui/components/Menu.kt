@@ -7,6 +7,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExposedDropdownMenuBoxScope
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -122,6 +123,51 @@ fun SonarDropdownMenu(
     modifier = modifier
 ) {
     RecursiveSonarMenuGroup(items)
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun ExposedDropdownMenuBoxScope.SonarExposedDropdownMenu(
+    expanded: Boolean,
+    items: ImmutableList<SonarDropdownMenuItem.SimpleItem>,
+    checkedIndex: Int,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    itemContentPadding: PaddingValues = ExposedDropdownMenuDefaults.ItemContentPadding
+) = ExposedDropdownMenu(
+    expanded = expanded,
+    onDismissRequest = onDismissRequest,
+    modifier = modifier,
+    containerColor = MenuDefaults.groupStandardContainerColor,
+) {
+    val size = items.size
+    items.forEachIndexed { index, item ->
+        DropdownMenuItem(
+            shapes = MenuDefaults.itemShape(index, size),
+            checked = index == checkedIndex,
+            onCheckedChange = { item.onClick() },
+            text = {
+                Text(stringResource(item.title))
+            },
+            leadingIcon = item.leadingIcon?.let {
+                {
+                    Icon(
+                        painter = painterResource(it),
+                        contentDescription = null
+                    )
+                }
+            },
+            trailingIcon = item.trailingIcon?.let {
+                {
+                    Icon(
+                        painter = painterResource(it),
+                        contentDescription = null
+                    )
+                }
+            },
+            contentPadding = itemContentPadding
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)

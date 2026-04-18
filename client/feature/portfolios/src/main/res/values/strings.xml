@@ -26,4 +26,12 @@
     <string name="rule_title_bb">Bollinger bands</string>
     <string name="label_timeframes">Timeframes</string>
     <string name="label_truth_threshold">Truth threshold</string>
+
+    <string name="menu_label_rules_group_indicators">Indicators</string>
+    <string name="menu_label_rules_group_group">Groups</string>
+    <string name="menu_label_rules_disabled">Disabled</string>
+    <string name="menu_label_rules_limit">Limit notifications</string>
+    <string name="menu_label_rules_notifications">Rule based notifications</string>
+    <string name="menu_label_rules_notifications_and_securities">Rule and security based notification</string>
+    <string name="label_rules_mode">Rules mode</string>
 </resources>
