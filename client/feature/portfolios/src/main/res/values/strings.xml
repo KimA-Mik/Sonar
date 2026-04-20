@@ -43,4 +43,5 @@
     <string name="delete_rule_dialog_title">Delete rule %1$s?</string>
     <string name="clear_group_dialog_title">Clear group?</string>
     <string name="label_error_loading_rules">Error loading rules</string>
+    <string name="snackbar_message_rules_saved_successfully">Rules saved successfully</string>
 </resources>

@@ -1,5 +1,6 @@
 package ru.kima.sonar.feature.portfolios.ui.rules
 
+import android.content.res.Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +54,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.serverapi.model.rules.GroupRule
@@ -62,14 +67,17 @@ import ru.kima.sonar.common.ui.components.SonarDropdownMenuItem
 import ru.kima.sonar.common.ui.components.SonarExposedDropdownMenu
 import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
+import ru.kima.sonar.common.ui.navigation.Navigator
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.data.homeapi.model.rules.RuleType
+import ru.kima.sonar.data.homeapi.util.getHomeApiErrorString
 import ru.kima.sonar.feature.portfolios.R
-import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
+import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph.List.Details.Rules.ClearGroupDialog
+import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph.List.Details.Rules.DeleteRuleDialog
 import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.RulesList
 import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.rememberRulesMenu
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenBusEvent
@@ -118,25 +126,23 @@ private fun PortfolioRulesScreenBody(
     modifier: Modifier = Modifier
 ) {
     val navigator = LocalNavigator.current
+    val coroutineScope = rememberCoroutineScope()
+    val resources = LocalResources.current
+    val snackbarHostState = LocalSnackbarHostState.current
     LaunchedEffect(uiEvent) {
-        uiEvent.consume { event ->
-            when (event) {
-                is RulesScreenUiEvent.ShowClearGroupDialog -> navigator.navigate(
-                    PortfoliosGraph.List.Details.Rules.ClearGroupDialog(event.key)
-                )
-
-                is RulesScreenUiEvent.ShowDeleteRuleDialog -> navigator.navigate(
-                    PortfoliosGraph.List.Details.Rules.DeleteRuleDialog(event.key, event.ruleType)
-                )
-            }
-        }
+        consumeEvent(
+            uiEvent = uiEvent,
+            navigator = navigator,
+            coroutineScope = coroutineScope,
+            resources = resources,
+            snackbarHostState = snackbarHostState
+        )
     }
 
     ResultEffect<RulesScreenBusEvent> {
         onCallbackEvent(it)
     }
 
-    val snackbarHostState = LocalSnackbarHostState.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val sb = remember { scrollBehavior }
     Scaffold(
@@ -194,6 +200,44 @@ private fun PortfolioRulesScreenBody(
                     mode = mode,
                     onEvent = onEvent,
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                )
+            }
+        }
+    }
+}
+
+
+private fun consumeEvent(
+    uiEvent: SonarEvent<RulesScreenUiEvent>,
+    navigator: Navigator,
+    coroutineScope: CoroutineScope,
+    resources: Resources,
+    snackbarHostState: SnackbarHostState
+) {
+    uiEvent.consume { event ->
+        when (event) {
+            is RulesScreenUiEvent.ShowClearGroupDialog -> navigator.navigate(
+                ClearGroupDialog(event.key)
+            )
+
+            is RulesScreenUiEvent.ShowDeleteRuleDialog -> navigator.navigate(
+                DeleteRuleDialog(
+                    event.key,
+                    event.ruleType
+                )
+            )
+
+            is RulesScreenUiEvent.ErrorSaving -> coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = resources.getHomeApiErrorString(event.error),
+                    withDismissAction = true
+                )
+            }
+
+            RulesScreenUiEvent.SuccessfullySaved -> coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = resources.getString(R.string.snackbar_message_rules_saved_successfully),
+                    withDismissAction = true
                 )
             }
         }

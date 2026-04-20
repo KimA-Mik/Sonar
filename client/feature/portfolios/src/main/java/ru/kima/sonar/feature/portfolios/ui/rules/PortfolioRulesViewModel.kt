@@ -26,6 +26,7 @@ import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUiEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
+import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toRule
 import ru.kima.sonar.feature.portfolios.ui.rules.state.RulesLoadingStatus
 import java.math.BigDecimal
 
@@ -306,7 +307,21 @@ internal class PortfolioRulesViewModel(
     }
 
     private fun onSave() {
-        _canSave.value = false
+        viewModelScope.launch {
+            val rule = _rules.value.toRule()
+            val response = homeApiDataSource.updatePortfolioRule(
+                portfolioId = portfolioId,
+                mode = _mode.value,
+                rule = rule
+            )
+
+            if (response is SonarResult.Error) {
+                _uiEvents.value = SonarEvent(RulesScreenUiEvent.ErrorSaving(response.data))
+            } else {
+                _canSave.value = false
+                _uiEvents.value = SonarEvent(RulesScreenUiEvent.SuccessfullySaved)
+            }
+        }
     }
 
     private inline fun <reified T : DisplayRule> findIndexOrReturn(

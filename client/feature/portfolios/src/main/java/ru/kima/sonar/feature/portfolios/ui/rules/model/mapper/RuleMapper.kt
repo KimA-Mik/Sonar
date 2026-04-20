@@ -8,6 +8,7 @@ import ru.kima.sonar.common.serverapi.model.rules.Rule
 import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.ParentRule
+import java.math.BigDecimal
 
 /**
  * Maps a hierarchical Rule structure to a flat list of DisplayRule objects.
@@ -15,6 +16,14 @@ import ru.kima.sonar.feature.portfolios.ui.rules.model.ParentRule
  */
 fun Rule.toFlatDisplayRuleList(): List<DisplayRule> {
     return flattenRules(this, depth = 0, startKey = 1L, parent = null)
+}
+
+/**
+ * Converts a flat list of DisplayRule back to a hierarchical Rule structure.
+ */
+fun List<DisplayRule>.toRule(): Rule {
+    val root = this.find { it.depth == 0 } ?: throw IllegalArgumentException("No root rule found")
+    return root.toRule(this)
 }
 
 private fun flattenRules(
@@ -87,3 +96,38 @@ private fun flattenRules(
     }
 }
 
+private fun DisplayRule.toRule(allRules: List<DisplayRule>): Rule {
+    return when (this) {
+        is DisplayRule.Group -> {
+            val children = allRules.filter { it.parent == this }
+            GroupRule(
+                truthThreshold = threshold,
+                rules = children.map { it.toRule(allRules) }
+            )
+        }
+
+        is DisplayRule.Indicator.Rsi -> RsiRule(
+            requiredCount = threshold,
+            lowThreshold = BigDecimal.valueOf(low.toDouble()),
+            highThreshold = BigDecimal.valueOf(high.toDouble())
+        )
+
+        is DisplayRule.Indicator.Srsi -> SrsiRule(
+            requiredCount = threshold,
+            lowThreshold = BigDecimal.valueOf(low.toDouble()),
+            highThreshold = BigDecimal.valueOf(high.toDouble())
+        )
+
+        is DisplayRule.Indicator.Mfi -> MfiRule(
+            requiredCount = threshold,
+            lowThreshold = BigDecimal.valueOf(low.toDouble()),
+            highThreshold = BigDecimal.valueOf(high.toDouble())
+        )
+
+        is DisplayRule.Indicator.Bb -> BbRule(
+            requiredCount = threshold,
+            lowThreshold = BigDecimal.valueOf(low.toDouble()),
+            highThreshold = BigDecimal.valueOf(high.toDouble())
+        )
+    }
+}

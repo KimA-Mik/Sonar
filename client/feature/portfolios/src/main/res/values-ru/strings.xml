@@ -39,4 +39,5 @@
     <string name="delete_rule_dialog_title">Удалить правило %1$s?</string>
     <string name="clear_group_dialog_title">Очистить группу?</string>
     <string name="label_error_loading_rules">Не удалось загрузить правила</string>
+    <string name="snackbar_message_rules_saved_successfully">Правилоа успешно сохранены</string>
 </resources>
