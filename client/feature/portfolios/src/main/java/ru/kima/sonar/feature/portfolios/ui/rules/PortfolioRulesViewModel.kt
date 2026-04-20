@@ -19,6 +19,7 @@ import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
 import ru.kima.sonar.data.homeapi.model.rules.RuleType
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesAction
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
@@ -67,6 +68,7 @@ internal class PortfolioRulesViewModel(
         when (event) {
             is RulesScreenUserEvent.SetMode -> onSetMode(event.mode)
             is RulesScreenUserEvent.SetRootRule -> setRootRule(event.ruleType)
+            is RulesScreenUserEvent.RuleAction -> onRuleAction(event.action)
         }
     }
 
@@ -132,6 +134,131 @@ internal class PortfolioRulesViewModel(
         }
 
         _rules.value = persistentListOf(newRoot)
+    }
+
+    private fun onRuleAction(action: RulesAction) {
+        when (action) {
+            is RulesAction.AddRule -> {
+                val (index, parent) = findIndexOrReturn<DisplayRule.Group>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                val key = list.maxOf { it.key } + 1
+                val newRule = when (action.ruleType) {
+                    RuleType.RSI -> DisplayRule.Indicator.Rsi(
+                        key = key,
+                        depth = parent.depth + 1,
+                        low = dummyRsi.defaultLowThreshold,
+                        high = dummyRsi.defaultHighThreshold,
+                        threshold = 2,
+                        parent = parent
+                    )
+
+                    RuleType.SRSI -> DisplayRule.Indicator.Srsi(
+                        key = key,
+                        depth = parent.depth + 1,
+                        low = dummySrsi.defaultLowThreshold,
+                        high = dummySrsi.defaultHighThreshold,
+                        threshold = 2,
+                        parent = parent
+                    )
+
+                    RuleType.MFI -> DisplayRule.Indicator.Mfi(
+                        key = key,
+                        depth = parent.depth + 1,
+                        low = dummyMfi.defaultLowThreshold,
+                        high = dummyMfi.defaultHighThreshold,
+                        threshold = 2,
+                        parent = parent
+                    )
+
+                    RuleType.BB -> DisplayRule.Indicator.Bb(
+                        key = key,
+                        depth = parent.depth + 1,
+                        low = dummyBb.defaultLowThreshold,
+                        high = dummyBb.defaultHighThreshold,
+                        threshold = 2,
+                        parent = parent
+                    )
+
+                    RuleType.GROUP -> DisplayRule.Group(
+                        key = key,
+                        threshold = 1,
+                        depth = parent.depth + 1,
+                        parent = parent
+                    )
+                }
+
+                var position = list.indexOfLast { (it.parent as DisplayRule?)?.key == action.key }
+                if (position < 0) position = index
+                list.add(position + 1, newRule)
+                _rules.value = list.toImmutableList()
+            }
+
+            is RulesAction.ClearGroup -> {}
+            is RulesAction.DeleteRule -> {}
+            is RulesAction.UpdateGroupRuleTruthThreshold -> {
+                val (index, old) = findIndexOrReturn<DisplayRule.Group>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                list[index] = old.copy(
+                    threshold = action.truthThreshold,
+                )
+                _rules.value = list.toImmutableList()
+            }
+
+            is RulesAction.UpdateBbRuleAction -> {
+                val (index, old) = findIndexOrReturn<DisplayRule.Indicator.Bb>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                list[index] = old.copy(
+                    threshold = action.requiredCount,
+                    low = action.lowThreshold,
+                    high = action.highThreshold
+                )
+                _rules.value = list.toImmutableList()
+            }
+
+            is RulesAction.UpdateMfiRuleAction -> {
+                val (index, old) = findIndexOrReturn<DisplayRule.Indicator.Mfi>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                list[index] = old.copy(
+                    threshold = action.requiredCount,
+                    low = action.lowThreshold,
+                    high = action.highThreshold
+                )
+                _rules.value = list.toImmutableList()
+            }
+
+            is RulesAction.UpdateRsiRuleAction -> {
+                val (index, old) = findIndexOrReturn<DisplayRule.Indicator.Rsi>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                list[index] = old.copy(
+                    threshold = action.requiredCount,
+                    low = action.lowThreshold,
+                    high = action.highThreshold
+                )
+                _rules.value = list.toImmutableList()
+            }
+
+            is RulesAction.UpdateSrsiRuleAction -> {
+                val (index, old) = findIndexOrReturn<DisplayRule.Indicator.Srsi>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                list[index] = old.copy(
+                    threshold = action.requiredCount,
+                    low = action.lowThreshold,
+                    high = action.highThreshold
+                )
+                _rules.value = list.toImmutableList()
+            }
+        }
+    }
+
+    private inline fun <reified T> findIndexOrReturn(
+        key: Long,
+        block: () -> Nothing
+    ): Pair<Int, T> {
+        val list = _rules.value
+        val index = list.indexOfFirst { it.key == key }
+        if (index < 0) block()
+        if (list[index] !is T) block()
+        return index to (list[index] as T)
     }
 
     private val dummyRsi = RsiRule(0, BigDecimal(0), BigDecimal(0))

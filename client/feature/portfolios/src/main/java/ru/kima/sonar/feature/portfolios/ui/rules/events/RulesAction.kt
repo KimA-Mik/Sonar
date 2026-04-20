@@ -1,5 +1,7 @@
 package ru.kima.sonar.feature.portfolios.ui.rules.events
 
+import ru.kima.sonar.data.homeapi.model.rules.RuleType
+
 internal sealed interface RulesAction {
     val key: Long
 
@@ -37,6 +39,15 @@ internal sealed interface RulesAction {
     ) : RulesAction
 
     data class DeleteRule(
+        override val key: Long
+    ) : RulesAction
+
+    data class AddRule(
+        override val key: Long,
+        val ruleType: RuleType
+    ) : RulesAction
+
+    data class ClearGroup(
         override val key: Long
     ) : RulesAction
 }

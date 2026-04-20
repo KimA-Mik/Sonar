@@ -32,6 +32,7 @@ internal fun RulesList(
     rules: ImmutableList<DisplayRule>,
     onAction: (RulesAction) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     contentPadding: PaddingValues = PaddingValues.Zero
 ) {
     LazyColumn(
@@ -44,11 +45,17 @@ internal fun RulesList(
                 rule = rule,
                 onAction = onAction,
                 titleContent = {
-                    RuleTitleContent(rule, onAction = onAction)
+                    RuleTitleContent(
+                        rule,
+                        onAction = onAction,
+                        enabled = enabled
+                    )
                 },
                 modifier = Modifier
                     .padding(start = (rule.depth * 16).dp)
                     .fillMaxWidth()
+                    .animateItem(),
+                enabled = enabled
             )
         }
     }
@@ -59,6 +66,7 @@ internal fun RuleView(
     rule: DisplayRule,
     onAction: (RulesAction) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     titleContent: @Composable (RowScope.() -> Unit)? = null
 ) {
     when (rule) {
@@ -66,6 +74,7 @@ internal fun RuleView(
             rule = rule,
             onAction = onAction,
             modifier = modifier,
+            enabled = enabled,
             titleContent = titleContent
         )
 
@@ -73,6 +82,7 @@ internal fun RuleView(
             group = rule,
             onAction = onAction,
             modifier = modifier,
+            enabled = enabled,
             titleContent = titleContent
         )
     }

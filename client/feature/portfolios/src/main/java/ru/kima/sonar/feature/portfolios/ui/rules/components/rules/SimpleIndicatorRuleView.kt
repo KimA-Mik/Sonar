@@ -37,6 +37,7 @@ internal fun SimpleIndicatorRuleView(
     rule: DisplayRule.Indicator,
     onAction: (RulesAction) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     titleContent: @Composable (RowScope.() -> Unit)? = null
 ) {
     IndicatorRuleBody(
@@ -126,6 +127,7 @@ internal fun SimpleIndicatorRuleView(
             onAction(action)
         },
         modifier = modifier,
+        enabled = enabled
     )
 }
 
@@ -137,6 +139,7 @@ private fun IndicatorRuleBody(
     timeframes: Int,
     onTimeframesChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     valueRang: ClosedFloatingPointRange<Float> = 0f..100f,
     valueFormatter: @Composable (Float) -> String = {
         val numberFormat = LocalNumberFormat.current
@@ -153,6 +156,7 @@ private fun IndicatorRuleBody(
                 value = timeframesString,
                 onValueChange = onTimeframesChange,
                 modifier = Modifier.fillMaxWidth(),
+                enabled = enabled,
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
                 label = {
                     Text(stringResource(R.string.label_timeframes))
@@ -165,7 +169,9 @@ private fun IndicatorRuleBody(
             RangeSlider(
                 value = value,
                 onValueChange = { range -> onValueChange(range) },
-                valueRange = valueRang
+                valueRange = valueRang,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = enabled
             )
 
             Row(

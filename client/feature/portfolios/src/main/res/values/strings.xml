@@ -36,4 +36,6 @@
     <string name="label_rules_mode">Rules mode</string>
     <string name="menu_label_rule_type_group">Common group</string>
     <string name="label_root_rule">Root rule</string>
+    <string name="button_label_add_rule">Add rule</string>
+    <string name="buttin_label_clear">Clear</string>
 </resources>

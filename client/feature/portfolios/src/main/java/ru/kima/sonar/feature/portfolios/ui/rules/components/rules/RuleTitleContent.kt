@@ -13,12 +13,14 @@ import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 internal fun RuleTitleContent(
     rule: DisplayRule,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onAction: (RulesAction) -> Unit
 ) {
     when (rule.parent) {
         is DisplayRule.Group -> IconButton(
             onClick = { onAction(RulesAction.DeleteRule(rule.key)) },
-            modifier = modifier
+            modifier = modifier,
+            enabled = enabled
         ) {
             Icon(painterResource(CommonDrawables.delete_24px), contentDescription = null)
         }

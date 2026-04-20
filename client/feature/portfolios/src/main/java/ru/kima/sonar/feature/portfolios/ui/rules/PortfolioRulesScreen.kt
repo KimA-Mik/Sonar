@@ -39,6 +39,7 @@ import kotlinx.collections.immutable.toImmutableList
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.serverapi.model.rules.GroupRule
+import ru.kima.sonar.common.serverapi.model.rules.RsiRule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.SonarDropdownMenu
@@ -50,10 +51,12 @@ import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.data.homeapi.model.rules.RuleType
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.RulesList
+import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.rememberRulesMenu
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
 import ru.kima.sonar.feature.portfolios.ui.rules.state.RulesLoadingStatus
+import java.math.BigDecimal
 
 @Composable
 internal fun PortfolioRulesScreen(
@@ -129,7 +132,11 @@ private fun PortfolioRulesScreenContent(
             modifier = Modifier.fillMaxWidth()
         )
 
-        RulesList(rules = rules, onAction = {})
+        RulesList(
+            rules = rules,
+            onAction = { onEvent(RulesScreenUserEvent.RuleAction(it)) },
+            enabled = mode != RulesMode.RULES_DISABLED,
+        )
     }
 }
 
@@ -274,46 +281,6 @@ private fun RootRoleSelector(
     )
 }
 
-@Composable
-private fun rememberRulesMenu(
-    onSelect: (RuleType) -> Unit
-): ImmutableList<SonarDropdownMenuItem> = remember(onSelect) {
-    persistentListOf(
-        SonarDropdownMenuItem.ItemsGroup(
-            title = R.string.menu_label_rules_group_group,
-            trailingIcon = CommonDrawables.arrow_right_24px,
-            children = persistentListOf(
-                SonarDropdownMenuItem.SimpleItem(
-                    title = R.string.menu_label_rule_type_group,
-                    onClick = { onSelect(RuleType.GROUP) }
-                )
-            )
-        ),
-        SonarDropdownMenuItem.ItemsGroup(
-            title = R.string.menu_label_rules_group_indicators,
-            trailingIcon = CommonDrawables.arrow_right_24px,
-            children = persistentListOf(
-                SonarDropdownMenuItem.SimpleItem(
-                    title = R.string.rule_title_rsi,
-                    onClick = { onSelect(RuleType.RSI) }
-                ),
-                SonarDropdownMenuItem.SimpleItem(
-                    title = R.string.rule_title_srsi,
-                    onClick = { onSelect(RuleType.SRSI) }
-                ),
-                SonarDropdownMenuItem.SimpleItem(
-                    title = R.string.rule_title_mfi,
-                    onClick = { onSelect(RuleType.MFI) }
-                ),
-                SonarDropdownMenuItem.SimpleItem(
-                    title = R.string.rule_title_bb,
-                    onClick = { onSelect(RuleType.BB) }
-                )
-            )
-        )
-    )
-}
-
 @Preview
 @Composable
 private fun PortfolioRulesScreenPreview() = SonarPreview {
@@ -323,7 +290,22 @@ private fun PortfolioRulesScreenPreview() = SonarPreview {
         mode = RulesMode.LIMIT_SECURITIES,
         rules = GroupRule(
             1,
-            listOf()
+            listOf(
+                GroupRule(
+                    2,
+                    listOf(
+                        RsiRule(
+                            requiredCount = 2,
+                            lowThreshold = BigDecimal(30),
+                            highThreshold = BigDecimal(70)
+                        )
+                    )
+                ),
+                GroupRule(
+                    3,
+                    listOf()
+                )
+            )
         ).toFlatDisplayRuleList().toImmutableList(),
         onEvent = {}
     )

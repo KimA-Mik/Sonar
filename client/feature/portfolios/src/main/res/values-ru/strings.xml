@@ -32,4 +32,6 @@
     <string name="label_rules_mode">Режим прваил</string>
     <string name="menu_label_rule_type_group">Обычная группа</string>
     <string name="label_root_rule">Корневое правило</string>
+    <string name="button_label_add_rule">Добавить</string>
+    <string name="buttin_label_clear">Очистить</string>
 </resources>
