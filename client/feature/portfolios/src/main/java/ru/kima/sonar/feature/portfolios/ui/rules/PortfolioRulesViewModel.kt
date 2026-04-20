@@ -49,11 +49,15 @@ internal class PortfolioRulesViewModel(
     private val _rules = MutableStateFlow<ImmutableList<DisplayRule>>(persistentListOf())
     val rules = _rules.asStateFlow()
 
+    private val _canSave = MutableStateFlow(false)
+    val canSave = _canSave.asStateFlow()
+
     init {
         loadRules()
     }
 
     private fun loadRules() {
+        _status.value = RulesLoadingStatus.Loading
         viewModelScope.launch {
             when (val res = homeApiDataSource.getPortfolioRule(portfolioId)) {
                 is SonarResult.Error<*, *> -> _status.value =
@@ -74,6 +78,8 @@ internal class PortfolioRulesViewModel(
             is RulesScreenUserEvent.SetMode -> onSetMode(event.mode)
             is RulesScreenUserEvent.SetRootRule -> setRootRule(event.ruleType)
             is RulesScreenUserEvent.RuleAction -> onRuleAction(event.action)
+            RulesScreenUserEvent.ReloadRules -> onReloadRules()
+            RulesScreenUserEvent.Save -> onSave()
         }
     }
 
@@ -102,10 +108,12 @@ internal class PortfolioRulesViewModel(
     }
 
     private fun onSetMode(mode: RulesMode) {
+        _canSave.value = true
         _mode.value = mode
     }
 
     private fun setRootRule(ruleType: RuleType) {
+        _canSave.value = true
         var oldLow: Float? = null
         var oldHigh: Float? = null
         var oldThreshold = 2
@@ -166,6 +174,7 @@ internal class PortfolioRulesViewModel(
     }
 
     private fun onRuleAction(action: RulesAction) {
+        _canSave.value = true
         when (action) {
             is RulesAction.AddRule -> {
                 val (index, parent) = findIndexOrReturn<DisplayRule.Group>(action.key) { return }
@@ -291,7 +300,16 @@ internal class PortfolioRulesViewModel(
         }
     }
 
-    private inline fun <reified T> findIndexOrReturn(
+
+    private fun onReloadRules() {
+        loadRules()
+    }
+
+    private fun onSave() {
+        _canSave.value = false
+    }
+
+    private inline fun <reified T : DisplayRule> findIndexOrReturn(
         key: Long,
         block: () -> Nothing
     ): Pair<Int, T> {

@@ -1,10 +1,16 @@
 package ru.kima.sonar.feature.portfolios.ui.rules
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,12 +22,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,7 +64,9 @@ import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
+import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
+import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
 import ru.kima.sonar.data.homeapi.model.rules.RuleType
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
@@ -77,6 +89,7 @@ internal fun PortfolioRulesScreen(
     val title by viewModel.title.collectAsState()
     val mode by viewModel.mode.collectAsState()
     val rules by viewModel.rules.collectAsState()
+    val canSave by viewModel.canSave.collectAsState()
 
     val uiEvents by viewModel.uiEvents.collectAsStateWithLifecycle()
 
@@ -87,7 +100,8 @@ internal fun PortfolioRulesScreen(
         onEvent = viewModel::onEvent,
         onCallbackEvent = viewModel::onCallbackEvent,
         uiEvent = uiEvents,
-        rules = rules
+        rules = rules,
+        canSave = canSave
     )
 }
 
@@ -97,6 +111,7 @@ private fun PortfolioRulesScreenBody(
     title: String,
     mode: RulesMode,
     rules: ImmutableList<DisplayRule>,
+    canSave: Boolean,
     onEvent: (RulesScreenUserEvent) -> Unit,
     onCallbackEvent: (RulesScreenBusEvent) -> Unit,
     uiEvent: SonarEvent<RulesScreenUiEvent>,
@@ -121,23 +136,67 @@ private fun PortfolioRulesScreenBody(
         onCallbackEvent(it)
     }
 
+    val snackbarHostState = LocalSnackbarHostState.current
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val sb = remember { scrollBehavior }
     Scaffold(
         modifier = modifier,
         topBar = {
             AppBar(
                 titleContent = { Text(title) },
-                navigateUp = { navigator.goBack() }
+                navigateUp = { navigator.goBack() },
+                scrollBehavior = sb
             )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = canSave,
+                enter = scaleIn() + slideInHorizontally { it / 2 },
+                exit = scaleOut() + slideOutHorizontally { it / 2 }
+            ) {
+                FloatingActionButton(onClick = { onEvent(RulesScreenUserEvent.Save) }) {
+                    Icon(
+                        painterResource(CommonDrawables.save_24px),
+                        contentDescription = null
+                    )
+                }
+            }
         }
     ) { paddingValues ->
-        PortfolioRulesScreenContent(
-            rules = rules,
-            mode = mode,
-            onEvent = onEvent,
+        AnimatedContent(
+            targetState = status,
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(top = 8.dp, start = 16.dp, end = 16.dp)
-        )
+                .nestedScroll(sb.nestedScrollConnection)
+        ) { state ->
+            when (state) {
+                is RulesLoadingStatus.Error -> Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
+                ) {
+                    Text(stringResource(R.string.label_error_loading_rules))
+                    Button(onClick = { onEvent(RulesScreenUserEvent.ReloadRules) }) {
+                        Text(stringResource(CommonStrings.action_retry))
+                    }
+                }
+
+                RulesLoadingStatus.Loading -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingIndicator()
+                }
+
+                RulesLoadingStatus.Success -> PortfolioRulesScreenContent(
+                    rules = rules,
+                    mode = mode,
+                    onEvent = onEvent,
+                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                )
+            }
+        }
     }
 }
 
@@ -170,6 +229,7 @@ private fun PortfolioRulesScreenContent(
             rules = rules,
             onAction = { onEvent(RulesScreenUserEvent.RuleAction(it)) },
             enabled = mode != RulesMode.RULES_DISABLED,
+            contentPadding = PaddingValues(bottom = 72.dp)
         )
     }
 }
@@ -343,6 +403,7 @@ private fun PortfolioRulesScreenPreview() = SonarPreview {
         ).toFlatDisplayRuleList().toImmutableList(),
         onEvent = {},
         onCallbackEvent = {},
-        uiEvent = SonarEvent()
+        uiEvent = SonarEvent(),
+        canSave = true
     )
 }

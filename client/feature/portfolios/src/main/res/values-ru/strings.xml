@@ -38,4 +38,5 @@
     <string name="group_rule_lowercase">группа</string>
     <string name="delete_rule_dialog_title">Удалить правило %1$s?</string>
     <string name="clear_group_dialog_title">Очистить группу?</string>
+    <string name="label_error_loading_rules">Не удалось загрузить правила</string>
 </resources>
