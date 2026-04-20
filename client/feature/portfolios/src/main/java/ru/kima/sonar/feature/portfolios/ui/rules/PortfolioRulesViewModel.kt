@@ -16,10 +16,13 @@ import ru.kima.sonar.common.serverapi.model.rules.MfiRule
 import ru.kima.sonar.common.serverapi.model.rules.RsiRule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.serverapi.model.rules.SrsiRule
+import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
 import ru.kima.sonar.data.homeapi.model.rules.RuleType
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesAction
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenBusEvent
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUiEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
@@ -32,6 +35,8 @@ internal class PortfolioRulesViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val homeApiDataSource: HomeApiDataSource
 ) : ViewModel() {
+    private val _uiEvents = MutableStateFlow(SonarEvent<RulesScreenUiEvent>())
+    val uiEvents = _uiEvents.asStateFlow()
     private val _status = MutableStateFlow<RulesLoadingStatus>(RulesLoadingStatus.Loading)
     val status = _status.asStateFlow()
 
@@ -69,6 +74,30 @@ internal class PortfolioRulesViewModel(
             is RulesScreenUserEvent.SetMode -> onSetMode(event.mode)
             is RulesScreenUserEvent.SetRootRule -> setRootRule(event.ruleType)
             is RulesScreenUserEvent.RuleAction -> onRuleAction(event.action)
+        }
+    }
+
+
+    fun onCallbackEvent(event: RulesScreenBusEvent) {
+        when (event) {
+            is RulesScreenBusEvent.ConfirmClearGroup -> {
+                val (_, _) = findIndexOrReturn<DisplayRule.Group>(event.key) { return }
+                val list = _rules.value.toMutableList()
+                val keys = list.allChildren(event.key)
+                list.removeAll {
+                    if (it.key == event.key) return@removeAll false
+                    else keys.contains(it.key)
+                }
+
+                _rules.value = list.toImmutableList()
+            }
+
+            is RulesScreenBusEvent.ConfirmDeleteRule -> {
+                val list = _rules.value.toMutableList()
+                val keys = list.allChildren(event.key)
+                list.removeAll { keys.contains(it.key) }
+                _rules.value = list.toImmutableList()
+            }
         }
     }
 
@@ -187,14 +216,26 @@ internal class PortfolioRulesViewModel(
                     )
                 }
 
-                var position = list.indexOfLast { (it.parent as DisplayRule?)?.key == action.key }
+                val lastKey = list.allChildren(action.key).maxOf { it }
+                var position = list.indexOfLast { it.key == lastKey }
                 if (position < 0) position = index
                 list.add(position + 1, newRule)
                 _rules.value = list.toImmutableList()
             }
 
-            is RulesAction.ClearGroup -> {}
-            is RulesAction.DeleteRule -> {}
+            is RulesAction.ClearGroup -> _uiEvents.value =
+                SonarEvent(RulesScreenUiEvent.ShowClearGroupDialog(action.key))
+
+            is RulesAction.DeleteRule -> {
+                val (_, rule) = findIndexOrReturn<DisplayRule>(action.key) { return }
+                _uiEvents.value = SonarEvent(
+                    RulesScreenUiEvent.ShowDeleteRuleDialog(
+                        key = action.key,
+                        ruleType = rule.ruleType()
+                    )
+                )
+            }
+
             is RulesAction.UpdateGroupRuleTruthThreshold -> {
                 val (index, old) = findIndexOrReturn<DisplayRule.Group>(action.key) { return }
                 val list = _rules.value.toMutableList()
@@ -259,6 +300,12 @@ internal class PortfolioRulesViewModel(
         if (index < 0) block()
         if (list[index] !is T) block()
         return index to (list[index] as T)
+    }
+
+    private fun MutableList<DisplayRule>.allChildren(key: Long): Set<Long> {
+        val keys = mutableSetOf(key)
+        forEach { if (it.parent?.findKey() in keys) keys.add(it.key) }
+        return keys
     }
 
     private val dummyRsi = RsiRule(0, BigDecimal(0), BigDecimal(0))

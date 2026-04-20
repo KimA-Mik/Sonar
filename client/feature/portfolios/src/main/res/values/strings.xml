@@ -37,5 +37,9 @@
     <string name="menu_label_rule_type_group">Common group</string>
     <string name="label_root_rule">Root rule</string>
     <string name="button_label_add_rule">Add rule</string>
-    <string name="buttin_label_clear">Clear</string>
+    <string name="button_label_clear">Clear</string>
+    <string name="bollinger_bands_rule_lowercase">Bollinger bands</string>
+    <string name="group_rule_lowercase">group</string>
+    <string name="delete_rule_dialog_title">Delete rule %1$s?</string>
+    <string name="clear_group_dialog_title">Clear group?</string>
 </resources>

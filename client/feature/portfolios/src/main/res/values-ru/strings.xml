@@ -33,5 +33,9 @@
     <string name="menu_label_rule_type_group">Обычная группа</string>
     <string name="label_root_rule">Корневое правило</string>
     <string name="button_label_add_rule">Добавить</string>
-    <string name="buttin_label_clear">Очистить</string>
+    <string name="button_label_clear">Очистить</string>
+    <string name="bollinger_bands_rule_lowercase">полосы Боллинджера</string>
+    <string name="group_rule_lowercase">группа</string>
+    <string name="delete_rule_dialog_title">Удалить правило %1$s?</string>
+    <string name="clear_group_dialog_title">Очистить группу?</string>
 </resources>

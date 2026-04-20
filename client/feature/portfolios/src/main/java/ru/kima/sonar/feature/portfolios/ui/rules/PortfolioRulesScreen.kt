@@ -1,20 +1,24 @@
 package ru.kima.sonar.feature.portfolios.ui.rules
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -33,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -45,13 +50,18 @@ import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.SonarDropdownMenu
 import ru.kima.sonar.common.ui.components.SonarDropdownMenuItem
 import ru.kima.sonar.common.ui.components.SonarExposedDropdownMenu
+import ru.kima.sonar.common.ui.event.ResultEffect
+import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.data.homeapi.model.rules.RuleType
 import ru.kima.sonar.feature.portfolios.R
+import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
 import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.RulesList
 import ru.kima.sonar.feature.portfolios.ui.rules.components.rules.rememberRulesMenu
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenBusEvent
+import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUiEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.events.RulesScreenUserEvent
 import ru.kima.sonar.feature.portfolios.ui.rules.model.DisplayRule
 import ru.kima.sonar.feature.portfolios.ui.rules.model.mapper.toFlatDisplayRuleList
@@ -68,11 +78,15 @@ internal fun PortfolioRulesScreen(
     val mode by viewModel.mode.collectAsState()
     val rules by viewModel.rules.collectAsState()
 
+    val uiEvents by viewModel.uiEvents.collectAsStateWithLifecycle()
+
     PortfolioRulesScreenBody(
         status = status,
         title = title,
         mode = mode,
         onEvent = viewModel::onEvent,
+        onCallbackEvent = viewModel::onCallbackEvent,
+        uiEvent = uiEvents,
         rules = rules
     )
 }
@@ -84,9 +98,29 @@ private fun PortfolioRulesScreenBody(
     mode: RulesMode,
     rules: ImmutableList<DisplayRule>,
     onEvent: (RulesScreenUserEvent) -> Unit,
+    onCallbackEvent: (RulesScreenBusEvent) -> Unit,
+    uiEvent: SonarEvent<RulesScreenUiEvent>,
     modifier: Modifier = Modifier
 ) {
     val navigator = LocalNavigator.current
+    LaunchedEffect(uiEvent) {
+        uiEvent.consume { event ->
+            when (event) {
+                is RulesScreenUiEvent.ShowClearGroupDialog -> navigator.navigate(
+                    PortfoliosGraph.List.Details.Rules.ClearGroupDialog(event.key)
+                )
+
+                is RulesScreenUiEvent.ShowDeleteRuleDialog -> navigator.navigate(
+                    PortfoliosGraph.List.Details.Rules.DeleteRuleDialog(event.key, event.ruleType)
+                )
+            }
+        }
+    }
+
+    ResultEffect<RulesScreenBusEvent> {
+        onCallbackEvent(it)
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -307,6 +341,8 @@ private fun PortfolioRulesScreenPreview() = SonarPreview {
                 )
             )
         ).toFlatDisplayRuleList().toImmutableList(),
-        onEvent = {}
+        onEvent = {},
+        onCallbackEvent = {},
+        uiEvent = SonarEvent()
     )
 }

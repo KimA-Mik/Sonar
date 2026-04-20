@@ -17,6 +17,8 @@ import ru.kima.sonar.feature.portfolios.ui.list.dialog.CreatePortfolioDialog
 import ru.kima.sonar.feature.portfolios.ui.list.dialog.EditPortilloDialog
 import ru.kima.sonar.feature.portfolios.ui.list.dialog.RemovePortfolioDialog
 import ru.kima.sonar.feature.portfolios.ui.rules.PortfolioRulesScreen
+import ru.kima.sonar.feature.portfolios.ui.rules.components.dialogs.ClearGroupDialog
+import ru.kima.sonar.feature.portfolios.ui.rules.components.dialogs.DeleteRuleDialog
 
 fun EntryProviderScope<NavKey>.portfoliosNavGraph(
     bottomBar: @Composable () -> Unit
@@ -51,6 +53,20 @@ fun EntryProviderScope<NavKey>.portfoliosNavGraph(
 
     entry<PortfoliosGraph.List.Details.Rules> { key ->
         PortfolioRulesScreen(key.portfolioId)
+    }
+
+    entry<PortfoliosGraph.List.Details.Rules.DeleteRuleDialog>(
+        metadata = DialogSceneStrategy.dialog()
+    ) { key ->
+        DeleteRuleDialog(
+            key = key.ruleKey,
+            ruleType = key.ruleType
+        )
+    }
+    entry<PortfoliosGraph.List.Details.Rules.ClearGroupDialog>(
+        metadata = DialogSceneStrategy.dialog()
+    ) { key ->
+        ClearGroupDialog(key = key.groupKey)
     }
 
     entry<PortfoliosGraph.List.Details.DeleteEntryDialog>(

@@ -1,6 +1,7 @@
 package ru.kima.sonar.feature.portfolios.ui.rules.model
 
 import androidx.compose.runtime.Immutable
+import ru.kima.sonar.data.homeapi.model.rules.RuleType
 
 sealed interface DisplayRule {
     val key: Long
@@ -59,5 +60,13 @@ sealed interface DisplayRule {
             override val threshold: Int,
             override val parent: ParentRule?
         ) : Indicator
+    }
+
+    fun ruleType(): RuleType = when (this) {
+        is Group -> RuleType.GROUP
+        is Indicator.Rsi -> RuleType.RSI
+        is Indicator.Srsi -> RuleType.SRSI
+        is Indicator.Mfi -> RuleType.MFI
+        is Indicator.Bb -> RuleType.BB
     }
 }

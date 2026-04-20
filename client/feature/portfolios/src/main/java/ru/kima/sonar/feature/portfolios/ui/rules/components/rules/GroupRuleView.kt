@@ -133,7 +133,7 @@ internal fun GroupRuleView(
                     modifier = Modifier.weight(1f),
                     enabled = enabled
                 ) {
-                    Text(stringResource(R.string.buttin_label_clear))
+                    Text(stringResource(R.string.button_label_clear))
                 }
             }
 
