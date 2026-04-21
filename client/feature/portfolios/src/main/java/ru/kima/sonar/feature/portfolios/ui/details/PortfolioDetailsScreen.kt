@@ -156,7 +156,7 @@ internal fun PortfolioDetailsScreenBody(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 8.dp)
+                .padding(top = 8.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
@@ -164,13 +164,13 @@ internal fun PortfolioDetailsScreenBody(
             ElevatedButton(
                 onClick = { onEvent(PortfolioDetailsUserEvent.OpenRulesScreenClicked) }
             ) {
-                Text("Rules")
+                Text(stringResource(R.string.action_rules))
             }
         }
         val dropdownMenuItems = rememberMenuItems(onEvent)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 72.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(state.entries, key = { it.uid }) { entry ->
