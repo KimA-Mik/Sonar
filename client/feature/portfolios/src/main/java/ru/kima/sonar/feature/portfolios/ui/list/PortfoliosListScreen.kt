@@ -36,8 +36,8 @@ import kotlinx.collections.immutable.persistentListOf
 import org.koin.androidx.compose.koinViewModel
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
-import ru.kima.sonar.common.ui.components.SonarMenu
-import ru.kima.sonar.common.ui.components.SonarMenuItem
+import ru.kima.sonar.common.ui.components.SonarListMenu
+import ru.kima.sonar.common.ui.components.SonarListMenuItem
 import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
@@ -199,7 +199,7 @@ private fun PortfoliosListScreenBody(
 private fun PortfolioListItem(
     portfolio: DisplayPortfolio,
     onEvent: (PortfolioListEvent) -> Unit,
-    menuItems: ImmutableList<SonarMenuItem<Long>>,
+    menuItems: ImmutableList<SonarListMenuItem<Long>>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -217,7 +217,7 @@ private fun PortfolioListItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            SonarMenu(
+            SonarListMenu(
                 input = portfolio.id,
                 items = menuItems,
             )
@@ -227,12 +227,12 @@ private fun PortfolioListItem(
 
 @Composable
 private fun rememberMenuItems(onEvent: (PortfolioListEvent) -> Unit) = remember(onEvent) {
-    persistentListOf<SonarMenuItem<Long>>(
-        SonarMenuItem(
+    persistentListOf<SonarListMenuItem<Long>>(
+        SonarListMenuItem(
             title = CommonStrings.action_rename,
             onClick = { onEvent(PortfolioListEvent.RenamePortfolioClicked(it)) }
         ),
-        SonarMenuItem(
+        SonarListMenuItem(
             title = CommonStrings.action_delete,
             onClick = { onEvent(PortfolioListEvent.DeletePortfolioClicked(it)) }
         )

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home API Error Messages -->
+    <string name="error_network">Ошибка сети. Проверьте подключение к интернету.</string>
+    <string name="error_unauthorized">Не авторизован. Пожалуйста, войдите заново.</string>
+    <string name="error_bad_request">Неверный запрос. Предоставлены неверные данные.</string>
+    <string name="error_forbidden">Доступ запрещен. У вас нет прав доступа к этому ресурсу.</string>
+    <string name="error_internal_server">Ошибка сервера. Пожалуйста, попробуйте позже.</string>
+    <string name="error_unknown_api">Произошла неизвестная ошибка (Код: %d)</string>
+    <string name="error_unknown">Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.</string>
+</resources>
+

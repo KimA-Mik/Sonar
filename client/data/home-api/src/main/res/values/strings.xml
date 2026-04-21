@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home API Error Messages -->
+    <string name="error_network">Network error. Please check your internet connection.</string>
+    <string name="error_unauthorized">Unauthorized. Please log in again.</string>
+    <string name="error_bad_request">Bad request. Invalid data provided.</string>
+    <string name="error_forbidden">Access forbidden. You don\'t have permission to access this resource.</string>
+    <string name="error_internal_server">Internal server error. Please try again later.</string>
+    <string name="error_unknown_api">An unknown error occurred (Code: %d)</string>
+    <string name="error_unknown">An unexpected error occurred. Please try again.</string>
+</resources>
+

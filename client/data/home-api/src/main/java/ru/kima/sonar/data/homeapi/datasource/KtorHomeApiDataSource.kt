@@ -42,12 +42,16 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryReq
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdateRuleRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.PortfolioResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
+import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
+import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
+import ru.kima.sonar.common.serverapi.model.rules.Rule
+import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
 import ru.kima.sonar.common.serverapi.routing.PortfoliosRoute
 import ru.kima.sonar.common.serverapi.routing.SecurityRoute
@@ -212,7 +216,7 @@ internal class KtorHomeApiDataSource(
             }
         }
 
-    override suspend fun getPortfolio(portfolioId: Long): SonarResult<PortfolioResponse, HomeApiError> =
+    override suspend fun getPortfolio(portfolioId: Long): SonarResult<SonarPortfolio, HomeApiError> =
         safeApiCall { client.get(PortfoliosRoute.Portfolio(id = portfolioId)) }
 
     override suspend fun updatePortfolio(
@@ -279,4 +283,29 @@ internal class KtorHomeApiDataSource(
 
     override suspend fun deleteEntry(entryId: Long): SonarResult<Unit, HomeApiError> =
         safeApiCall { client.delete(PortfoliosRoute.Entry.Delete(PortfoliosRoute.Entry(id = entryId))) }
+
+    override suspend fun getPortfolioRule(portfolioId: Long): SonarResult<RuleEditPortfolio, HomeApiError> =
+        safeApiCall {
+            client.get(PortfoliosRoute.Portfolio.Rules(PortfoliosRoute.Portfolio(id = portfolioId)))
+        }
+
+    override suspend fun updatePortfolioRule(
+        portfolioId: Long,
+        mode: RulesMode,
+        rule: Rule
+    ): SonarResult<Unit, HomeApiError> = safeApiCall {
+        client.put(
+            PortfoliosRoute.Portfolio.Rules.Update(
+                PortfoliosRoute.Portfolio.Rules(PortfoliosRoute.Portfolio(id = portfolioId))
+            )
+        ) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                UpdateRuleRequest(
+                    mode = mode,
+                    rule = rule
+                )
+            )
+        }
+    }
 }

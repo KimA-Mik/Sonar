@@ -4,15 +4,20 @@ import org.jetbrains.exposed.v1.core.eq
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
+import ru.kima.sonar.server.data.user.mappers.pitInside
 import ru.kima.sonar.server.data.user.mappers.putInside
 import ru.kima.sonar.server.data.user.mappers.toDomainModel
+import ru.kima.sonar.server.data.user.mappers.toLightPortfolioWithRule
 import ru.kima.sonar.server.data.user.model.UserDataError
+import ru.kima.sonar.server.data.user.model.portfolio.LightPortfolioWithRule
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
+import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntryEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioTable
+import ru.kima.sonar.server.data.user.scema.portfolio.RulesEntity
 
 internal class ExposedPortfolioDataSource(
     private val databaseConnector: DatabaseConnector
@@ -87,7 +92,8 @@ internal class ExposedPortfolioDataSource(
                 val entity = PortfolioEntity.findById(id)
                 if (entity != null) {
                     //TODO: Explore exposed onDelete
-//                    entity.entries.forEach { it.delete() }
+                    entity.entries.forEach { it.delete() }
+                    entity.rules.forEach { it.delete() }
                     entity.delete()
                     found = true
                 }
@@ -226,6 +232,53 @@ internal class ExposedPortfolioDataSource(
             SonarResult.Success(result)
         } catch (e: Exception) {
             logger.error("Error getting portfolio with entries by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getPortfolioRule(portfolioId: Long): SonarResult<LightPortfolioWithRule, UserDataError> {
+        return try {
+            val res = databaseConnector.suspendTransaction {
+                val portfolio = PortfolioEntity.findById(portfolioId)
+                    ?: return@suspendTransaction null
+
+                var rule = portfolio.rules.firstOrNull()?.toDomainModel()
+                if (rule == null) {
+                    rule = RulesEntity.new {
+                        pitInside(PortfolioRule.default(portfolioId = portfolioId))
+                    }.toDomainModel()
+                }
+
+                return@suspendTransaction portfolio.toLightPortfolioWithRule(rule)
+            }
+            if (res != null) {
+                SonarResult.Success(res)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting portfolio rule", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun updatePortfolioRule(rule: PortfolioRule): SonarResult<LightPortfolioWithRule, UserDataError> {
+        return try {
+            databaseConnector.suspendTransaction {
+                val old = PortfolioEntity.findById(rule.portfolioId)
+                    ?: return@suspendTransaction SonarResult.Error(UserDataError.NotFound)
+
+                val newRule = RulesEntity.findByIdAndUpdate(rule.id) { entity ->
+                    entity.pitInside(rule)
+                }?.toDomainModel()
+                if (newRule == null) {
+                    SonarResult.Error(UserDataError.NotFound)
+                } else {
+                    SonarResult.Success(old.toLightPortfolioWithRule(newRule))
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating portfolio rule", e)
             SonarResult.Error(UserDataError.UnknownError(e))
         }
     }

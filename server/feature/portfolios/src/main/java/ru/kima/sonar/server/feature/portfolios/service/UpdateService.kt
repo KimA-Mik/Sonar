@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.common.serverapi.model.LastPrice
+import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.util.MathUtil
 import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.common.util.time.DateUtil
@@ -25,9 +26,11 @@ import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
 import ru.kima.sonar.server.data.user.model.UserAndSessions
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
+import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 import ru.kima.sonar.server.feature.portfolios.service.model.CacheEntry
 import ru.kima.sonar.server.feature.portfolios.service.model.IndicatorsCache
+import ru.kima.sonar.server.feature.portfolios.service.rules.execute
 import java.math.BigDecimal
 import kotlin.random.Random
 import kotlin.random.nextLong
@@ -163,11 +166,13 @@ class UpdateService(
         cache: IndicatorsCache,
         updatedEntries: MutableList<PortfolioEntry>
     ) {
+        val rule = portfolioDataSource.getPortfolioRule(portfolio.portfolio.id).valueOr { return }
         for (entry in portfolio.entries) {
             val price = lastPrices[entry.securityUid] ?: continue
             val cacheEntry = cache[entry.securityUid] ?: continue
 
-            val current = handlePrice(user, portfolio.portfolio, entry, price, cacheEntry)
+            val current =
+                handlePrice(user, portfolio.portfolio, entry, price, cacheEntry, rule.rule)
 
             if (current != entry) {
                 updatedEntries.add(current)
@@ -181,8 +186,15 @@ class UpdateService(
         entry: PortfolioEntry,
         lastPrice: LastPrice,
         indicators: CacheEntry,
+        rule: PortfolioRule
     ): PortfolioEntry {
         if (!entry.enabled) return entry
+        if (rule.mode == RulesMode.LIMIT_SECURITIES) {
+            val price = lastPrice.price.toDouble()
+            if (!rule.rule.execute(price, indicators)) {
+                return entry
+            }
+        }
 
         return if (lastPrice.price > entry.highPrice || lastPrice.price < entry.lowPrice) {
             handleUnboundPrice(user, portfolio, entry, indicators, lastPrice)

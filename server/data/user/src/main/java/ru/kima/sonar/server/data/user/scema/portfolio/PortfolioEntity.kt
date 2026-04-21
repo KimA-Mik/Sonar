@@ -13,5 +13,6 @@ internal class PortfolioEntity(id: EntityID<Long>) : LongEntity(id) {
 
     var user by UserEntity referencedOn PortfolioTable.userId
     val entries by PortfolioEntryEntity referrersOn PortfolioEntryTable.portfolioId
+    val rules by RulesEntity referrersOn RulesTable.portfolioId
 }
 

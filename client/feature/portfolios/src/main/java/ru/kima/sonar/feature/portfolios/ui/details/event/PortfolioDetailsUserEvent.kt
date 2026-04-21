@@ -5,4 +5,5 @@ internal sealed interface PortfolioDetailsUserEvent {
     data class EditEntryButtonClicked(val entryUid: String) : PortfolioDetailsUserEvent
     data class DeleteEntryButtonClicked(val entryUid: String) : PortfolioDetailsUserEvent
     data object Refresh : PortfolioDetailsUserEvent
+    data object OpenRulesScreenClicked : PortfolioDetailsUserEvent
 }

@@ -17,6 +17,12 @@ class PortfoliosRoute {
 
         @Resource("delete")
         class Delete(val parent: Portfolio)
+
+        @Resource("rules")
+        class Rules(val parent: Portfolio) {
+            @Resource("update")
+            class Update(val parent: Rules)
+        }
     }
 
     @Resource("entries/{id}")

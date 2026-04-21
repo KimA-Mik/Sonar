@@ -19,4 +19,30 @@
     <string name="title_delete_portfolio">Delete %1$s?</string>
     <string name="label_error_delete_portfolio">An error occurred</string>
     <string name="label_target_deviation">Target deviation</string>
+    <string name="rule_title_group">Group</string>
+    <string name="rule_title_rsi" translatable="false">RSI</string>
+    <string name="rule_title_srsi" translatable="false">SRSI</string>
+    <string name="rule_title_mfi" translatable="false">MFI</string>
+    <string name="rule_title_bb">Bollinger bands</string>
+    <string name="label_timeframes">Timeframes</string>
+    <string name="label_truth_threshold">Truth threshold</string>
+
+    <string name="menu_label_rules_group_indicators">Indicators</string>
+    <string name="menu_label_rules_group_group">Groups</string>
+    <string name="menu_label_rules_disabled">Disabled</string>
+    <string name="menu_label_rules_limit">Limit notifications</string>
+    <string name="menu_label_rules_notifications">Rule based notifications</string>
+    <string name="menu_label_rules_notifications_and_securities">Rule and security based notification</string>
+    <string name="label_rules_mode">Rules mode</string>
+    <string name="menu_label_rule_type_group">Common group</string>
+    <string name="label_root_rule">Root rule</string>
+    <string name="button_label_add_rule">Add rule</string>
+    <string name="button_label_clear">Clear</string>
+    <string name="bollinger_bands_rule_lowercase">Bollinger bands</string>
+    <string name="group_rule_lowercase">group</string>
+    <string name="delete_rule_dialog_title">Delete rule %1$s?</string>
+    <string name="clear_group_dialog_title">Clear group?</string>
+    <string name="label_error_loading_rules">Error loading rules</string>
+    <string name="snackbar_message_rules_saved_successfully">Rules saved successfully</string>
+    <string name="action_rules">Rules</string>
 </resources>

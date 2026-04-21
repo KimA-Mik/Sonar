@@ -2,6 +2,7 @@ package ru.kima.sonar.feature.portfolios.navigtion
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import ru.kima.sonar.data.homeapi.model.rules.RuleType
 
 object PortfoliosGraph {
     @Serializable
@@ -17,6 +18,15 @@ object PortfoliosGraph {
 
         @Serializable
         data class Details(val portfolioId: Long) : NavKey {
+            @Serializable
+            data class Rules(val portfolioId: Long) : NavKey {
+                @Serializable
+                data class DeleteRuleDialog(val ruleKey: Long, val ruleType: RuleType) : NavKey
+
+                @Serializable
+                data class ClearGroupDialog(val groupKey: Long) : NavKey
+            }
+
             @Serializable
             data object DeleteEntryDialog : NavKey
 

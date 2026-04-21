@@ -20,6 +20,10 @@ fun Application.portfoliosRoute() = routing {
         get<PortfoliosRoute.Portfolio> { controller.getPortfolio(call, it.id) }
         put<PortfoliosRoute.Portfolio.Update> { controller.updatePortfolio(call, it.parent.id) }
         delete<PortfoliosRoute.Portfolio.Delete> { controller.deletePortfolio(call, it.parent.id) }
+        get<PortfoliosRoute.Portfolio.Rules> { controller.getPortfolioRules(call, it.parent.id) }
+        put<PortfoliosRoute.Portfolio.Rules.Update> {
+            controller.updatePortfolioRules(call, it.parent.parent.id)
+        }
         get<PortfoliosRoute.Entry> { controller.getPortfolioEntry(call, it.id) }
         post<PortfoliosRoute.Portfolio.AddEntry> { controller.addEntry(call, it.parent.id) }
         put<PortfoliosRoute.Entry.Update> { controller.updateEntry(call, it.parent.id) }

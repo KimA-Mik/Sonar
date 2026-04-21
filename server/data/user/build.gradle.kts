@@ -21,11 +21,13 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.json)
     implementation(libs.exposed.java.time)
     implementation(libs.exposed.migration.core)
     implementation(libs.exposed.migration.jdbc)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.koin.core)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(project(":common:util"))
     implementation(project(":common:server-api"))

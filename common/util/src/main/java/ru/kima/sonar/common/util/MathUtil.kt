@@ -19,6 +19,11 @@ object MathUtil {
     const val BB_CRITICAL_LOW = 0.05
     const val RSI_FOR_BB_HIGH = 69.0
     const val RSI_FOR_BB_LOW = 31.0
+    fun bbPercent(value: Double, bbUpper: Double, bbLower: Double): Double {
+        if (bbUpper == bbLower) return 0.0 // avoid division by zero
+        return (value - bbLower) / (bbUpper - bbLower)
+    }
+
     fun isBbCritical(
         value: Double,
         bbUpper: Double,

@@ -2,8 +2,10 @@ package ru.kima.sonar.server.data.user.datasource.portfolio
 
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.data.user.model.UserDataError
+import ru.kima.sonar.server.data.user.model.portfolio.LightPortfolioWithRule
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
+import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 
 interface PortfolioDataSource {
@@ -21,4 +23,7 @@ interface PortfolioDataSource {
 
     suspend fun getPortfolioWithEntriesById(id: Long): SonarResult<PortfolioWithEntries, UserDataError>
     suspend fun getPortfolios(): SonarResult<List<PortfolioWithEntries>, UserDataError>
+
+    suspend fun getPortfolioRule(portfolioId: Long): SonarResult<LightPortfolioWithRule, UserDataError>
+    suspend fun updatePortfolioRule(rule: PortfolioRule): SonarResult<LightPortfolioWithRule, UserDataError>
 }

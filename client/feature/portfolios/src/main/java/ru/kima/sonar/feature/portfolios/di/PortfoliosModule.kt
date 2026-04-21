@@ -7,6 +7,7 @@ import ru.kima.sonar.feature.portfolios.ui.details.EditEntryDialogViewModel
 import ru.kima.sonar.feature.portfolios.ui.details.PortfolioDetailsViewModel
 import ru.kima.sonar.feature.portfolios.ui.list.PortfoliosListViewModel
 import ru.kima.sonar.feature.portfolios.ui.list.dialog.RemovePortfolioDialogViewModel
+import ru.kima.sonar.feature.portfolios.ui.rules.PortfolioRulesViewModel
 
 fun portfoliosModule() = module {
     viewModel<PortfoliosListViewModel>()
@@ -14,4 +15,5 @@ fun portfoliosModule() = module {
     viewModel<PortfolioDetailsViewModel>()
     viewModel<EditEntryDialogViewModel>()
     viewModel<AddEntriesViewModel>()
+    viewModel<PortfolioRulesViewModel>()
 }

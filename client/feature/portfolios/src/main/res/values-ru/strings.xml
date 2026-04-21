@@ -19,4 +19,26 @@
     <string name="title_delete_portfolio">Удалить %1$s?</string>
     <string name="label_error_delete_portfolio">Произошла ошибка</string>
     <string name="label_target_deviation">Расхождение</string>
+    <string name="rule_title_group">Группа</string>
+    <string name="rule_title_bb">Полосы Боллинджера</string>
+    <string name="label_timeframes">Таймфреймы</string>
+    <string name="label_truth_threshold">Порог срабатывания</string>
+    <string name="menu_label_rules_group_group">Групповые</string>
+    <string name="menu_label_rules_disabled">Выключены</string>
+    <string name="menu_label_rules_limit">Ограничевают уведомления</string>
+    <string name="menu_label_rules_notifications">Уведомления на основе правила</string>
+    <string name="menu_label_rules_notifications_and_securities">Уведомления на основе правила и бумаги</string>
+    <string name="menu_label_rules_group_indicators">Индикаторы</string>
+    <string name="label_rules_mode">Режим прваил</string>
+    <string name="menu_label_rule_type_group">Обычная группа</string>
+    <string name="label_root_rule">Корневое правило</string>
+    <string name="button_label_add_rule">Добавить</string>
+    <string name="button_label_clear">Очистить</string>
+    <string name="bollinger_bands_rule_lowercase">полосы Боллинджера</string>
+    <string name="group_rule_lowercase">группа</string>
+    <string name="delete_rule_dialog_title">Удалить правило %1$s?</string>
+    <string name="clear_group_dialog_title">Очистить группу?</string>
+    <string name="label_error_loading_rules">Не удалось загрузить правила</string>
+    <string name="snackbar_message_rules_saved_successfully">Правилоа успешно сохранены</string>
+    <string name="action_rules">Правила</string>
 </resources>

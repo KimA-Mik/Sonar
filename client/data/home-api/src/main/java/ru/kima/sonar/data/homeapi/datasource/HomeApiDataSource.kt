@@ -3,9 +3,12 @@ package ru.kima.sonar.data.homeapi.datasource
 import kotlinx.coroutines.flow.Flow
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.PortfolioResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
+import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
+import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
+import ru.kima.sonar.common.serverapi.model.rules.Rule
+import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.data.applicationconfig.local.model.LocalNotificationProvider
 import ru.kima.sonar.data.homeapi.error.HomeApiError
@@ -26,7 +29,7 @@ interface HomeApiDataSource {
 
     suspend fun portfolios(): SonarResult<List<ListItemPortfolio>, HomeApiError>
     suspend fun createPortfolio(name: String): SonarResult<Unit, HomeApiError>
-    suspend fun getPortfolio(portfolioId: Long): SonarResult<PortfolioResponse, HomeApiError>
+    suspend fun getPortfolio(portfolioId: Long): SonarResult<SonarPortfolio, HomeApiError>
     suspend fun updatePortfolio(portfolioId: Long, name: String): SonarResult<Unit, HomeApiError>
     suspend fun deletePortfolio(portfolioId: Long): SonarResult<Unit, HomeApiError>
     suspend fun getPortfolioEntry(entryId: Long): SonarResult<ListItemPortfolioEntry, HomeApiError>
@@ -51,4 +54,11 @@ interface HomeApiDataSource {
     ): SonarResult<Unit, HomeApiError>
 
     suspend fun deleteEntry(entryId: Long): SonarResult<Unit, HomeApiError>
+
+    suspend fun getPortfolioRule(portfolioId: Long): SonarResult<RuleEditPortfolio, HomeApiError>
+    suspend fun updatePortfolioRule(
+        portfolioId: Long,
+        mode: RulesMode,
+        rule: Rule
+    ): SonarResult<Unit, HomeApiError>
 }

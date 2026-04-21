@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -45,8 +46,8 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
-import ru.kima.sonar.common.ui.components.SonarMenu
-import ru.kima.sonar.common.ui.components.SonarMenuItem
+import ru.kima.sonar.common.ui.components.SonarListMenu
+import ru.kima.sonar.common.ui.components.SonarListMenuItem
 import ru.kima.sonar.common.ui.event.ResultEffect
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.navigation.Navigator
@@ -139,6 +140,7 @@ private fun PortfolioDetailsScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun PortfolioDetailsScreenBody(
     state: PortfolioDetailsState,
@@ -149,21 +151,37 @@ internal fun PortfolioDetailsScreenBody(
     modifier = modifier.fillMaxSize(),
     onRefresh = { onEvent(PortfolioDetailsUserEvent.Refresh) }
 ) {
-    val dropdownMenuItems = rememberMenuItems(onEvent)
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(state.entries, key = { it.uid }) { entry ->
-            EntryItem(
-                entry = entry,
-                dropdownMenuItems = dropdownMenuItems,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateItem()
-            )
+        Row(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+        ) {
+            ElevatedButton(
+                onClick = { onEvent(PortfolioDetailsUserEvent.OpenRulesScreenClicked) }
+            ) {
+                Text(stringResource(R.string.action_rules))
+            }
+        }
+        val dropdownMenuItems = rememberMenuItems(onEvent)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 72.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(state.entries, key = { it.uid }) { entry ->
+                EntryItem(
+                    entry = entry,
+                    dropdownMenuItems = dropdownMenuItems,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
+                )
+            }
         }
     }
 }
@@ -172,12 +190,12 @@ internal fun PortfolioDetailsScreenBody(
 private fun rememberMenuItems(
     onEvent: (PortfolioDetailsUserEvent) -> Unit
 ) = remember(onEvent) {
-    persistentListOf<SonarMenuItem<String>>(
-        SonarMenuItem(
+    persistentListOf<SonarListMenuItem<String>>(
+        SonarListMenuItem(
             title = CommonStrings.action_edit,
             onClick = { onEvent(PortfolioDetailsUserEvent.EditEntryButtonClicked(it)) }
         ),
-        SonarMenuItem(
+        SonarListMenuItem(
             title = CommonStrings.action_delete,
             onClick = { onEvent(PortfolioDetailsUserEvent.DeleteEntryButtonClicked(it)) }
         )
@@ -189,7 +207,7 @@ private fun rememberMenuItems(
 @Composable
 private fun EntryItem(
     entry: DisplayItemEntry,
-    dropdownMenuItems: ImmutableList<SonarMenuItem<String>>,
+    dropdownMenuItems: ImmutableList<SonarListMenuItem<String>>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -253,7 +271,7 @@ private fun EntryItem(
 
             // Right column for optional actions / summary
             Box {
-                SonarMenu(
+                SonarListMenu(
                     input = entry.uid,
                     items = dropdownMenuItems
                 )
@@ -276,6 +294,9 @@ private fun consumeEvent(
 
             is PortfolioDetailsUiEvent.OpenEditEntryDialog ->
                 navigator.navigate(PortfoliosGraph.List.Details.EditEntryDialog(event.entryId))
+
+            is PortfolioDetailsUiEvent.OpenRulesScreen ->
+                navigator.navigate(PortfoliosGraph.List.Details.Rules(event.portfolioId))
         }
     }
 }
@@ -296,6 +317,102 @@ private fun consumeAddEntriesResultEvent(
     when (result) {
         AddEntriesResultEvent.Success -> onEvent(PortfolioDetailsUserEvent.Refresh)
     }
+}
+
+@Preview
+@Composable
+private fun PortfolioDetailsContentPreview() = SonarPreview {
+    PortfolioDetailsScreenContent(
+        state = PortfolioDetailsState(
+            name = "My Portfolio",
+            entries = persistentListOf(
+                DisplayItemEntry(
+                    id = 1L,
+                    uid = "uid-1",
+                    name = "Apple Inc. (AAPL)",
+                    price = BigDecimal("150.25"),
+                    lowPrice = BigDecimal("145.00"),
+                    highPrice = BigDecimal("155.00"),
+                    note = "Bought on 2023-01-15. Long-term investment.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 2L,
+                    uid = "uid-2",
+                    name = "Tesla, Inc. (TSLA)",
+                    price = BigDecimal("700.50"),
+                    lowPrice = BigDecimal("680.00"),
+                    highPrice = BigDecimal("720.00"),
+                    note = "Bought on 2023-02-10. High volatility.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 3L,
+                    uid = "uid-3",
+                    name = "Amazon.com, Inc. (AMZN)",
+                    price = BigDecimal("3300.75"),
+                    lowPrice = BigDecimal("3200.00"),
+                    highPrice = BigDecimal("3400.00"),
+                    note = "Bought on 2023-03-05. Watch for earnings report.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 4L,
+                    uid = "uid-4",
+                    name = "Alphabet Inc. (GOOGL)",
+                    price = BigDecimal("2800.00"),
+                    lowPrice = BigDecimal("2700.00"),
+                    highPrice = BigDecimal("2900.00"),
+                    note = "Bought on 2023-04-01. Consider selling if it hits $3000.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 5L,
+                    uid = "uid-5",
+                    name = "Microsoft Corporation (MSFT)",
+                    price = BigDecimal("250.00"),
+                    lowPrice = BigDecimal("240.00"),
+                    highPrice = BigDecimal("260.00"),
+                    note = "Bought on 2023-05-20. Stable growth expected.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 6L,
+                    uid = "uid-6",
+                    name = "NVIDIA Corporation (NVDA)",
+                    price = BigDecimal("500.00"),
+                    lowPrice = BigDecimal("480.00"),
+                    highPrice = BigDecimal("520.00"),
+                    note = "Bought on 2023-06-10. High risk, high reward.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 7L,
+                    uid = "uid-7",
+                    name = "Meta Platforms, Inc. (META)",
+                    price = BigDecimal("350.00"),
+                    lowPrice = BigDecimal("330.00"),
+                    highPrice = BigDecimal("370.00"),
+                    note = "Bought on 2023-07-01. Monitor for changes in social media trends.",
+                    showNote = true
+                ),
+                DisplayItemEntry(
+                    id = 8L,
+                    uid = "uid-8",
+                    name = "Netflix, Inc. (NFLX)",
+                    price = BigDecimal("600.00"),
+                    lowPrice = BigDecimal("580.00"),
+                    highPrice = BigDecimal("620.00"),
+                    note = "Bought on 2023-08-15. Watch for subscriber growth.",
+                    showNote = true
+                ),
+            ),
+            isLoading = true,
+            wasError = false
+        ),
+        onEvent = {},
+        uiEvent = SonarEvent()
+    )
 }
 
 @Preview(showBackground = true)
