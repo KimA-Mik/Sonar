@@ -83,11 +83,10 @@ fun ApplicationScreen(authorised: Boolean) {
         LocalResultEventBus provides SonarApplication.resultEventBus
     ) {
         AskNotificationPermission(authorised)
-        val sceneStrategy = remember { DialogSceneStrategy<NavKey>() }
         NavDisplay(
             entries = navigationState.toDecoratedEntries(entryProvider),
-            onBack = { navigator.goBack() },
-            sceneStrategy = sceneStrategy
+            sceneStrategies = remember { listOf(DialogSceneStrategy()) },
+            onBack = { navigator.goBack() }
         )
     }
 }
