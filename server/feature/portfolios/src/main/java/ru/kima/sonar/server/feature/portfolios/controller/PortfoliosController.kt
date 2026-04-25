@@ -164,17 +164,31 @@ internal class PortfoliosController(
             return
         }
 
-        when (val res = portfoliosDataSource.insertPortfolioEntry(
-            PortfolioEntry.default(
-                portfolioId = portfolioId,
-                securityUid = request.securityUid,
-                name = request.name,
-                targetDeviation = request.targetDeviation,
-                lowPrice = request.lowPrice,
-                highPrice = request.highPrice,
-                note = request.note
-            )
-        )) {
+        val existedEntries =
+            when (val res = portfoliosDataSource.getPortfolioWithEntriesById(portfolioId)) {
+                is SonarResult.Success -> res.data.entries.associateBy { it.securityUid }
+                is SonarResult.Error -> {
+                    call.handleUserDataError(res.data)
+                    return
+                }
+            }
+
+        val entries = request.entries.asSequence()
+            .filter { !existedEntries.contains(it.securityUid) }
+            .map {
+                PortfolioEntry.default(
+                    portfolioId = portfolioId,
+                    securityUid = it.securityUid,
+                    name = it.name,
+                    targetDeviation = it.targetDeviation,
+                    lowPrice = it.lowPrice,
+                    highPrice = it.highPrice,
+                    note = it.note
+                )
+            }
+            .toList()
+
+        when (val res = portfoliosDataSource.insertPortfolioEntries(entries)) {
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
             is SonarResult.Error -> call.handleUserDataError(res.data)
         }

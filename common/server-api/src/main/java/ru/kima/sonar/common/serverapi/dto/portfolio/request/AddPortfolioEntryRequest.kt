@@ -5,10 +5,15 @@ import ru.kima.sonar.common.serverapi.util.BigDecimalJson
 
 @Serializable
 data class AddPortfolioEntryRequest(
-    val securityUid: String,
-    val name: String,
-    val targetDeviation: BigDecimalJson,
-    val lowPrice: BigDecimalJson,
-    val highPrice: BigDecimalJson,
-    val note: String
-)
+    val entries: List<Entry>
+) {
+    @Serializable
+    data class Entry(
+        val securityUid: String,
+        val name: String,
+        val targetDeviation: BigDecimalJson,
+        val lowPrice: BigDecimalJson,
+        val highPrice: BigDecimalJson,
+        val note: String
+    )
+}
