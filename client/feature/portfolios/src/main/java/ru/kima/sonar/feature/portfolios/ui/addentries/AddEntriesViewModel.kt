@@ -383,15 +383,13 @@ internal class AddEntriesViewModel(
         selectedEntries.value = editableEntries.toPersistentList()
     }
 
-    private val regex by lazy { """\s+""".toRegex() }
+    private val regex = """\W+""".toRegex()
     private fun acceptBulk() {
         viewModelScope.launch(Dispatchers.Default) {
             val query = selectDialogBulkQuery.value
             if (query.isBlank()) return@launch
 
-            //currentEntries contains uids of securities that are already in portfolio. We need to exclude them from search results, because we can't add them twice
-            //selectedEntries contains current list of entries that user wants to add. We need to exclude securities that are already in this list as well, because they will be added anyway
-            val words = query.split(regex).map { word -> word.filter { it.isLetter() } }
+            val words = query.split(regex)
             val securities = selectDialogSecurities.value
             val recognisedSecurities = words.asSequence()
                 .mapNotNull { word ->
