@@ -29,9 +29,11 @@ import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
+import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesSnackbarMessage
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.SelectSecuritiesDialogUserEvent
+import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddEntriesTabs
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddableSecurity
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.mapper.toAddableSecurity
@@ -338,6 +340,21 @@ internal class AddEntriesViewModel(
 
     //Dialog Actions
     private fun onAcceptClicked() {
+        val selectedTabIndex = selectDialogTab.value
+        val tab = try {
+            AddEntriesTabs.entries[selectedTabIndex]
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to get selected tab for index $selectedTabIndex: ${e.message}")
+            return
+        }
+
+        when (tab) {
+            AddEntriesTabs.Selector -> acceptSelector()
+            AddEntriesTabs.Bulk -> acceptBulk()
+        }
+    }
+
+    private fun acceptSelector() {
         if (selectDialogAdditions.isEmpty() && selectDialogRemovals.isEmpty()) {
             return
         }
@@ -368,6 +385,60 @@ internal class AddEntriesViewModel(
         }
 
         selectedEntries.value = editableEntries.toPersistentList()
+    }
+
+    private val regex by lazy { """\s+""".toRegex() }
+    private fun acceptBulk() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val query = selectDialogBulkQuery.value
+            if (query.isBlank()) return@launch
+
+            //currentEntries contains uids of securities that are already in portfolio. We need to exclude them from search results, because we can't add them twice
+            //selectedEntries contains current list of entries that user wants to add. We need to exclude securities that are already in this list as well, because they will be added anyway
+            val words = query.split(regex).map { word -> word.filter { it.isLetter() } }
+            val securities = selectDialogSecurities.value
+            val recognisedSecurities = words.asSequence()
+                .mapNotNull { word ->
+                    securities.find { it.ticker.contentEquals(word, ignoreCase = true) }
+                }
+                .filter { !currentEntries.contains(it.uid) }
+                .filter { !selectedEntries.value.any { entry -> entry.uid == it.uid } }
+                .toList()
+
+            if (recognisedSecurities.isEmpty()) {
+                _uiEvents.value =
+                    SonarEvent(AddEntriesUiEvent.ShowSnackbar(AddEntriesSnackbarMessage.NoSecuritiesFound))
+                return@launch
+            }
+
+            val editableEntries = selectedEntries.value.toMutableList()
+            val percent = 1.0.toBigDecimal()
+            for (security in recognisedSecurities) {
+                val priceDeviation = security.price * percent / BigDecimalUtil.HUNDRED
+                val newEntry = EditableEntry(
+                    uid = security.uid,
+                    ticker = security.ticker,
+                    price = security.price,
+                    //TODO: Factor out default target deviation somewhere
+                    targetDeviation = nf.format(percent),
+                    lowPrice = nf.format(security.price - priceDeviation),
+                    lowPriceError = false,
+                    highPrice = nf.format(security.price + priceDeviation),
+                    highPriceError = false,
+                    expanded = true,
+                    note = ""
+                )
+                editableEntries.add(newEntry)
+            }
+
+            _uiEvents.value = SonarEvent(
+                AddEntriesUiEvent.ShowSnackbar(
+                    AddEntriesSnackbarMessage.AddedBulkSecurities(recognisedSecurities.size)
+                )
+            )
+
+            selectedEntries.value = editableEntries.toPersistentList()
+        }
     }
 
     private fun onEntryChecked(uid: String) {

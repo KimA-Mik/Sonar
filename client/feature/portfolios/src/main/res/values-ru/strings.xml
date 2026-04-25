@@ -44,4 +44,6 @@
     <string name="action_rules">Правила</string>
     <string name="tab_header_selector">Селектор</string>
     <string name="tab_header_bulk">Массовый</string>
+    <string name="snackbar_message_securities_recognised">Распознано %1$d бумаг</string>
+    <string name="snackbar_message_no_securities_recognised">Ни одной новой бумаги не распознано</string>
 </resources>

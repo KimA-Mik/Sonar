@@ -27,8 +27,10 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -98,12 +100,16 @@ private fun SelectSecuritiesDialogContent(
                 val pagerState =
                     rememberPagerState(state.selectedTabIndex) { AddEntriesTabs.entries.size }
                 val coroutineScope = rememberCoroutineScope()
+
+                LaunchedEffect(pagerState) {
+                    snapshotFlow { pagerState.currentPage }.collect { page ->
+                        onEvent(SelectSecuritiesDialogUserEvent.TabSelected(page))
+                    }
+                }
+
                 Tabs(
                     pagerState = pagerState,
-                    onTabClick = { index ->
-                        onEvent(SelectSecuritiesDialogUserEvent.TabSelected(index))
-                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                    }
+                    onTabClick = { coroutineScope.launch { pagerState.animateScrollToPage(it) } }
                 )
 
                 TabsBody(
