@@ -232,6 +232,8 @@ internal class AddEntriesViewModel(
         selectDialogQuery.value = ""
         selectDialogAdditions.clear()
         selectDialogRemovals.clear()
+        selectDialogBulkQuery.value = ""
+        selectDialogTab.value = 0
         _uiEvents.value = SonarEvent(AddEntriesUiEvent.OpenSelectSecuritiesDialog)
     }
 
@@ -317,9 +319,8 @@ internal class AddEntriesViewModel(
             is SonarResult.Success -> _uiEvents.value =
                 SonarEvent(AddEntriesUiEvent.PopBackSuccess)
 
-            is SonarResult.Error -> {
-                //TODO: Report error
-            }
+            is SonarResult.Error -> _uiEvents.value =
+                SonarEvent(AddEntriesUiEvent.ShowSnackbar(AddEntriesSnackbarMessage.ApiError(res.data)))
         }
     }
 

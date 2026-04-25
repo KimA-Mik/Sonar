@@ -61,6 +61,7 @@ import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
+import ru.kima.sonar.data.homeapi.util.getHomeApiErrorString
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesResultEvent
@@ -202,6 +203,7 @@ private fun consumeUiEvent(
                         )
 
                     AddEntriesSnackbarMessage.NoSecuritiesFound -> resources.getString(R.string.snackbar_message_no_securities_recognised)
+                    is AddEntriesSnackbarMessage.ApiError -> resources.getHomeApiErrorString(event.snackbarMessage.error)
                 }
 
                 scope.launch {
