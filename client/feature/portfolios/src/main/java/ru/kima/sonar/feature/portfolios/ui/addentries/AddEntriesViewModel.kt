@@ -9,7 +9,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,10 +20,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
 import ru.kima.sonar.common.util.BigDecimalUtil
+import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
@@ -292,38 +293,32 @@ internal class AddEntriesViewModel(
 
     private fun onSaveChangesClicked() = viewModelScope.launch {
         if (state.value.wasError) return@launch
-        coroutineScope {
-            val securities = selectedEntries.value
-            val deferred = securities.map { security ->
-                async(Dispatchers.IO) {
-                    val lowPrice = if (security.lowPrice.isBlank()) BigDecimal.ZERO
-                    else decimalFormatter.parseToBigDecimal(security.lowPrice)
+        val securities = selectedEntries.value
+        val forRequest = securities.map { security ->
+            val lowPrice = if (security.lowPrice.isBlank()) BigDecimal.ZERO
+            else decimalFormatter.parseToBigDecimal(security.lowPrice)
 
-                    val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
-                    else decimalFormatter.parseToBigDecimal(security.highPrice)
+            val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
+            else decimalFormatter.parseToBigDecimal(security.highPrice)
 
-                    val targetDeviation = if (security.targetDeviation.isBlank()) BigDecimal.ONE
-                    else decimalFormatter.parseToBigDecimal(security.targetDeviation)
+            val targetDeviation = if (security.targetDeviation.isBlank()) BigDecimal.ONE
+            else decimalFormatter.parseToBigDecimal(security.targetDeviation)
+            AddPortfolioEntryRequest.Entry(
+                securityUid = security.uid,
+                name = security.ticker,
+                targetDeviation = targetDeviation,
+                lowPrice = lowPrice,
+                highPrice = highPrice,
+                note = security.note
+            )
+        }
 
-                    homeApiDataSource.addEntry(
-                        portfolioId = portfolioId,
-                        name = security.ticker,
-                        targetDeviation = targetDeviation,
-                        securityUid = security.uid,
-                        lowPrice = lowPrice,
-                        highPrice = highPrice,
-                        note = security.note,
-                    )
-                }
-            }
+        when (val res = homeApiDataSource.addEntry(portfolioId, forRequest)) {
+            is SonarResult.Success -> _uiEvents.value =
+                SonarEvent(AddEntriesUiEvent.PopBackSuccess)
 
-            try {
-                deferred.awaitAll()
-            } catch (e: Exception) {
-                Log.d(TAG, "Unable to upload securities because of $e")
-            } finally {
-                //TODO: make batch create. It's stupid this way
-                _uiEvents.value = SonarEvent(AddEntriesUiEvent.PopBackSuccess)
+            is SonarResult.Error -> {
+                //TODO: Report error
             }
         }
     }
@@ -425,7 +420,7 @@ internal class AddEntriesViewModel(
                     lowPriceError = false,
                     highPrice = nf.format(security.price + priceDeviation),
                     highPriceError = false,
-                    expanded = true,
+                    expanded = false,
                     note = ""
                 )
                 editableEntries.add(newEntry)

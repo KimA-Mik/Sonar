@@ -237,23 +237,13 @@ internal class KtorHomeApiDataSource(
 
     override suspend fun addEntry(
         portfolioId: Long,
-        name: String,
-        targetDeviation: BigDecimal,
-        securityUid: String,
-        lowPrice: BigDecimal,
-        highPrice: BigDecimal,
-        note: String
+        entries: List<AddPortfolioEntryRequest.Entry>
     ): SonarResult<Unit, HomeApiError> = safeApiCall {
         client.post(PortfoliosRoute.Portfolio.AddEntry(PortfoliosRoute.Portfolio(id = portfolioId))) {
             contentType(ContentType.Application.Json)
             setBody(
                 AddPortfolioEntryRequest(
-                    name = name,
-                    targetDeviation = targetDeviation,
-                    securityUid = securityUid,
-                    lowPrice = lowPrice,
-                    highPrice = highPrice,
-                    note = note
+                    entries = entries
                 )
             )
         }
