@@ -101,6 +101,8 @@ internal class AddEntriesViewModel(
             is SelectSecuritiesDialogUserEvent.QueryUpdated -> onQueryUpdated(event.query)
             SelectSecuritiesDialogUserEvent.RefreshRequest -> onRefreshRequest()
             SelectSecuritiesDialogUserEvent.ClearQueryClicked -> onClearQueryClicked()
+            is SelectSecuritiesDialogUserEvent.BulkQueryUpdated -> onBulkQueryUpdated(event.query)
+            is SelectSecuritiesDialogUserEvent.TabSelected -> onTabSelected(event.index)
         }
     }
 
@@ -134,6 +136,8 @@ internal class AddEntriesViewModel(
     private val selectDialogQuery = MutableStateFlow("")
     private val selectDialogSecurities = MutableStateFlow(persistentListOf<AddableSecurity>())
     private val selectDialogIsLoading = MutableStateFlow(false)
+    private val selectDialogTab = MutableStateFlow(0)
+    private val selectDialogBulkQuery = MutableStateFlow("")
     private val filteredSecurities = combine(
         selectDialogQuery, selectDialogSecurities
     ) { query, securities ->
@@ -144,12 +148,16 @@ internal class AddEntriesViewModel(
     val selectDialogState = combine(
         selectDialogQuery,
         filteredSecurities,
-        selectDialogIsLoading
-    ) { query, securities, isLoading ->
+        selectDialogIsLoading,
+        selectDialogTab,
+        selectDialogBulkQuery
+    ) { query, securities, isLoading, selectedTab, bulkQuery ->
         SelectSecuritiesDialogState(
             query = query,
             entries = securities,
-            isLoading = isLoading
+            isLoading = isLoading,
+            selectedTabIndex = selectedTab,
+            bulkQuery = bulkQuery
         )
     }.stateIn(
         viewModelScope,
@@ -402,4 +410,6 @@ internal class AddEntriesViewModel(
     }
 
     private fun onClearQueryClicked() = selectDialogQuery.update { "" }
+    private fun onBulkQueryUpdated(query: String) = selectDialogBulkQuery.update { query }
+    private fun onTabSelected(index: Int) = selectDialogTab.update { index }
 }

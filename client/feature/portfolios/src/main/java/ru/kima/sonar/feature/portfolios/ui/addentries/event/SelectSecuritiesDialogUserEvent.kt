@@ -6,4 +6,6 @@ internal sealed interface SelectSecuritiesDialogUserEvent {
     data object RefreshRequest : SelectSecuritiesDialogUserEvent
     data object AcceptClicked : SelectSecuritiesDialogUserEvent
     data object ClearQueryClicked : SelectSecuritiesDialogUserEvent
+    data class TabSelected(val index: Int) : SelectSecuritiesDialogUserEvent
+    data class BulkQueryUpdated(val query: String) : SelectSecuritiesDialogUserEvent
 }
