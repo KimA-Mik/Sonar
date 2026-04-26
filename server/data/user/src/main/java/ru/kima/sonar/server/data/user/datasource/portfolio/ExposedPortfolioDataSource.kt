@@ -121,6 +121,22 @@ internal class ExposedPortfolioDataSource(
         }
     }
 
+    override suspend fun insertPortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError> {
+        return try {
+            databaseConnector.suspendTransaction {
+                for (entry in entries) {
+                    PortfolioEntryEntity.new {
+                        putInside(entry)
+                    }
+                }
+            }
+            SonarResult.Success(Unit)
+        } catch (e: Exception) {
+            logger.error("Error inserting portfolio entries", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
     override suspend fun updatePortfolioEntry(portfolioEntry: PortfolioEntry): SonarResult<PortfolioEntry, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {

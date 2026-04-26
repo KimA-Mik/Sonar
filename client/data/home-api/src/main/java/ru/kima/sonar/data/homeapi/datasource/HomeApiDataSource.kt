@@ -1,6 +1,7 @@
 package ru.kima.sonar.data.homeapi.datasource
 
 import kotlinx.coroutines.flow.Flow
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
@@ -36,12 +37,7 @@ interface HomeApiDataSource {
 
     suspend fun addEntry(
         portfolioId: Long,
-        name: String,
-        targetDeviation: BigDecimal,
-        securityUid: String,
-        lowPrice: BigDecimal,
-        highPrice: BigDecimal,
-        note: String
+        entries: List<AddPortfolioEntryRequest.Entry>
     ): SonarResult<Unit, HomeApiError>
 
     suspend fun updateEntry(

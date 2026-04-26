@@ -9,7 +9,7 @@ internal class BoundPriceNotification(
 ) : EventNotificationFormat {
     override fun title(resources: Resources): String {
         val df = decimalFormat()
-        val price = df.format(event.priceType)
+        val price = df.format(event.lastPrice.price)
         return when (event.priceType) {
             is BoundPriceEvent.PriceType.All -> resources.getString(
                 R.string.event_security_costs,

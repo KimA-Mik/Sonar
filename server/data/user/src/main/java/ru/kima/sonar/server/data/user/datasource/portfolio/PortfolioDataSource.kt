@@ -16,6 +16,7 @@ interface PortfolioDataSource {
     suspend fun deletePortfolioById(id: Long): SonarResult<Unit, UserDataError>
 
     suspend fun insertPortfolioEntry(portfolioEntry: PortfolioEntry): SonarResult<PortfolioEntry, UserDataError>
+    suspend fun insertPortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError>
     suspend fun updatePortfolioEntry(portfolioEntry: PortfolioEntry): SonarResult<PortfolioEntry, UserDataError>
     suspend fun updatePortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError>
     suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError>

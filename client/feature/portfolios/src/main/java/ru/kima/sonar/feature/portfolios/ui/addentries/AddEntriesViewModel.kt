@@ -9,7 +9,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,17 +20,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
 import ru.kima.sonar.common.util.BigDecimalUtil
+import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
+import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesSnackbarMessage
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.SelectSecuritiesDialogUserEvent
+import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddEntriesTabs
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddableSecurity
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.mapper.toAddableSecurity
@@ -101,6 +104,8 @@ internal class AddEntriesViewModel(
             is SelectSecuritiesDialogUserEvent.QueryUpdated -> onQueryUpdated(event.query)
             SelectSecuritiesDialogUserEvent.RefreshRequest -> onRefreshRequest()
             SelectSecuritiesDialogUserEvent.ClearQueryClicked -> onClearQueryClicked()
+            is SelectSecuritiesDialogUserEvent.BulkQueryUpdated -> onBulkQueryUpdated(event.query)
+            is SelectSecuritiesDialogUserEvent.TabSelected -> onTabSelected(event.index)
         }
     }
 
@@ -134,6 +139,8 @@ internal class AddEntriesViewModel(
     private val selectDialogQuery = MutableStateFlow("")
     private val selectDialogSecurities = MutableStateFlow(persistentListOf<AddableSecurity>())
     private val selectDialogIsLoading = MutableStateFlow(false)
+    private val selectDialogTab = MutableStateFlow(0)
+    private val selectDialogBulkQuery = MutableStateFlow("")
     private val filteredSecurities = combine(
         selectDialogQuery, selectDialogSecurities
     ) { query, securities ->
@@ -144,12 +151,16 @@ internal class AddEntriesViewModel(
     val selectDialogState = combine(
         selectDialogQuery,
         filteredSecurities,
-        selectDialogIsLoading
-    ) { query, securities, isLoading ->
+        selectDialogIsLoading,
+        selectDialogTab,
+        selectDialogBulkQuery
+    ) { query, securities, isLoading, selectedTab, bulkQuery ->
         SelectSecuritiesDialogState(
             query = query,
             entries = securities,
-            isLoading = isLoading
+            isLoading = isLoading,
+            selectedTabIndex = selectedTab,
+            bulkQuery = bulkQuery
         )
     }.stateIn(
         viewModelScope,
@@ -221,6 +232,8 @@ internal class AddEntriesViewModel(
         selectDialogQuery.value = ""
         selectDialogAdditions.clear()
         selectDialogRemovals.clear()
+        selectDialogBulkQuery.value = ""
+        selectDialogTab.value = 0
         _uiEvents.value = SonarEvent(AddEntriesUiEvent.OpenSelectSecuritiesDialog)
     }
 
@@ -282,39 +295,32 @@ internal class AddEntriesViewModel(
 
     private fun onSaveChangesClicked() = viewModelScope.launch {
         if (state.value.wasError) return@launch
-        coroutineScope {
-            val securities = selectedEntries.value
-            val deferred = securities.map { security ->
-                async(Dispatchers.IO) {
-                    val lowPrice = if (security.lowPrice.isBlank()) BigDecimal.ZERO
-                    else decimalFormatter.parseToBigDecimal(security.lowPrice)
+        val securities = selectedEntries.value
+        val forRequest = securities.map { security ->
+            val lowPrice = if (security.lowPrice.isBlank()) BigDecimal.ZERO
+            else decimalFormatter.parseToBigDecimal(security.lowPrice)
 
-                    val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
-                    else decimalFormatter.parseToBigDecimal(security.highPrice)
+            val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
+            else decimalFormatter.parseToBigDecimal(security.highPrice)
 
-                    val targetDeviation = if (security.targetDeviation.isBlank()) BigDecimal.ONE
-                    else decimalFormatter.parseToBigDecimal(security.targetDeviation)
+            val targetDeviation = if (security.targetDeviation.isBlank()) BigDecimal.ONE
+            else decimalFormatter.parseToBigDecimal(security.targetDeviation)
+            AddPortfolioEntryRequest.Entry(
+                securityUid = security.uid,
+                name = security.ticker,
+                targetDeviation = targetDeviation,
+                lowPrice = lowPrice,
+                highPrice = highPrice,
+                note = security.note
+            )
+        }
 
-                    homeApiDataSource.addEntry(
-                        portfolioId = portfolioId,
-                        name = security.ticker,
-                        targetDeviation = targetDeviation,
-                        securityUid = security.uid,
-                        lowPrice = lowPrice,
-                        highPrice = highPrice,
-                        note = security.note,
-                    )
-                }
-            }
+        when (val res = homeApiDataSource.addEntry(portfolioId, forRequest)) {
+            is SonarResult.Success -> _uiEvents.value =
+                SonarEvent(AddEntriesUiEvent.PopBackSuccess)
 
-            try {
-                deferred.awaitAll()
-            } catch (e: Exception) {
-                Log.d(TAG, "Unable to upload securities because of $e")
-            } finally {
-                //TODO: make batch create. It's stupid this way
-                _uiEvents.value = SonarEvent(AddEntriesUiEvent.PopBackSuccess)
-            }
+            is SonarResult.Error -> _uiEvents.value =
+                SonarEvent(AddEntriesUiEvent.ShowSnackbar(AddEntriesSnackbarMessage.ApiError(res.data)))
         }
     }
 
@@ -330,6 +336,21 @@ internal class AddEntriesViewModel(
 
     //Dialog Actions
     private fun onAcceptClicked() {
+        val selectedTabIndex = selectDialogTab.value
+        val tab = try {
+            AddEntriesTabs.entries[selectedTabIndex]
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to get selected tab for index $selectedTabIndex: ${e.message}")
+            return
+        }
+
+        when (tab) {
+            AddEntriesTabs.Selector -> acceptSelector()
+            AddEntriesTabs.Bulk -> acceptBulk()
+        }
+    }
+
+    private fun acceptSelector() {
         if (selectDialogAdditions.isEmpty() && selectDialogRemovals.isEmpty()) {
             return
         }
@@ -360,6 +381,58 @@ internal class AddEntriesViewModel(
         }
 
         selectedEntries.value = editableEntries.toPersistentList()
+    }
+
+    private val regex = """\W+""".toRegex()
+    private fun acceptBulk() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val query = selectDialogBulkQuery.value
+            if (query.isBlank()) return@launch
+
+            val words = query.split(regex)
+            val securities = selectDialogSecurities.value
+            val recognisedSecurities = words.asSequence()
+                .mapNotNull { word ->
+                    securities.find { it.ticker.contentEquals(word, ignoreCase = true) }
+                }
+                .filter { !currentEntries.contains(it.uid) }
+                .filter { !selectedEntries.value.any { entry -> entry.uid == it.uid } }
+                .toList()
+
+            if (recognisedSecurities.isEmpty()) {
+                _uiEvents.value =
+                    SonarEvent(AddEntriesUiEvent.ShowSnackbar(AddEntriesSnackbarMessage.NoSecuritiesFound))
+                return@launch
+            }
+
+            val editableEntries = selectedEntries.value.toMutableList()
+            val percent = 1.0.toBigDecimal()
+            for (security in recognisedSecurities) {
+                val priceDeviation = security.price * percent / BigDecimalUtil.HUNDRED
+                val newEntry = EditableEntry(
+                    uid = security.uid,
+                    ticker = security.ticker,
+                    price = security.price,
+                    //TODO: Factor out default target deviation somewhere
+                    targetDeviation = nf.format(percent),
+                    lowPrice = nf.format(security.price - priceDeviation),
+                    lowPriceError = false,
+                    highPrice = nf.format(security.price + priceDeviation),
+                    highPriceError = false,
+                    expanded = false,
+                    note = ""
+                )
+                editableEntries.add(newEntry)
+            }
+
+            _uiEvents.value = SonarEvent(
+                AddEntriesUiEvent.ShowSnackbar(
+                    AddEntriesSnackbarMessage.AddedBulkSecurities(recognisedSecurities.size)
+                )
+            )
+
+            selectedEntries.value = editableEntries.toPersistentList()
+        }
     }
 
     private fun onEntryChecked(uid: String) {
@@ -402,4 +475,6 @@ internal class AddEntriesViewModel(
     }
 
     private fun onClearQueryClicked() = selectDialogQuery.update { "" }
+    private fun onBulkQueryUpdated(query: String) = selectDialogBulkQuery.update { query }
+    private fun onTabSelected(index: Int) = selectDialogTab.update { index }
 }

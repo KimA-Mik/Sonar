@@ -1,5 +1,6 @@
 package ru.kima.sonar.feature.portfolios.ui.addentries
 
+import android.content.res.Resources
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.scaleIn
@@ -27,15 +28,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +47,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.ui.components.AppBar
@@ -55,9 +61,11 @@ import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.common.ui.util.LocalNavigator
 import ru.kima.sonar.common.ui.util.LocalNumberFormat
 import ru.kima.sonar.common.ui.util.LocalSnackbarHostState
+import ru.kima.sonar.data.homeapi.util.getHomeApiErrorString
 import ru.kima.sonar.feature.portfolios.R
 import ru.kima.sonar.feature.portfolios.navigtion.PortfoliosGraph
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesResultEvent
+import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesSnackbarMessage
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
@@ -100,7 +108,15 @@ private fun AddEntriesScreenContent(
     val navigator = LocalNavigator.current
     val snackbarHostState = LocalSnackbarHostState.current
     val resultEventBus = LocalResultEventBus.current
-    LaunchedEffect(uiEvent) { consumeUiEvent(uiEvent, navigator, resultEventBus) }
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(uiEvent) {
+        consumeUiEvent(
+            uiEvent = uiEvent, navigator = navigator, resultEventBus = resultEventBus,
+            resources = resources, scope = scope, snackbarHostState = snackbarHostState,
+        )
+    }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
@@ -163,7 +179,10 @@ private fun AddEntriesScreenContent(
 private fun consumeUiEvent(
     uiEvent: SonarEvent<AddEntriesUiEvent>,
     navigator: Navigator,
-    resultEventBus: ResultEventBus
+    resultEventBus: ResultEventBus,
+    resources: Resources,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState
 ) {
     uiEvent.consume { event ->
         when (event) {
@@ -173,6 +192,23 @@ private fun consumeUiEvent(
             AddEntriesUiEvent.PopBackSuccess -> {
                 resultEventBus.sendResult<AddEntriesResultEvent>(AddEntriesResultEvent.Success)
                 navigator.goBack()
+            }
+
+            is AddEntriesUiEvent.ShowSnackbar -> {
+                val message = when (event.snackbarMessage) {
+                    is AddEntriesSnackbarMessage.AddedBulkSecurities ->
+                        resources.getString(
+                            R.string.snackbar_message_securities_recognised,
+                            event.snackbarMessage.count
+                        )
+
+                    AddEntriesSnackbarMessage.NoSecuritiesFound -> resources.getString(R.string.snackbar_message_no_securities_recognised)
+                    is AddEntriesSnackbarMessage.ApiError -> resources.getHomeApiErrorString(event.snackbarMessage.error)
+                }
+
+                scope.launch {
+                    snackbarHostState.showSnackbar(message, withDismissAction = true)
+                }
             }
         }
     }
@@ -187,7 +223,7 @@ private fun AddEntriesScreenBody(
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 40.dp)
+        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 72.dp)
     ) {
         items(state.entries, key = { it.uid }) {
             ListItem(

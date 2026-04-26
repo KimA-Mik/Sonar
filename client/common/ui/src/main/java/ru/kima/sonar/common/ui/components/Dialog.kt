@@ -19,6 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ru.kima.sonar.common.ui.util.ProvideContentColorTextStyle
 
+object SonarDialogDefaults {
+    val color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
+
+    val shape
+        get() = RoundedCornerShape(28.dp)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,8 +38,8 @@ fun BasicDialog(
     body: @Composable () -> Unit,
 ) = Surface(
     modifier = modifier.widthIn(280.dp, 560.dp),
-    shape = RoundedCornerShape(28.dp),
-    color = MaterialTheme.colorScheme.surfaceContainerHigh
+    shape = SonarDialogDefaults.shape,
+    color = SonarDialogDefaults.color
 ) {
     Column(
         modifier = Modifier
