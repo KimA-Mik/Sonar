@@ -44,10 +44,10 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntry
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdateRuleRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
+import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
 import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
 import ru.kima.sonar.common.serverapi.model.rules.Rule
@@ -232,7 +232,7 @@ internal class KtorHomeApiDataSource(
     override suspend fun deletePortfolio(portfolioId: Long): SonarResult<Unit, HomeApiError> =
         safeApiCall { client.delete(PortfoliosRoute.Portfolio.Delete(PortfoliosRoute.Portfolio(id = portfolioId))) }
 
-    override suspend fun getPortfolioEntry(entryId: Long): SonarResult<ListItemPortfolioEntry, HomeApiError> =
+    override suspend fun getPortfolioEntry(entryId: Long): SonarResult<PortfolioEntry, HomeApiError> =
         safeApiCall { client.get(PortfoliosRoute.Entry(id = entryId)) }
 
     override suspend fun addEntry(
