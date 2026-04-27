@@ -1,6 +1,8 @@
 package ru.kima.sonar.server.data.user.datasource.portfolio
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.dao.load
+import org.jetbrains.exposed.v1.dao.with
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
@@ -92,9 +94,7 @@ internal class ExposedPortfolioDataSource(
                 val entity = PortfolioEntity.findById(id)
                 if (entity != null) {
                     //TODO: Explore exposed onDelete
-                    entity.entries.forEach { it.delete() }
-                    entity.rules.forEach { it.delete() }
-                    entity.delete()
+                    deletePortfolioEntity(entity)
                     found = true
                 }
             }
@@ -111,7 +111,10 @@ internal class ExposedPortfolioDataSource(
             val result = databaseConnector.suspendTransaction {
                 val entryEntity = PortfolioEntryEntity.new {
                     putInside(portfolioEntry)
-                }
+                }.load(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )
                 entryEntity.toDomainModel()
             }
             SonarResult.Success(result)
@@ -142,7 +145,10 @@ internal class ExposedPortfolioDataSource(
             val result = databaseConnector.suspendTransaction {
                 PortfolioEntryEntity.findByIdAndUpdate(portfolioEntry.id) {
                     it.putInside(portfolioEntry)
-                }?.toDomainModel()
+                }?.load(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )?.toDomainModel()
             }
             if (result != null) {
                 SonarResult.Success(result)
@@ -180,7 +186,7 @@ internal class ExposedPortfolioDataSource(
             databaseConnector.suspendTransaction {
                 val entity = PortfolioEntryEntity.findById(id)
                 if (entity != null) {
-                    entity.delete()
+                    deletePortfolioEntryEntity(entity)
                     found = true
                 }
             }
@@ -198,7 +204,12 @@ internal class ExposedPortfolioDataSource(
     override suspend fun getEntryById(id: Long): SonarResult<PortfolioEntry, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
-                PortfolioEntryEntity.findById(id)?.toDomainModel()
+                PortfolioEntryEntity.findById(id)
+                    ?.load(
+                        PortfolioEntryEntity::stopLosses,
+                        PortfolioEntryEntity::takeProfits
+                    )
+                    ?.toDomainModel()
             }
             if (result != null) {
                 SonarResult.Success(result)
@@ -214,13 +225,19 @@ internal class ExposedPortfolioDataSource(
     override suspend fun getPortfolioWithEntriesById(id: Long): SonarResult<PortfolioWithEntries, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
-                PortfolioEntity.findById(id)?.let { portfolioEntity ->
-                    val entries = portfolioEntity.entries.map { it.toDomainModel() }
-                    PortfolioWithEntries(
-                        portfolio = portfolioEntity.toDomainModel(),
-                        entries = entries
+                PortfolioEntity.findById(id)
+                    ?.load(
+                        PortfolioEntity::entries,
+                        PortfolioEntryEntity::stopLosses,
+                        PortfolioEntryEntity::takeProfits
                     )
-                }
+                    ?.let { portfolioEntity ->
+                        val entries = portfolioEntity.entries.map { it.toDomainModel() }
+                        PortfolioWithEntries(
+                            portfolio = portfolioEntity.toDomainModel(),
+                            entries = entries
+                        )
+                    }
             }
             if (result != null) {
                 SonarResult.Success(result)
@@ -236,7 +253,11 @@ internal class ExposedPortfolioDataSource(
     override suspend fun getPortfolios(): SonarResult<List<PortfolioWithEntries>, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
-                val portfolios = PortfolioEntity.all()
+                val portfolios = PortfolioEntity.all().with(
+                    PortfolioEntity::entries,
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )
                 portfolios.map { portfolio ->
                     PortfolioWithEntries(
                         portfolio = portfolio.toDomainModel(),

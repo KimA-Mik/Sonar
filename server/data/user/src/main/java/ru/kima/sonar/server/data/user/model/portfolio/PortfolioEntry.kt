@@ -16,6 +16,8 @@ data class PortfolioEntry(
     val shouldNotify: Boolean,
     val lastUnboundUpdate: Instant,
     val lastUnboundUpdatePrice: BigDecimal,
+    val stopLosses: List<StopLoss>,
+    val takeProfits: List<TakeProfit>
 ) {
     companion object {
         fun default(
@@ -30,7 +32,9 @@ data class PortfolioEntry(
             enabled: Boolean = true,
             shouldNotify: Boolean = true,
             lastUnboundUpdate: Instant = Instant.DISTANT_PAST,
-            lastUnboundUpdatePrice: BigDecimal = BigDecimal.ZERO
+            lastUnboundUpdatePrice: BigDecimal = BigDecimal.ZERO,
+            stopLosses: List<StopLoss> = emptyList(),
+            takeProfits: List<TakeProfit> = emptyList()
         ) = PortfolioEntry(
             id = id,
             portfolioId = portfolioId,
@@ -43,7 +47,9 @@ data class PortfolioEntry(
             enabled = enabled,
             shouldNotify = shouldNotify,
             lastUnboundUpdate = lastUnboundUpdate,
-            lastUnboundUpdatePrice = lastUnboundUpdatePrice
+            lastUnboundUpdatePrice = lastUnboundUpdatePrice,
+            stopLosses = stopLosses,
+            takeProfits = takeProfits
         )
     }
 }
