@@ -44,6 +44,7 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntry
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdateRuleRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ResourceCreatedResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
@@ -278,6 +279,12 @@ internal class KtorHomeApiDataSource(
         safeApiCall {
             client.get(PortfoliosRoute.Portfolio.Rules(PortfoliosRoute.Portfolio(id = portfolioId)))
         }
+
+    override suspend fun createStopLoss(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError> =
+        safeApiCall { client.post(PortfoliosRoute.Entry.AddStopLoss(PortfoliosRoute.Entry(id = entryId))) }
+
+    override suspend fun createTakeProfit(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError> =
+        safeApiCall { client.post(PortfoliosRoute.Entry.AddTakeProfit(PortfoliosRoute.Entry(id = entryId))) }
 
     override suspend fun updatePortfolioRule(
         portfolioId: Long,

@@ -3,6 +3,7 @@ package ru.kima.sonar.data.homeapi.datasource
 import kotlinx.coroutines.flow.Flow
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ResourceCreatedResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
@@ -52,6 +53,8 @@ interface HomeApiDataSource {
     suspend fun deleteEntry(entryId: Long): SonarResult<Unit, HomeApiError>
 
     suspend fun getPortfolioRule(portfolioId: Long): SonarResult<RuleEditPortfolio, HomeApiError>
+    suspend fun createStopLoss(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError>
+    suspend fun createTakeProfit(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError>
     suspend fun updatePortfolioRule(
         portfolioId: Long,
         mode: RulesMode,
