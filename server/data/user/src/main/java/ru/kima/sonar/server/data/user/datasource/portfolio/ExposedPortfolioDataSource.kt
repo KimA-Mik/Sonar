@@ -16,10 +16,14 @@ import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
+import ru.kima.sonar.server.data.user.model.portfolio.StopLoss
+import ru.kima.sonar.server.data.user.model.portfolio.TakeProfit
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntryEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioTable
 import ru.kima.sonar.server.data.user.scema.portfolio.RulesEntity
+import ru.kima.sonar.server.data.user.scema.portfolio.StopLossEntity
+import ru.kima.sonar.server.data.user.scema.portfolio.TakeProfitEntity
 
 internal class ExposedPortfolioDataSource(
     private val databaseConnector: DatabaseConnector
@@ -218,6 +222,30 @@ internal class ExposedPortfolioDataSource(
             }
         } catch (e: Exception) {
             logger.error("Error getting portfolio entry by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun createStopLoss(entryId: Long): SonarResult<Long, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                StopLossEntity.new { putInside(StopLoss.default(entryId = entryId)) }
+            }
+            SonarResult.Success(result.id.value)
+        } catch (e: Exception) {
+            logger.error("Error creating stop loss", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun createTakeProfit(entryId: Long): SonarResult<Long, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                TakeProfitEntity.new { putInside(TakeProfit.default(entryId = entryId)) }
+            }
+            SonarResult.Success(result.id.value)
+        } catch (e: Exception) {
+            logger.error("Error creating take profit", e)
             SonarResult.Error(UserDataError.UnknownError(e))
         }
     }

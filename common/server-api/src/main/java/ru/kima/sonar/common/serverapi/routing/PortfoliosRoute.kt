@@ -30,6 +30,12 @@ class PortfoliosRoute {
         @Resource("update")
         class Update(val parent: Entry)
 
+        @Resource("add_take_profit")
+        class AddTakeProfit(val parent: Entry)
+
+        @Resource("add_stop_loss")
+        class AddStopLoss(val parent: Entry)
+
         @Resource("delete")
         class Delete(val parent: Entry)
     }

@@ -21,6 +21,8 @@ interface PortfolioDataSource {
     suspend fun updatePortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError>
     suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError>
     suspend fun getEntryById(id: Long): SonarResult<PortfolioEntry, UserDataError>
+    suspend fun createStopLoss(entryId: Long): SonarResult<Long, UserDataError>
+    suspend fun createTakeProfit(entryId: Long): SonarResult<Long, UserDataError>
 
     suspend fun getPortfolioWithEntriesById(id: Long): SonarResult<PortfolioWithEntries, UserDataError>
     suspend fun getPortfolios(): SonarResult<List<PortfolioWithEntries>, UserDataError>
