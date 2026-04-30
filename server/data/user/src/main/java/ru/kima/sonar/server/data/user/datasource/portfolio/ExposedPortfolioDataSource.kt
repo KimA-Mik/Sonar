@@ -250,6 +250,80 @@ internal class ExposedPortfolioDataSource(
         }
     }
 
+    override suspend fun getStopLossById(id: Long): SonarResult<StopLoss, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                StopLossEntity.findById(id)?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting stop loss by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getTakeProfitById(id: Long): SonarResult<TakeProfit, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                TakeProfitEntity.findById(id)?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting take profit by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun deleteStopLoss(id: Long): SonarResult<Unit, UserDataError> {
+        return try {
+            var found = false
+            databaseConnector.suspendTransaction {
+                val entity = StopLossEntity.findById(id)
+                if (entity != null) {
+                    entity.delete()
+                    found = true
+                }
+            }
+            if (found) {
+                SonarResult.Success(Unit)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error deleting stop loss", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun deleteTakeProfit(id: Long): SonarResult<Unit, UserDataError> {
+        return try {
+            var found = false
+            databaseConnector.suspendTransaction {
+                val entity = TakeProfitEntity.findById(id)
+                if (entity != null) {
+                    entity.delete()
+                    found = true
+                }
+            }
+            if (found) {
+                SonarResult.Success(Unit)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error deleting take profit", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
     override suspend fun getPortfolioWithEntriesById(id: Long): SonarResult<PortfolioWithEntries, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {

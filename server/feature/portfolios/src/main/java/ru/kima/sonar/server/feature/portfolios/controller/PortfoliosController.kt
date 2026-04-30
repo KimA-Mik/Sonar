@@ -258,6 +258,40 @@ internal class PortfoliosController(
         }
     }
 
+    suspend fun deleteStopLoss(call: RoutingCall, id: Long) {
+        val user = call.getUserOrISE { return }
+        val stopLoss = when (val res = portfoliosDataSource.getStopLossById(id)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                call.handleUserDataError(res.data)
+                return
+            }
+        }
+
+        call.validatePortfolioEntryOwnership(user.id, stopLoss.entryId) { return }
+        when (val res = portfoliosDataSource.deleteStopLoss(id)) {
+            is SonarResult.Success -> call.respond(HttpStatusCode.OK)
+            is SonarResult.Error -> call.handleUserDataError(res.data)
+        }
+    }
+
+    suspend fun deleteTakeProfit(call: RoutingCall, id: Long) {
+        val user = call.getUserOrISE { return }
+        val takeProfit = when (val res = portfoliosDataSource.getTakeProfitById(id)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                call.handleUserDataError(res.data)
+                return
+            }
+        }
+
+        call.validatePortfolioEntryOwnership(user.id, takeProfit.entryId) { return }
+        when (val res = portfoliosDataSource.deleteTakeProfit(id)) {
+            is SonarResult.Success -> call.respond(HttpStatusCode.OK)
+            is SonarResult.Error -> call.handleUserDataError(res.data)
+        }
+    }
+
     private suspend fun getCurrentPrices(): Map<String, BigDecimal> {
         val shares = marketDataRepository.tradableShares().first()
         val futures = marketDataRepository.tradableFutures().first()

@@ -40,6 +40,12 @@ class PortfoliosRoute {
         class Delete(val parent: Entry)
     }
 
+    @Resource("delete_take_profit/{id}")
+    class DeleteTakeProfit(val parent: PortfoliosRoute = PortfoliosRoute(), val id: Long)
+
+    @Resource("delete_stop_loss/{id}")
+    class DeleteStopLoss(val parent: PortfoliosRoute = PortfoliosRoute(), val id: Long)
+
     companion object {
         const val ROOT = "portfolios"
     }
