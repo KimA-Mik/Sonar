@@ -29,6 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.preview.SonarPreview
 import ru.kima.sonar.common.ui.util.CommonDrawables
@@ -273,7 +276,8 @@ private fun EditEntryPreview() = SonarPreview {
             key = "Title",
             title = "SBER",
             price = 1337.toBigDecimal(),
-            targetDeviation = "123"
+            targetDeviation = "123",
+            id = 123
         ),
         EditEntryComponent.StopLoss(
             key = "stopLoss1",
@@ -287,7 +291,7 @@ private fun EditEntryPreview() = SonarPreview {
             price = "123",
             note = "Another note"
         ),
-        EditEntryComponent.AddStopLoss("addStopLoss1"),
+        EditEntryComponent.AddStopLoss("0"),
         EditEntryComponent.TakeProfit(
             key = "takeProfit2",
             index = 2,
@@ -295,8 +299,71 @@ private fun EditEntryPreview() = SonarPreview {
             note = "Yet another note"
         ),
         EditEntryComponent.Padding(key = "Padding 1"),
-        EditEntryComponent.AddTakeProfit("addTakeProfit"),
+        EditEntryComponent.AddTakeProfit("0"),
     )
+    EditEntry2Content(
+        components = components,
+        modifier = Modifier.padding(8.dp)
+    )
+}
+
+@Preview
+@Composable
+private fun MapperPreview() = SonarPreview {
+    val components = listOf(
+        PortfolioEntry(
+            id = 0,
+            uid = "0",
+            name = "0",
+            targetDeviation = 0.toBigDecimal(),
+            price = 0.toBigDecimal(),
+            lowPrice = 0.toBigDecimal(),
+            highPrice = 0.toBigDecimal(),
+            note = "Note",
+            stopLosses = listOf(
+                StopLoss(
+                    id = 0,
+                    entryId = 0,
+                    price = 0.toBigDecimal(),
+                    note = "Note"
+                ),
+            ),
+            takeProfits = listOf(
+                TakeProfit(
+                    id = 0,
+                    entryId = 0,
+                    price = 0.toBigDecimal(),
+                    note = "Note"
+                ),
+                TakeProfit(
+                    id = 1,
+                    entryId = 0,
+                    price = 1.toBigDecimal(),
+                    note = "Note"
+                )
+            )
+        ),
+        PortfolioEntry(
+            id = 1,
+            uid = "1",
+            name = "1",
+            targetDeviation = 1.toBigDecimal(),
+            price = 1.toBigDecimal(),
+            lowPrice = 1.toBigDecimal(),
+            highPrice = 1.toBigDecimal(),
+            note = "Note",
+            stopLosses = emptyList(),
+            takeProfits = listOf(
+                TakeProfit(
+                    id = 1,
+                    entryId = 1,
+                    price = 1.toBigDecimal(),
+                    note = "Note"
+                )
+            )
+        )
+    ).toComponents()
+
     EditEntry2Content(
         components = components,
         modifier = Modifier.padding(8.dp)
