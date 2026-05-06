@@ -21,10 +21,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
+import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
-import ru.kima.sonar.common.util.BigDecimalUtil
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
@@ -36,10 +38,12 @@ import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.SelectSecuritiesDialogUserEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddEntriesTabs
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddableSecurity
-import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.mapper.toAddableSecurity
 import ru.kima.sonar.feature.portfolios.ui.addentries.state.AddEntriesScreenState
 import ru.kima.sonar.feature.portfolios.ui.addentries.state.SelectSecuritiesDialogState
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.EditEntryComponent
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.toComponents
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.toPortfolioEntries
 import java.math.BigDecimal
 
 private const val TAG = "AddEntriesViewModel"
@@ -50,24 +54,19 @@ internal class AddEntriesViewModel(
     private val homeApiDataSource: HomeApiDataSource
 ) : ViewModel() {
     private val decimalFormatter = DecimalFormatter()
-    private val selectedEntries = MutableStateFlow(persistentListOf<EditableEntry>())
+
+    //    private val selectedEntries = MutableStateFlow(persistentListOf<EditableEntry>())
     private val isLoading = MutableStateFlow(false)
     private val networkError = MutableStateFlow(false)
-    private val inputError =
-        selectedEntries.map { entries -> entries.any { it.highPriceError || it.lowPriceError } }
-    private val wasError = combine(networkError, inputError) { networkError, inputError ->
-        networkError || inputError
-    }
+    private val components = MutableStateFlow(persistentListOf<EditEntryComponent>())
 
     val state = combine(
         isLoading,
-        wasError,
-        selectedEntries
-    ) { isLoading, wasError, entries ->
+        components
+    ) { isLoading, components ->
         AddEntriesScreenState(
             isLoading = isLoading,
-            wasError = wasError,
-            entries = entries
+            components = components
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AddEntriesScreenState.default())
 
@@ -83,17 +82,26 @@ internal class AddEntriesViewModel(
     fun onEvent(event: AddEntriesUserEvent) {
         when (event) {
             AddEntriesUserEvent.OpenSelectSecuritiesDialogClicked -> onOpenSelectSecuritiesDialogClicked()
-            is AddEntriesUserEvent.ExpandClicked -> onExpandClicked(event.uid)
-            is AddEntriesUserEvent.UpdateHighPrice -> onUpdateHighPrice(event.uid, event.price)
-            is AddEntriesUserEvent.UpdateLowPrice -> onUpdateLowPrice(event.uid, event.price)
-            is AddEntriesUserEvent.UpdateTargetDeviation -> onUpdateTargetDeviation(
-                event.uid,
-                event.deviation
+            AddEntriesUserEvent.SaveChangesClicked -> onSaveChangesClicked()
+            is AddEntriesUserEvent.DeleteEntry -> onDeleteEntry(event.uid)
+            is AddEntriesUserEvent.AddStopLoss -> onAddStopLoss(event.uid)
+            is AddEntriesUserEvent.AddTakeProfit -> onAddTakeProfit(event.uid)
+            is AddEntriesUserEvent.UpdateStopLossNote -> onUpdateStopLossNote(event.key, event.note)
+            is AddEntriesUserEvent.UpdateStopLossPrice -> onUpdateStopLossPrice(
+                event.key, event.price
             )
 
-            is AddEntriesUserEvent.NoteUpdated -> onUpdateNote(event.uid, event.note)
-            is AddEntriesUserEvent.RemoveEntryClicked -> onRemoveEntry(event.uid)
-            AddEntriesUserEvent.SaveChangesClicked -> onSaveChangesClicked()
+            is AddEntriesUserEvent.DeleteStopLoss -> onDeleteStopLoss(event.key)
+
+            is AddEntriesUserEvent.UpdateTakeProfitNote -> onUpdateTakeProfitNote(
+                event.key, event.note
+            )
+
+            is AddEntriesUserEvent.UpdateTakeProfitPrice -> onUpdateTakeProfitPrice(
+                event.key, event.price
+            )
+
+            is AddEntriesUserEvent.DeleteTakeProfit -> onDeleteTakeProfit(event.key)
         }
     }
 
@@ -178,7 +186,7 @@ internal class AddEntriesViewModel(
                         shares
                             .sortedBy { it.ticker }
                             .map { share ->
-                                val selected = selectedEntries.value.any { it.uid == share.uid }
+                                val selected = components.value.any { it.uid == share.uid }
                                 share.toAddableSecurity(
                                     selected = if (selected) !selectDialogRemovals.contains(share.uid)
                                     else selectDialogAdditions.contains(share.uid)
@@ -193,7 +201,7 @@ internal class AddEntriesViewModel(
                         futures
                             .sortedBy { it.expirationDate }
                             .map { future ->
-                                val selected = selectedEntries.value.any { it.uid == future.uid }
+                                val selected = components.value.any { it.uid == future.uid }
                                 future.toAddableSecurity(
                                     selected = if (selected) !selectDialogRemovals.contains(future.uid)
                                     else selectDialogAdditions.contains(future.uid)
@@ -237,83 +245,20 @@ internal class AddEntriesViewModel(
         _uiEvents.value = SonarEvent(AddEntriesUiEvent.OpenSelectSecuritiesDialog)
     }
 
-    private fun onExpandClicked(uid: String) {
-        updateEntry(uid) {
-            it.copy(expanded = !it.expanded)
-        }
-    }
-
-    private fun onUpdateHighPrice(uid: String, price: String) {
-        val cleanedPrice = decimalFormatter.cleanup(price)
-        updateEntry(uid) {
-            it.copy(
-                highPrice = cleanedPrice,
-//                highPriceError = validBigDecimal(cleanedPrice)
-            )
-        }
-    }
-
-    private fun onUpdateLowPrice(uid: String, price: String) {
-        val cleanedPrice = decimalFormatter.cleanup(price)
-        updateEntry(uid) {
-            it.copy(
-                lowPrice = cleanedPrice,
-//                lowPriceError = validBigDecimal(cleanedPrice)
-            )
-        }
-    }
-
-    private fun onUpdateTargetDeviation(
-        uid: String,
-        deviation: String
-    ) {
-        val cleanedPrice = decimalFormatter.cleanup(deviation)
-        updateEntry(uid) {
-            it.copy(
-                targetDeviation = cleanedPrice,
-//                lowPriceError = validBigDecimal(cleanedPrice)
-            )
-        }
-    }
-
-    private fun onUpdateNote(uid: String, note: String) {
-        updateEntry(uid) {
-            it.copy(
-                note = if (note.length > NOTE_LENGTH) note.take(NOTE_LENGTH) else note
-            )
-        }
-    }
-
-    private fun onRemoveEntry(uid: String) {
-        val securities = selectedEntries.value.toMutableList()
-        val index = securities.indexOfFirst { it.uid == uid }
-        if (index < 0) return
-
-        securities.removeAt(index)
-        selectedEntries.value = securities.toPersistentList()
-    }
-
     private fun onSaveChangesClicked() = viewModelScope.launch {
-        if (state.value.wasError) return@launch
-        val securities = selectedEntries.value
-        val forRequest = securities.map { security ->
-            val lowPrice = if (security.lowPrice.isBlank()) BigDecimal.ZERO
-            else decimalFormatter.parseToBigDecimal(security.lowPrice)
+        val entries = components.value.toPortfolioEntries()
+        if (entries.isEmpty()) return@launch
 
-            val highPrice = if (security.highPrice.isBlank()) BigDecimal.ZERO
-            else decimalFormatter.parseToBigDecimal(security.highPrice)
-
-            val targetDeviation = if (security.targetDeviation.isBlank()) BigDecimal.ONE
-            else decimalFormatter.parseToBigDecimal(security.targetDeviation)
+        val forRequest = entries.map {
             AddPortfolioEntryRequest.Entry(
-                securityUid = security.uid,
-                name = security.ticker,
-                targetDeviation = targetDeviation,
-                lowPrice = lowPrice,
-                highPrice = highPrice,
-                note = security.note
+                securityUid = it.uid,
+                name = it.name,
+                targetDeviation = it.targetDeviation,
+                stopLosses = it.stopLosses,
+                takeProfits = it.takeProfits,
             )
         }
+
 
         when (val res = homeApiDataSource.addEntry(portfolioId, forRequest)) {
             is SonarResult.Success -> _uiEvents.value =
@@ -324,14 +269,56 @@ internal class AddEntriesViewModel(
         }
     }
 
-    private fun updateEntry(uid: String, action: (EditableEntry) -> EditableEntry): Boolean {
-        val securities = selectedEntries.value.toMutableList()
-        val index = securities.indexOfFirst { it.uid == uid }
-        if (index < 0) return false
+    private fun onDeleteEntry(uid: String) {
 
-        securities[index] = action(securities[index])
-        selectedEntries.value = securities.toPersistentList()
-        return true
+    }
+
+    private fun onAddStopLoss(uid: String) {
+
+    }
+
+    private fun onAddTakeProfit(uid: String) {
+
+    }
+
+    private fun onUpdateStopLossNote(key: String, note: String) {
+        val mutableComponents = components.value.toMutableList()
+        val index = mutableComponents.indexOfFirst { it.key == key }
+        if (index < 0) return
+        val stopLoss = mutableComponents[index]
+        if (stopLoss !is EditEntryComponent.StopLoss) return
+
+        mutableComponents[index] = stopLoss.copy(
+            note = if (note.length <= NOTE_LENGTH) note else note.take(NOTE_LENGTH)
+        )
+        components.value = mutableComponents.toPersistentList()
+    }
+
+    private fun onUpdateStopLossPrice(key: String, price: String) {
+        val mutableComponents = components.value.toMutableList()
+        val index = mutableComponents.indexOfFirst { it.key == key }
+        if (index < 0) return
+        val stopLoss = mutableComponents[index]
+        if (stopLoss !is EditEntryComponent.StopLoss) return
+
+        mutableComponents[index] = stopLoss.copy(price = decimalFormatter.cleanup(price))
+        components.value = mutableComponents.toPersistentList()
+    }
+
+    private fun onDeleteStopLoss(key: String) {
+
+    }
+
+    private fun onUpdateTakeProfitNote(key: String, note: String) {
+        TODO("Not yet implemented")
+    }
+
+    private fun onUpdateTakeProfitPrice(key: String, price: String) {
+
+    }
+
+    private fun onDeleteTakeProfit(key: String) {
+
     }
 
     //Dialog Actions
@@ -355,32 +342,15 @@ internal class AddEntriesViewModel(
             return
         }
 
-        val editableEntries = selectedEntries.value.toMutableList()
+        val editableComponents = components.value.toMutableList()
         if (selectDialogRemovals.isNotEmpty()) {
-            editableEntries.removeIf { selectDialogRemovals.contains(it.uid) }
+            editableComponents.removeAll { selectDialogRemovals.contains(it.uid) }
         }
 
-        val percent = 1f
-        val bdPercent = BigDecimal(percent.toString())
-        for ((_, security) in selectDialogAdditions) {
-            val priceDeviation = security.price * bdPercent / BigDecimalUtil.HUNDRED
-            val newEntry = EditableEntry(
-                uid = security.uid,
-                ticker = security.ticker,
-                price = security.price,
-                //TODO: Factor out default target deviation somewhere
-                targetDeviation = nf.format(bdPercent),
-                lowPrice = nf.format(security.price - priceDeviation),
-                lowPriceError = false,
-                highPrice = nf.format(security.price + priceDeviation),
-                highPriceError = false,
-                expanded = true,
-                note = ""
-            )
-            editableEntries.add(newEntry)
-        }
+        val percent = BigDecimal(0.01)
+        val newComponents = selectDialogAdditions.values.toComponents(percent)
 
-        selectedEntries.value = editableEntries.toPersistentList()
+        components.value = (editableComponents + newComponents).toPersistentList()
     }
 
     private val regex = """\W+""".toRegex()
@@ -396,7 +366,7 @@ internal class AddEntriesViewModel(
                     securities.find { it.ticker.contentEquals(word, ignoreCase = true) }
                 }
                 .filter { !currentEntries.contains(it.uid) }
-                .filter { !selectedEntries.value.any { entry -> entry.uid == it.uid } }
+                .filter { !components.value.any { entry -> entry.uid == it.uid } }
                 .toList()
 
             if (recognisedSecurities.isEmpty()) {
@@ -405,25 +375,8 @@ internal class AddEntriesViewModel(
                 return@launch
             }
 
-            val editableEntries = selectedEntries.value.toMutableList()
-            val percent = 1.0.toBigDecimal()
-            for (security in recognisedSecurities) {
-                val priceDeviation = security.price * percent / BigDecimalUtil.HUNDRED
-                val newEntry = EditableEntry(
-                    uid = security.uid,
-                    ticker = security.ticker,
-                    price = security.price,
-                    //TODO: Factor out default target deviation somewhere
-                    targetDeviation = nf.format(percent),
-                    lowPrice = nf.format(security.price - priceDeviation),
-                    lowPriceError = false,
-                    highPrice = nf.format(security.price + priceDeviation),
-                    highPriceError = false,
-                    expanded = false,
-                    note = ""
-                )
-                editableEntries.add(newEntry)
-            }
+            val editableComponents = components.value.toMutableList()
+            val newComponents = recognisedSecurities.toComponents(0.01.toBigDecimal())
 
             _uiEvents.value = SonarEvent(
                 AddEntriesUiEvent.ShowSnackbar(
@@ -431,9 +384,39 @@ internal class AddEntriesViewModel(
                 )
             )
 
-            selectedEntries.value = editableEntries.toPersistentList()
+            components.value = (editableComponents + newComponents).toPersistentList()
         }
     }
+
+    private fun Collection<AddableSecurity>.toComponents(percent: BigDecimal) = map { security ->
+        val priceDeviation = security.price * percent
+        PortfolioEntry(
+            id = 0,
+            uid = security.uid,
+            name = security.name,
+            targetDeviation = percent,
+            price = security.price,
+            lowPrice = percent,
+            highPrice = percent,
+            note = "",
+            stopLosses = listOf(
+                StopLoss(
+                    id = 0,
+                    entryId = 0,
+                    price = security.price - priceDeviation,
+                    note = ""
+                )
+            ),
+            takeProfits = listOf(
+                TakeProfit(
+                    id = 0,
+                    entryId = 0,
+                    price = security.price + priceDeviation,
+                    note = ""
+                )
+            ),
+        )
+    }.toComponents()
 
     private fun onEntryChecked(uid: String) {
         val securities = selectDialogSecurities.value.toMutableList()
@@ -444,7 +427,7 @@ internal class AddEntriesViewModel(
         }
 
         val security = securities[i]
-        val selected = selectedEntries.value.any { it.uid == security.uid }
+        val selected = components.value.any { it.uid == security.uid }
         val newSecurity: AddableSecurity
         if (selected) {
             if (selectDialogRemovals.contains(security.uid)) {
@@ -477,4 +460,39 @@ internal class AddEntriesViewModel(
     private fun onClearQueryClicked() = selectDialogQuery.update { "" }
     private fun onBulkQueryUpdated(query: String) = selectDialogBulkQuery.update { query }
     private fun onTabSelected(index: Int) = selectDialogTab.update { index }
+
+    data class EntryColumns(
+        val stopLossesCount: Int,
+        val lastStopLossIndex: Int,
+        val takeProfitsCount: Int,
+        val lastTakeProfitIndex: Int
+    )
+
+    private fun calculateEntryColumns(uid: String): EntryColumns {
+        var stopLossesCount = 0
+        var lastStopLossIndex = -1
+        var takeProfitsCount = 0
+        var lastTakeProfitIndex = -1
+
+        val currentComponents = components.value
+        for (i in currentComponents.indices) {
+            val component = currentComponents[i]
+            if (component.uid != uid) continue
+
+            if (component is EditEntryComponent.StopLoss) {
+                stopLossesCount++
+                lastStopLossIndex = i
+            } else if (component is EditEntryComponent.TakeProfit) {
+                takeProfitsCount++
+                lastTakeProfitIndex = i
+            }
+        }
+
+        return EntryColumns(
+            stopLossesCount = stopLossesCount,
+            lastStopLossIndex = lastStopLossIndex,
+            takeProfitsCount = takeProfitsCount,
+            lastTakeProfitIndex = lastTakeProfitIndex
+        )
+    }
 }

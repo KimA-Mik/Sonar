@@ -2,28 +2,19 @@ package ru.kima.sonar.feature.portfolios.ui.addentries
 
 import android.content.res.Resources
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
@@ -37,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
@@ -46,11 +36,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.ui.components.AppBar
 import ru.kima.sonar.common.ui.event.LocalResultEventBus
 import ru.kima.sonar.common.ui.event.ResultEventBus
@@ -68,10 +60,9 @@ import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesResultEven
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesSnackbarMessage
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUserEvent
-import ru.kima.sonar.feature.portfolios.ui.addentries.model.EditableEntry
 import ru.kima.sonar.feature.portfolios.ui.addentries.state.AddEntriesScreenState
-import ru.kima.sonar.feature.portfolios.ui.components.EditEntryContent
-import java.math.BigDecimal
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.EditEntry2Content
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.toComponents
 
 @Composable
 internal fun AddEntriesScreen(
@@ -141,7 +132,7 @@ private fun AddEntriesScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AnimatedVisibility(
-                    visible = !state.wasError && state.entries.isNotEmpty(),
+                    visible = state.components.isNotEmpty(),
                     enter = scaleIn() + slideInVertically { it / 2 },
                     exit = scaleOut() + slideOutVertically { it / 2 }
                 ) {
@@ -220,115 +211,88 @@ private fun AddEntriesScreenBody(
     onEvent: (AddEntriesUserEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
+    EditEntry2Content(
+        components = state.components,
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 72.dp)
-    ) {
-        items(state.entries, key = { it.uid }) {
-            ListItem(
-                entry = it,
-                onEvent = onEvent,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateItem()
-            )
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ListItem(
-    entry: EditableEntry,
-    onEvent: (AddEntriesUserEvent) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = entry.ticker,
-                style = MaterialTheme.typography.headlineLargeEmphasized
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            IconButton(onClick = { onEvent(AddEntriesUserEvent.RemoveEntryClicked(entry.uid)) }) {
-                Icon(
-                    painter = painterResource(CommonDrawables.delete_24px),
-                    contentDescription = null
-                )
-            }
-            val rotation by animateFloatAsState(if (entry.expanded) 180f else 0f)
-            IconButton(onClick = { onEvent(AddEntriesUserEvent.ExpandClicked(entry.uid)) }) {
-                Icon(
-                    painter = painterResource(CommonDrawables.arrow_drop_down_24px),
-                    contentDescription = null,
-                    modifier = Modifier.graphicsLayer {
-                        rotationZ = rotation
-                    }
-                )
-            }
-        }
-        AnimatedVisibility(entry.expanded) {
-            EditableEntryBody(
-                entry = entry,
-                onEvent = onEvent,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-internal fun EditableEntryBody(
-    entry: EditableEntry,
-    onEvent: (AddEntriesUserEvent) -> Unit,
-    modifier: Modifier = Modifier
-) = Card(modifier = modifier) {
-    EditEntryContent(
-        price = entry.price,
-        lowPrice = entry.lowPrice,
-        targetDeviation = entry.targetDeviation,
-        onTargetDeviationUpdate = {
-            onEvent(AddEntriesUserEvent.UpdateTargetDeviation(entry.uid, it))
+        onDeleteEntry = { uid -> onEvent(AddEntriesUserEvent.DeleteEntry(uid)) },
+        onStopLossPriceChange = { key, price ->
+            onEvent(AddEntriesUserEvent.UpdateStopLossPrice(key, price))
         },
-        onLowPriceUpdate = { onEvent(AddEntriesUserEvent.UpdateLowPrice(entry.uid, it)) },
-        lowPriceError = entry.lowPriceError,
-        highPrice = entry.highPrice,
-        onHighPriceUpdate = { onEvent(AddEntriesUserEvent.UpdateHighPrice(entry.uid, it)) },
-        highPriceError = entry.highPriceError,
-        note = entry.note,
-        onNoteUpdate = { onEvent(AddEntriesUserEvent.NoteUpdated(entry.uid, it)) },
-        modifier = Modifier.padding(16.dp)
+        onStopLossNoteChange = { key, note ->
+            onEvent(AddEntriesUserEvent.UpdateStopLossNote(key, note))
+        },
+        onDeleteStopLoss = { key -> onEvent(AddEntriesUserEvent.DeleteStopLoss(key)) },
+        onTakeProfitPriceChange = { key, price ->
+            onEvent(AddEntriesUserEvent.UpdateTakeProfitPrice(key, price))
+        },
+        onTakeProfitNoteChange = { key, note ->
+            onEvent(AddEntriesUserEvent.UpdateTakeProfitNote(key, note))
+        },
+        onDeleteTakeProfit = { key -> onEvent(AddEntriesUserEvent.DeleteTakeProfit(key)) },
+        onAddStopLoss = { uid -> onEvent(AddEntriesUserEvent.AddStopLoss(uid)) },
+        onAddTakeProfit = { uid -> onEvent(AddEntriesUserEvent.AddTakeProfit(uid)) }
     )
 }
 
 @Preview
 @Composable
 private fun AddEntriesScreenPreview() = SonarPreview {
-    val nf = LocalNumberFormat.current
-    AddEntriesScreenContent(
-        state = AddEntriesScreenState.default(
-            entries = persistentListOf(
-                EditableEntry(
-                    uid = "ASD",
-                    ticker = "SBER",
-                    price = BigDecimal("123"),
-                    targetDeviation = nf.format(BigDecimal("1")),
-                    lowPrice = nf.format(BigDecimal("120")),
-                    lowPriceError = false,
-                    highPrice = nf.format(BigDecimal("125")),
-                    highPriceError = true,
-                    expanded = true,
-                    note = "There's a note"
+    val components = listOf(
+        PortfolioEntry(
+            id = 0,
+            uid = "0",
+            name = "0",
+            targetDeviation = 0.toBigDecimal(),
+            price = 0.toBigDecimal(),
+            lowPrice = 0.toBigDecimal(),
+            highPrice = 0.toBigDecimal(),
+            note = "Note",
+            stopLosses = listOf(
+                StopLoss(
+                    id = 0,
+                    entryId = 0,
+                    price = 0.toBigDecimal(),
+                    note = "Note"
+                ),
+            ),
+            takeProfits = listOf(
+                TakeProfit(
+                    id = 0,
+                    entryId = 0,
+                    price = 0.toBigDecimal(),
+                    note = "Note"
+                ),
+                TakeProfit(
+                    id = 1,
+                    entryId = 0,
+                    price = 1.toBigDecimal(),
+                    note = "Note"
                 )
             )
+        ),
+        PortfolioEntry(
+            id = 1,
+            uid = "1",
+            name = "1",
+            targetDeviation = 1.toBigDecimal(),
+            price = 1.toBigDecimal(),
+            lowPrice = 1.toBigDecimal(),
+            highPrice = 1.toBigDecimal(),
+            note = "Note",
+            stopLosses = emptyList(),
+            takeProfits = listOf(
+                TakeProfit(
+                    id = 1,
+                    entryId = 1,
+                    price = 1.toBigDecimal(),
+                    note = "Note"
+                )
+            )
+        )
+    ).toComponents()
+    AddEntriesScreenContent(
+        state = AddEntriesScreenState.default(
+            components = components
         ),
         onEvent = {},
         uiEvent = SonarEvent()

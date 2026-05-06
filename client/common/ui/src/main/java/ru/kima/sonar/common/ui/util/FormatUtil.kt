@@ -55,6 +55,16 @@ class DecimalFormatter(
         val cleaned = cleanup(input).replace(decimalSeparator, '.')
         return if (cleaned.isBlank()) BigDecimal.ZERO else BigDecimal(cleaned)
     }
+
+
+    fun parseToBigDecimalOrNull(input: String): BigDecimal? {
+        val cleaned = cleanup(input).replace(decimalSeparator, '.')
+        return try {
+            BigDecimal(cleaned)
+        } catch (_: Exception) {
+            null
+        }
+    }
 }
 
 @Composable
