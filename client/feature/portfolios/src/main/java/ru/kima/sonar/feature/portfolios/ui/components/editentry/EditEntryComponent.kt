@@ -6,10 +6,12 @@ import java.math.BigDecimal
 @Immutable
 internal sealed interface EditEntryComponent {
     val key: String
+    val uid: String
 
     @Immutable
     data class Title(
         override val key: String,
+        override val uid: String,
         val title: String,
         val price: BigDecimal,
         val targetDeviation: String,
@@ -25,6 +27,7 @@ internal sealed interface EditEntryComponent {
     @Immutable
     data class StopLoss(
         override val key: String,
+        override val uid: String,
         val index: Int,
         val price: String,
         val note: String,
@@ -40,6 +43,7 @@ internal sealed interface EditEntryComponent {
     @Immutable
     data class TakeProfit(
         override val key: String,
+        override val uid: String,
         val index: Int,
         val price: String,
         val note: String,
@@ -54,7 +58,7 @@ internal sealed interface EditEntryComponent {
 
     @Immutable
     data class AddStopLoss(
-        val uid: String,
+        override val uid: String,
     ) : EditEntryComponent {
         override val key: String = "AddStopLoss$KEY_SEPARATOR$uid"
 
@@ -71,7 +75,7 @@ internal sealed interface EditEntryComponent {
 
     @Immutable
     data class AddTakeProfit(
-        val uid: String
+        override val uid: String
     ) : EditEntryComponent {
         override val key = "AddTakeProfit$KEY_SEPARATOR$uid"
         override fun equals(other: Any?): Boolean {
@@ -86,7 +90,10 @@ internal sealed interface EditEntryComponent {
     }
 
     @Immutable
-    data class Padding(override val key: String) : EditEntryComponent {
+    data class Padding(
+        override val key: String,
+        override val uid: String
+    ) : EditEntryComponent {
         companion object {
             fun generateKey(uid: String, index: Int): String {
                 return "Padding$KEY_SEPARATOR$uid$KEY_SEPARATOR$index"
@@ -96,10 +103,6 @@ internal sealed interface EditEntryComponent {
 
     companion object {
         const val KEY_SEPARATOR = ';'
-
-        fun getUid(key: String): String? {
-            return key.split(KEY_SEPARATOR).getOrNull(1)
-        }
 
         fun getIndex(key: String): Int {
             return key.split(KEY_SEPARATOR).getOrNull(2)?.toIntOrNull() ?: -1

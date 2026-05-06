@@ -43,7 +43,16 @@ import ru.kima.sonar.feature.portfolios.R
 @Composable
 internal fun EditEntry2Content(
     components: ImmutableList<EditEntryComponent>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteEntry: ((String) -> Unit)? = null,
+    onStopLossPriceChange: (String, String) -> Unit,
+    onStopLossNoteChange: (String, String) -> Unit,
+    onDeleteStopLoss: (String) -> Unit,
+    onTakeProfitPriceChange: (String, String) -> Unit,
+    onTakeProfitNoteChange: (String, String) -> Unit,
+    onDeleteTakeProfit: (String) -> Unit,
+    onAddStopLoss: (String) -> Unit,
+    onAddTakeProfit: (String) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -63,11 +72,33 @@ internal fun EditEntry2Content(
             contentType = { it::class }
         ) { component ->
             when (component) {
-                is EditEntryComponent.Title -> EditEntryTitle(component)
-                is EditEntryComponent.StopLoss -> EditEntryStopLoss(component)
-                is EditEntryComponent.TakeProfit -> EditEntryTakeProfit(component)
-                is EditEntryComponent.AddStopLoss -> AddButton(onClick = {})
-                is EditEntryComponent.AddTakeProfit -> AddButton(onClick = {})
+                is EditEntryComponent.Title -> EditEntryTitle(
+                    title = component,
+                    onDeleteEntry = onDeleteEntry
+                )
+
+                is EditEntryComponent.StopLoss -> EditEntryStopLoss(
+                    stopLoss = component,
+                    onPriceChange = onStopLossPriceChange,
+                    onNoteChange = onStopLossNoteChange,
+                    onDelete = onDeleteStopLoss
+                )
+
+                is EditEntryComponent.TakeProfit -> EditEntryTakeProfit(
+                    takeProfit = component,
+                    onPriceChange = onTakeProfitPriceChange,
+                    onNoteChange = onTakeProfitNoteChange,
+                    onDelete = onDeleteTakeProfit
+                )
+
+                is EditEntryComponent.AddStopLoss -> AddButton(
+                    onClick = { onAddStopLoss(component.key) }
+                )
+
+                is EditEntryComponent.AddTakeProfit -> AddButton(
+                    onClick = { onAddTakeProfit(component.key) }
+                )
+
                 is EditEntryComponent.Padding -> {}
             }
         }
@@ -77,7 +108,8 @@ internal fun EditEntry2Content(
 @Composable
 private fun EditEntryTitle(
     title: EditEntryComponent.Title,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteEntry: ((String) -> Unit)?,
 ) {
     val nf = LocalNumberFormat.current
     Row(
@@ -98,13 +130,25 @@ private fun EditEntryTitle(
             maxLines = 1,
             style = MaterialTheme.typography.bodyLargeEmphasized
         )
+
+        onDeleteEntry?.let {
+            IconButton(onClick = { it.invoke(title.key) }) {
+                Icon(
+                    painter = painterResource(CommonDrawables.delete_24px),
+                    contentDescription = null
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun EditEntryStopLoss(
     stopLoss: EditEntryComponent.StopLoss,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPriceChange: (String, String) -> Unit,
+    onNoteChange: (String, String) -> Unit,
+    onDelete: (String) -> Unit,
 ) {
     Column(
         modifier = modifier,
@@ -112,18 +156,18 @@ private fun EditEntryStopLoss(
     ) {
         DeleteTitle(
             index = stopLoss.index,
-            onDeleteClick = {},
+            onDeleteClick = { onDelete(stopLoss.key) },
             modifier = Modifier.fillMaxWidth()
         )
         PriceInputField(
             price = stopLoss.price,
             wasError = false,
-            onValueChange = {},
+            onValueChange = { onPriceChange(stopLoss.key, it) },
             label = { Text("Stop Loss") }
         )
         OutlinedTextField(
             value = stopLoss.note,
-            onValueChange = {},
+            onValueChange = { onNoteChange(stopLoss.key, it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .clearFocusOnSoftKeyboardHide(),
@@ -150,7 +194,10 @@ private fun EditEntryStopLoss(
 @Composable
 private fun EditEntryTakeProfit(
     takeProfit: EditEntryComponent.TakeProfit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPriceChange: (String, String) -> Unit,
+    onNoteChange: (String, String) -> Unit,
+    onDelete: (String) -> Unit,
 ) {
     Column(
         modifier = modifier,
@@ -158,18 +205,18 @@ private fun EditEntryTakeProfit(
     ) {
         DeleteTitle(
             index = takeProfit.index,
-            onDeleteClick = {},
+            onDeleteClick = { onDelete(takeProfit.key) },
             modifier = Modifier.fillMaxWidth()
         )
         PriceInputField(
             price = takeProfit.price,
             wasError = false,
-            onValueChange = {},
+            onValueChange = { onPriceChange(takeProfit.key, it) },
             label = { Text("Take Profit") }
         )
         OutlinedTextField(
             value = takeProfit.note,
-            onValueChange = {},
+            onValueChange = { onNoteChange(takeProfit.key, it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .clearFocusOnSoftKeyboardHide(),
@@ -274,6 +321,7 @@ private fun EditEntryPreview() = SonarPreview {
     val components = persistentListOf(
         EditEntryComponent.Title(
             key = "Title",
+            uid = "",
             title = "SBER",
             price = 1337.toBigDecimal(),
             targetDeviation = "123",
@@ -281,12 +329,14 @@ private fun EditEntryPreview() = SonarPreview {
         ),
         EditEntryComponent.StopLoss(
             key = "stopLoss1",
+            uid = "",
             index = 1,
             price = "123",
             note = "A note"
         ),
         EditEntryComponent.TakeProfit(
             key = "takeProfit1",
+            uid = "",
             index = 1,
             price = "123",
             note = "Another note"
@@ -294,16 +344,29 @@ private fun EditEntryPreview() = SonarPreview {
         EditEntryComponent.AddStopLoss("0"),
         EditEntryComponent.TakeProfit(
             key = "takeProfit2",
+            uid = "",
             index = 2,
             price = "456",
             note = "Yet another note"
         ),
-        EditEntryComponent.Padding(key = "Padding 1"),
+        EditEntryComponent.Padding(
+            key = "Padding 1",
+            uid = ""
+        ),
         EditEntryComponent.AddTakeProfit("0"),
     )
     EditEntry2Content(
         components = components,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
+        onDeleteEntry = {},
+        onStopLossPriceChange = { _, _ -> },
+        onStopLossNoteChange = { _, _ -> },
+        onDeleteStopLoss = {},
+        onTakeProfitPriceChange = { _, _ -> },
+        onTakeProfitNoteChange = { _, _ -> },
+        onDeleteTakeProfit = {},
+        onAddStopLoss = {},
+        onAddTakeProfit = {}
     )
 }
 
@@ -366,6 +429,15 @@ private fun MapperPreview() = SonarPreview {
 
     EditEntry2Content(
         components = components,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
+        onDeleteEntry = {},
+        onStopLossPriceChange = { _, _ -> },
+        onStopLossNoteChange = { _, _ -> },
+        onDeleteStopLoss = {},
+        onTakeProfitPriceChange = { _, _ -> },
+        onTakeProfitNoteChange = { _, _ -> },
+        onDeleteTakeProfit = {},
+        onAddStopLoss = {},
+        onAddTakeProfit = {}
     )
 }

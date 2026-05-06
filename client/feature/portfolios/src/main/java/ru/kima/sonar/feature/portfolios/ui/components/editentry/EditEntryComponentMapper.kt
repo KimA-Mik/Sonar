@@ -16,6 +16,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
         components.add(
             EditEntryComponent.Title(
                 key = EditEntryComponent.Title.generateKey(entry.uid),
+                uid = entry.uid,
                 title = entry.name,
                 price = entry.price,
                 targetDeviation = entry.targetDeviation.toString(),
@@ -32,6 +33,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
             components.add(
                 EditEntryComponent.StopLoss(
                     key = EditEntryComponent.StopLoss.generateKey(entry.uid, 0),
+                    uid = entry.uid,
                     index = 1,
                     price = stopLoss.price?.toString() ?: "",
                     note = stopLoss.note
@@ -47,6 +49,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
             components.add(
                 EditEntryComponent.TakeProfit(
                     key = EditEntryComponent.TakeProfit.generateKey(entry.uid, 0),
+                    uid = entry.uid,
                     index = 1,
                     price = takeProfit.price?.toString() ?: "",
                     note = takeProfit.note
@@ -63,6 +66,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
                     val stopLoss = entry.stopLosses[row]
                     EditEntryComponent.StopLoss(
                         key = EditEntryComponent.StopLoss.generateKey(entry.uid, row),
+                        uid = entry.uid,
                         index = row + 1,
                         price = stopLoss.price?.toString() ?: "",
                         note = stopLoss.note
@@ -71,7 +75,8 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
 
                 row == slSize -> EditEntryComponent.AddStopLoss(entry.uid)
                 else -> EditEntryComponent.Padding(
-                    EditEntryComponent.Padding.generateKey(entry.uid, paddingCount++)
+                    key = EditEntryComponent.Padding.generateKey(entry.uid, paddingCount++),
+                    uid = entry.uid
                 )
             }
 
@@ -80,6 +85,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
                     val takeProfit = entry.takeProfits[row]
                     EditEntryComponent.TakeProfit(
                         key = EditEntryComponent.TakeProfit.generateKey(entry.uid, row),
+                        uid = entry.uid,
                         index = row + 1,
                         price = takeProfit.price?.toString() ?: "",
                         note = takeProfit.note
@@ -88,7 +94,8 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
 
                 row == tpSize -> EditEntryComponent.AddTakeProfit(entry.uid)
                 else -> EditEntryComponent.Padding(
-                    EditEntryComponent.Padding.generateKey(entry.uid, paddingCount++)
+                    key = EditEntryComponent.Padding.generateKey(entry.uid, paddingCount++),
+                    uid = entry.uid
                 )
             }
 
@@ -143,10 +150,9 @@ private fun List<EditEntryComponent>.getPortfolioEntry(start: Int): PortfolioEnt
         }
     }
 
-    val uid = EditEntryComponent.getUid(title.key) ?: return null
     return PortfolioEntry(
         id = title.id,
-        uid = uid,
+        uid = title.uid,
         name = title.title,
         targetDeviation = df.parseToBigDecimal(title.targetDeviation),
         price = title.price,
