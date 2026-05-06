@@ -51,7 +51,7 @@ internal sealed interface EditEntryComponent {
     ) : EditEntryComponent {
         companion object {
             fun generateKey(uid: String, index: Int): String {
-                return "EditEntryComponent$KEY_SEPARATOR$uid$KEY_SEPARATOR$index"
+                return "TakeProfit$KEY_SEPARATOR$uid$KEY_SEPARATOR$index"
             }
         }
     }

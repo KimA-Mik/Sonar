@@ -6,12 +6,12 @@ import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
 import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.ui.util.DecimalFormatter
+import ru.kima.sonar.common.ui.util.formatLocalized
 import java.math.BigDecimal
 import kotlin.math.max
 
 internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryComponent> {
     val components = mutableListOf<EditEntryComponent>()
-    var paddingCount = 0
     for (entry in this) {
         components.add(
             EditEntryComponent.Title(
@@ -24,43 +24,11 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
             )
         )
 
-        if (entry.stopLosses.isEmpty()) {
-            components.add(
-                EditEntryComponent.AddStopLoss(entry.uid)
-            )
-        } else {
-            val stopLoss = entry.stopLosses.first()
-            components.add(
-                EditEntryComponent.StopLoss(
-                    key = EditEntryComponent.StopLoss.generateKey(entry.uid, 0),
-                    uid = entry.uid,
-                    index = 1,
-                    price = stopLoss.price?.toString() ?: "",
-                    note = stopLoss.note
-                )
-            )
-        }
-        if (entry.takeProfits.isEmpty()) {
-            components.add(
-                EditEntryComponent.AddTakeProfit(entry.uid)
-            )
-        } else {
-            val takeProfit = entry.takeProfits.first()
-            components.add(
-                EditEntryComponent.TakeProfit(
-                    key = EditEntryComponent.TakeProfit.generateKey(entry.uid, 0),
-                    uid = entry.uid,
-                    index = 1,
-                    price = takeProfit.price?.toString() ?: "",
-                    note = takeProfit.note
-                )
-            )
-        }
-
         val height = max(entry.stopLosses.size, entry.takeProfits.size)
         val slSize = entry.stopLosses.size
         val tpSize = entry.takeProfits.size
-        for (row in 1..height) {
+        var paddingCount = 0
+        for (row in 0..height) {
             val slComponent = when {
                 row < slSize -> {
                     val stopLoss = entry.stopLosses[row]
@@ -68,7 +36,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
                         key = EditEntryComponent.StopLoss.generateKey(entry.uid, row),
                         uid = entry.uid,
                         index = row + 1,
-                        price = stopLoss.price?.toString() ?: "",
+                        price = stopLoss.price?.formatLocalized(3) ?: "",
                         note = stopLoss.note
                     )
                 }
@@ -87,7 +55,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
                         key = EditEntryComponent.TakeProfit.generateKey(entry.uid, row),
                         uid = entry.uid,
                         index = row + 1,
-                        price = takeProfit.price?.toString() ?: "",
+                        price = takeProfit.price?.formatLocalized(3) ?: "",
                         note = takeProfit.note
                     )
                 }

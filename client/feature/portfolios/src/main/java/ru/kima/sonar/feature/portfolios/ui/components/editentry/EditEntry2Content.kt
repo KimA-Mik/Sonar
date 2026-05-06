@@ -92,11 +92,11 @@ internal fun EditEntry2Content(
                 )
 
                 is EditEntryComponent.AddStopLoss -> AddButton(
-                    onClick = { onAddStopLoss(component.key) }
+                    onClick = { onAddStopLoss(component.uid) }
                 )
 
                 is EditEntryComponent.AddTakeProfit -> AddButton(
-                    onClick = { onAddTakeProfit(component.key) }
+                    onClick = { onAddTakeProfit(component.uid) }
                 )
 
                 is EditEntryComponent.Padding -> {}
@@ -132,7 +132,7 @@ private fun EditEntryTitle(
         )
 
         onDeleteEntry?.let {
-            IconButton(onClick = { it.invoke(title.key) }) {
+            IconButton(onClick = { it.invoke(title.uid) }) {
                 Icon(
                     painter = painterResource(CommonDrawables.delete_24px),
                     contentDescription = null
