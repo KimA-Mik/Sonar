@@ -270,7 +270,9 @@ internal class AddEntriesViewModel(
     }
 
     private fun onDeleteEntry(uid: String) {
-
+        val mutableComponents = components.value.toMutableList()
+        mutableComponents.removeAll { it.uid == uid }
+        components.value = mutableComponents.toPersistentList()
     }
 
     private fun onAddStopLoss(uid: String) {
