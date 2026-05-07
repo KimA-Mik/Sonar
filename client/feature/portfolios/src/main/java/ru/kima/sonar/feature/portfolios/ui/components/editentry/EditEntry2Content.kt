@@ -2,6 +2,7 @@ package ru.kima.sonar.feature.portfolios.ui.components.editentry
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,19 +45,21 @@ import ru.kima.sonar.feature.portfolios.R
 internal fun EditEntry2Content(
     components: ImmutableList<EditEntryComponent>,
     modifier: Modifier = Modifier,
-    onDeleteEntry: ((String) -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues.Zero,
+    onDeleteEntry: ((uid: String) -> Unit)? = null,
     onStopLossPriceChange: (String, String) -> Unit,
     onStopLossNoteChange: (String, String) -> Unit,
     onDeleteStopLoss: (String) -> Unit,
     onTakeProfitPriceChange: (String, String) -> Unit,
     onTakeProfitNoteChange: (String, String) -> Unit,
     onDeleteTakeProfit: (String) -> Unit,
-    onAddStopLoss: (String) -> Unit,
-    onAddTakeProfit: (String) -> Unit,
+    onAddStopLoss: (uid: String) -> Unit,
+    onAddTakeProfit: (uid: String) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier,
+        contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -172,7 +175,6 @@ private fun EditEntryStopLoss(
                 .fillMaxWidth()
                 .clearFocusOnSoftKeyboardHide(),
             label = { Text(stringResource(R.string.label_note)) },
-            maxLines = 1,
             supportingText = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -221,7 +223,6 @@ private fun EditEntryTakeProfit(
                 .fillMaxWidth()
                 .clearFocusOnSoftKeyboardHide(),
             label = { Text(stringResource(R.string.label_note)) },
-            maxLines = 1,
             supportingText = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -214,6 +215,7 @@ private fun AddEntriesScreenBody(
     EditEntry2Content(
         components = state.components,
         modifier = modifier,
+        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 80.dp),
         onDeleteEntry = { uid -> onEvent(AddEntriesUserEvent.DeleteEntry(uid)) },
         onStopLossPriceChange = { key, price ->
             onEvent(AddEntriesUserEvent.UpdateStopLossPrice(key, price))
