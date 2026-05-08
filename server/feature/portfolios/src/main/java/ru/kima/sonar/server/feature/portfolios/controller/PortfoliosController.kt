@@ -182,9 +182,9 @@ internal class PortfoliosController(
                     securityUid = it.securityUid,
                     name = it.name,
                     targetDeviation = it.targetDeviation,
-                    lowPrice = it.lowPrice,
-                    highPrice = it.highPrice,
-                    note = it.note
+                    lowPrice = 0.toBigDecimal(),
+                    highPrice = 0.toBigDecimal(),
+                    note = ""
                 )
             }
             .toList()

@@ -132,8 +132,20 @@ internal class ExposedPortfolioDataSource(
         return try {
             databaseConnector.suspendTransaction {
                 for (entry in entries) {
-                    PortfolioEntryEntity.new {
+                    val inserted = PortfolioEntryEntity.new {
                         putInside(entry)
+                    }
+
+                    for (stopLoss in entry.stopLosses) {
+                        StopLossEntity.new {
+                            putInside(stopLoss.copy(entryId = inserted.id.value))
+                        }
+                    }
+
+                    for (takeProfit in entry.takeProfits) {
+                        TakeProfitEntity.new {
+                            putInside(takeProfit.copy(entryId = inserted.id.value))
+                        }
                     }
                 }
             }
