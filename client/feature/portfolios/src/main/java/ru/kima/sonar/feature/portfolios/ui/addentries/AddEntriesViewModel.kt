@@ -30,6 +30,7 @@ import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.common.util.isSuccess
 import ru.kima.sonar.common.util.map
+import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesSnackbarMessage
 import ru.kima.sonar.feature.portfolios.ui.addentries.event.AddEntriesUiEvent
@@ -254,7 +255,10 @@ internal class AddEntriesViewModel(
     }
 
     private fun onSaveChangesClicked() = viewModelScope.launch {
-        val entries = components.value.toPortfolioEntries()
+        val entries = components.value.toPortfolioEntries().valueOr {
+            Log.e(TAG, "Unable to convert components to entries: ${it.message}")
+            return@launch
+        }
         if (entries.isEmpty()) return@launch
 
         val forRequest = entries.map {

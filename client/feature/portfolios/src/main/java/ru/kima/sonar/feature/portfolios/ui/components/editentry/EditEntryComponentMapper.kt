@@ -7,6 +7,7 @@ import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
 import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.ui.util.DecimalFormatter
 import ru.kima.sonar.common.ui.util.formatLocalized
+import ru.kima.sonar.common.util.SonarResult
 import java.math.BigDecimal
 import kotlin.math.max
 
@@ -75,26 +76,18 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
     return components.toImmutableList()
 }
 
-internal fun List<EditEntryComponent>.toPortfolioEntries() = buildList<PortfolioEntry> {
-    for (i in 0 until lastIndex) {
-        val entry = getPortfolioEntry(i) ?: continue
-        add(entry)
-    }
-}
-
-private fun List<EditEntryComponent>.getPortfolioEntry(start: Int): PortfolioEntry? {
-    val title = getOrNull(start)
-    if (title !is EditEntryComponent.Title) return null
-    val stopLosses = mutableListOf<StopLoss>()
-    val takeProfits = mutableListOf<TakeProfit>()
-
+internal fun List<EditEntryComponent>.toPortfolioEntries(): SonarResult<List<PortfolioEntry>, Exception> {
+    val result = mutableListOf<PortfolioEntry>()
     val df = DecimalFormatter()
-    for (i in start + 1 until size) {
+    var title: EditEntryComponent.Title? = null
+    var stopLosses = mutableListOf<StopLoss>()
+    var takeProfits = mutableListOf<TakeProfit>()
+    for (i in indices) {
         when (val component = get(i)) {
             is EditEntryComponent.StopLoss -> stopLosses.add(
                 StopLoss(
                     id = component.id,
-                    entryId = title.id,
+                    entryId = title?.id ?: return SonarResult.Error(NullPointerException()),
                     price = if (component.price.isBlank()) null else df.parseToBigDecimal(
                         component.price
                     ),
@@ -105,7 +98,7 @@ private fun List<EditEntryComponent>.getPortfolioEntry(start: Int): PortfolioEnt
             is EditEntryComponent.TakeProfit -> takeProfits.add(
                 TakeProfit(
                     id = component.id,
-                    entryId = title.id,
+                    entryId = title?.id ?: return SonarResult.Error(NullPointerException()),
                     price = if (component.price.isBlank()) null else df.parseToBigDecimal(
                         component.price
                     ),
@@ -113,21 +106,47 @@ private fun List<EditEntryComponent>.getPortfolioEntry(start: Int): PortfolioEnt
                 )
             )
 
-            is EditEntryComponent.Title -> break
+            is EditEntryComponent.Title -> {
+                if (title != null) {
+                    result.add(
+                        PortfolioEntry(
+                            id = title.id,
+                            uid = title.uid,
+                            name = title.title,
+                            targetDeviation = df.parseToBigDecimal(title.targetDeviation),
+                            price = title.price,
+                            lowPrice = BigDecimal.ZERO,
+                            highPrice = BigDecimal.ZERO,
+                            note = "",
+                            stopLosses = stopLosses,
+                            takeProfits = takeProfits
+                        )
+                    )
+                }
+                title = component
+                stopLosses = mutableListOf()
+                takeProfits = mutableListOf()
+            }
+
             else -> continue
         }
     }
 
-    return PortfolioEntry(
-        id = title.id,
-        uid = title.uid,
-        name = title.title,
-        targetDeviation = df.parseToBigDecimal(title.targetDeviation),
-        price = title.price,
-        lowPrice = BigDecimal.ZERO,
-        highPrice = BigDecimal.ZERO,
-        note = "",
-        stopLosses = stopLosses,
-        takeProfits = takeProfits
-    )
+    if (title != null) {
+        result.add(
+            PortfolioEntry(
+                id = title.id,
+                uid = title.uid,
+                name = title.title,
+                targetDeviation = df.parseToBigDecimal(title.targetDeviation),
+                price = title.price,
+                lowPrice = BigDecimal.ZERO,
+                highPrice = BigDecimal.ZERO,
+                note = "",
+                stopLosses = stopLosses,
+                takeProfits = takeProfits
+            )
+        )
+    }
+    return SonarResult.Success(result)
 }
