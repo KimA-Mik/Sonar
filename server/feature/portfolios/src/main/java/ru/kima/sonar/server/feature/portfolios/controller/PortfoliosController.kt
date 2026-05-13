@@ -21,8 +21,8 @@ import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
 import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserDataError
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
-import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
+import ru.kima.sonar.server.feature.portfolios.mappers.toDomain
 import ru.kima.sonar.server.feature.portfolios.mappers.toDto
 import java.math.BigDecimal
 
@@ -176,17 +176,7 @@ internal class PortfoliosController(
 
         val entries = request.entries.asSequence()
             .filter { !existedEntries.contains(it.securityUid) }
-            .map {
-                PortfolioEntry.default(
-                    portfolioId = portfolioId,
-                    securityUid = it.securityUid,
-                    name = it.name,
-                    targetDeviation = it.targetDeviation,
-                    lowPrice = 0.toBigDecimal(),
-                    highPrice = 0.toBigDecimal(),
-                    note = ""
-                )
-            }
+            .map { it.toDomain(portfolioId) }
             .toList()
 
         when (val res = portfoliosDataSource.insertPortfolioEntries(entries)) {
