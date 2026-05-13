@@ -72,7 +72,10 @@ fun AddPortfolioEntryRequest.Entry.toDomain(portfolioId: Long) = PortfolioEntry(
     takeProfits = takeProfits.map { it.toDomain() },
 )
 
-fun StopLossDto.toDomain() = StopLoss(
+fun StopLossDto.toDomain(
+    id: Long = this.id,
+    entryId: Long = this.entryId
+) = StopLoss(
     id = id,
     entryId = entryId,
     price = price,
@@ -82,7 +85,10 @@ fun StopLossDto.toDomain() = StopLoss(
     lastUnboundUpdatePrice = BigDecimal.ZERO
 )
 
-fun TakeProfitDto.toDomain() = TakeProfit.default(
+fun TakeProfitDto.toDomain(
+    id: Long = this.id,
+    entryId: Long = this.entryId
+) = TakeProfit(
     id = id,
     entryId = entryId,
     price = price,

@@ -203,14 +203,28 @@ internal class PortfoliosController(
             return
         }
 
-        when (val res = portfoliosDataSource.updatePortfolioEntry(
-            oldEntry.copy(
-                name = request.name,
-                targetDeviation = request.targetDeviation,
-                lowPrice = request.lowPrice,
-                highPrice = request.highPrice,
-                note = request.note
-            )
+        //It's time to think about use cases
+        val newStopLosses = request.stopLosses.filter { it.id == 0L }.map { it.toDomain() }
+        val newTakeProfits = request.takeProfits.filter { it.id == 0L }.map { it.toDomain() }
+        val takeProfitsToDelete = oldEntry.takeProfits
+            .filter { oldTp -> request.takeProfits.none { it.id == oldTp.id } }
+            .map { it.id }
+        val stopLossesToDelete = oldEntry.stopLosses
+            .filter { oldSl -> request.stopLosses.none { it.id == oldSl.id } }
+            .map { it.id }
+        val stopLossesToUpdate = request.stopLosses.filter { it.id != 0L }.map { it.toDomain() }
+        val takeProfitsToUpdate = request.takeProfits.filter { it.id != 0L }.map { it.toDomain() }
+
+        when (val res = portfoliosDataSource.updatePortfolioEntryTransaction(
+            id = entryId,
+            name = request.name,
+            targetDeviation = request.targetDeviation,
+            newStopLosses = newStopLosses,
+            newTakeProfits = newTakeProfits,
+            stopLossesToDelete = stopLossesToDelete,
+            takeProfitsToDelete = takeProfitsToDelete,
+            takeProfitsToUpdate = takeProfitsToUpdate,
+            stopLossesToUpdate = stopLossesToUpdate
         )) {
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
             is SonarResult.Error -> call.handleUserDataError(res.data)

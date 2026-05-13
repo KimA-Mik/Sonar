@@ -9,6 +9,7 @@ import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
 import ru.kima.sonar.server.data.user.model.portfolio.StopLoss
 import ru.kima.sonar.server.data.user.model.portfolio.TakeProfit
+import java.math.BigDecimal
 
 interface PortfolioDataSource {
     suspend fun insertPortfolio(portfolio: Portfolio): SonarResult<Portfolio, UserDataError>
@@ -20,6 +21,17 @@ interface PortfolioDataSource {
     suspend fun insertPortfolioEntry(portfolioEntry: PortfolioEntry): SonarResult<PortfolioEntry, UserDataError>
     suspend fun insertPortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError>
     suspend fun updatePortfolioEntry(portfolioEntry: PortfolioEntry): SonarResult<PortfolioEntry, UserDataError>
+    suspend fun updatePortfolioEntryTransaction(
+        id: Long,
+        name: String,
+        targetDeviation: BigDecimal,
+        newStopLosses: List<StopLoss>,
+        newTakeProfits: List<TakeProfit>,
+        stopLossesToDelete: List<Long>,
+        takeProfitsToDelete: List<Long>,
+        takeProfitsToUpdate: List<TakeProfit>,
+        stopLossesToUpdate: List<StopLoss>
+    ): SonarResult<PortfolioEntry, UserDataError>
     suspend fun updatePortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError>
     suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError>
     suspend fun getEntryById(id: Long): SonarResult<PortfolioEntry, UserDataError>
