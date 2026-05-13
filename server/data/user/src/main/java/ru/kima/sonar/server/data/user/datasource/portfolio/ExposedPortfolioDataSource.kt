@@ -24,6 +24,7 @@ import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioTable
 import ru.kima.sonar.server.data.user.scema.portfolio.RulesEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.StopLossEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.TakeProfitEntity
+import java.math.BigDecimal
 
 internal class ExposedPortfolioDataSource(
     private val databaseConnector: DatabaseConnector
@@ -161,6 +162,70 @@ internal class ExposedPortfolioDataSource(
             val result = databaseConnector.suspendTransaction {
                 PortfolioEntryEntity.findByIdAndUpdate(portfolioEntry.id) {
                     it.putInside(portfolioEntry)
+                }?.load(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating portfolio entry", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun updatePortfolioEntryTransaction(
+        id: Long,
+        name: String,
+        targetDeviation: BigDecimal,
+        newStopLosses: List<StopLoss>,
+        newTakeProfits: List<TakeProfit>,
+        stopLossesToDelete: List<Long>,
+        takeProfitsToDelete: List<Long>,
+        takeProfitsToUpdate: List<TakeProfit>,
+        stopLossesToUpdate: List<StopLoss>
+    ): SonarResult<PortfolioEntry, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                newStopLosses.forEach {
+                    StopLossEntity.new {
+                        putInside(it)
+                    }
+                }
+
+                newTakeProfits.forEach {
+                    TakeProfitEntity.new {
+                        putInside(it)
+                    }
+                }
+
+                stopLossesToDelete.forEach { id ->
+                    StopLossEntity.findById(id)?.delete()
+                }
+
+                takeProfitsToDelete.forEach { id ->
+                    TakeProfitEntity.findById(id)?.delete()
+                }
+
+                stopLossesToUpdate.forEach {
+                    StopLossEntity.findByIdAndUpdate(it.id) { entity ->
+                        entity.putInside(it)
+                    }
+                }
+
+                takeProfitsToUpdate.forEach {
+                    TakeProfitEntity.findByIdAndUpdate(it.id) { entity ->
+                        entity.putInside(it)
+                    }
+                }
+
+                PortfolioEntryEntity.findByIdAndUpdate(id) {
+                    it.name = name
+                    it.targetDeviation = targetDeviation
                 }?.load(
                     PortfolioEntryEntity::stopLosses,
                     PortfolioEntryEntity::takeProfits
