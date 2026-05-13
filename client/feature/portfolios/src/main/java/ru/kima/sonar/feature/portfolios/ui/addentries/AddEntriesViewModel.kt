@@ -24,7 +24,6 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryReq
 import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
 import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
-import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
 import ru.kima.sonar.common.util.SonarResult
@@ -42,10 +41,18 @@ import ru.kima.sonar.feature.portfolios.ui.addentries.model.mapper.toAddableSecu
 import ru.kima.sonar.feature.portfolios.ui.addentries.state.AddEntriesScreenState
 import ru.kima.sonar.feature.portfolios.ui.addentries.state.SelectSecuritiesDialogState
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.EditEntryComponent
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.addStopLoss
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.addTakeProfit
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.deleteEntry
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.deleteStopLoss
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.deleteTakeProfit
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.toComponents
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.toPortfolioEntries
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossNote
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossPrice
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitNote
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitPrice
 import java.math.BigDecimal
-import kotlin.math.max
 
 private const val TAG = "AddEntriesViewModel"
 
@@ -271,126 +278,57 @@ internal class AddEntriesViewModel(
     }
 
     private fun onDeleteEntry(uid: String) {
-        val mutableComponents = components.value.toMutableList()
-        mutableComponents.removeAll { it.uid == uid }
-        components.value = mutableComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.deleteEntry(uid)
+        components.value = temp.toPersistentList()
     }
 
     private fun onAddStopLoss(uid: String) {
-        val newComponents = components.value.toMutableList()
-        var maxIndex = 0
-        for (component in newComponents) {
-            if (component is EditEntryComponent.StopLoss && component.uid == uid) {
-                maxIndex = max(maxIndex, EditEntryComponent.getIndex(component.key))
-            }
-        }
-
-        newComponents.add(
-            EditEntryComponent.StopLoss(
-                EditEntryComponent.StopLoss.generateKey(uid, maxIndex + 1),
-                uid = uid,
-                index = maxIndex + 1,
-                price = "",
-                note = "",
-                id = 0,
-            )
-        )
-
-        newComponents.balanceEntry(uid)
-        components.value = newComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.addStopLoss(uid)
+        components.value = temp.toPersistentList()
     }
 
     private fun onAddTakeProfit(uid: String) {
-        val newComponents = components.value.toMutableList()
-        var maxIndex = 0
-        for (component in newComponents) {
-            if (component is EditEntryComponent.TakeProfit && component.uid == uid) {
-                maxIndex = max(maxIndex, EditEntryComponent.getIndex(component.key))
-            }
-        }
-
-        newComponents.add(
-            EditEntryComponent.TakeProfit(
-                EditEntryComponent.TakeProfit.generateKey(uid, maxIndex + 1),
-                uid = uid,
-                index = maxIndex + 1,
-                price = "",
-                note = "",
-                id = 0,
-            )
-        )
-
-        newComponents.balanceEntry(uid)
-        components.value = newComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.addTakeProfit(uid)
+        components.value = temp.toPersistentList()
     }
 
     private fun onUpdateStopLossNote(key: String, note: String) {
-        val mutableComponents = components.value.toMutableList()
-        val index = mutableComponents.indexOfFirst { it.key == key }
-        if (index < 0) return
-        val stopLoss = mutableComponents[index]
-        if (stopLoss !is EditEntryComponent.StopLoss) return
-
-        mutableComponents[index] = stopLoss.copy(
-            note = if (note.length <= NOTE_LENGTH) note else note.take(NOTE_LENGTH)
-        )
-        components.value = mutableComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.updateStopLossNote(key, note)
+        components.value = temp.toPersistentList()
     }
 
     private fun onUpdateStopLossPrice(key: String, price: String) {
-        val mutableComponents = components.value.toMutableList()
-        val index = mutableComponents.indexOfFirst { it.key == key }
-        if (index < 0) return
-        val stopLoss = mutableComponents[index]
-        if (stopLoss !is EditEntryComponent.StopLoss) return
-
-        mutableComponents[index] = stopLoss.copy(price = decimalFormatter.cleanup(price))
-        components.value = mutableComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.updateStopLossPrice(key, price, decimalFormatter)
+        components.value = temp.toPersistentList()
     }
 
     private fun onDeleteStopLoss(key: String) {
-        val newComponents = components.value.toMutableList()
-        val i = newComponents.indexOfFirst { it.key == key }
-        if (i < 0) return
-        val stopLoss = newComponents[i]
-        if (stopLoss !is EditEntryComponent.StopLoss) return
-        newComponents.removeAt(i)
-        newComponents.balanceEntry(stopLoss.uid)
-        components.value = newComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.deleteStopLoss(key)
+        components.value = temp.toPersistentList()
     }
 
     private fun onUpdateTakeProfitNote(key: String, note: String) {
-        val mutableComponents = components.value.toMutableList()
-        val index = mutableComponents.indexOfFirst { it.key == key }
-        if (index < 0) return
-        val takeProfit = mutableComponents[index]
-        if (takeProfit !is EditEntryComponent.TakeProfit) return
-
-        mutableComponents[index] = takeProfit.copy(
-            note = if (note.length <= NOTE_LENGTH) note else note.take(NOTE_LENGTH)
-        )
-        components.value = mutableComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.updateTakeProfitNote(key, note)
+        components.value = temp.toPersistentList()
     }
 
     private fun onUpdateTakeProfitPrice(key: String, price: String) {
-        val mutableComponents = components.value.toMutableList()
-        val index = mutableComponents.indexOfFirst { it.key == key }
-        if (index < 0) return
-        val stopLoss = mutableComponents[index] as? EditEntryComponent.TakeProfit ?: return
-
-        mutableComponents[index] = stopLoss.copy(price = decimalFormatter.cleanup(price))
-        components.value = mutableComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.updateTakeProfitPrice(key, price, decimalFormatter)
+        components.value = temp.toPersistentList()
     }
 
     private fun onDeleteTakeProfit(key: String) {
-        val newComponents = components.value.toMutableList()
-        val i = newComponents.indexOfFirst { it.key == key }
-        if (i < 0) return
-        val takeProfit = newComponents[i]
-        if (takeProfit !is EditEntryComponent.TakeProfit) return
-        newComponents.removeAt(i)
-        newComponents.balanceEntry(takeProfit.uid)
-        components.value = newComponents.toPersistentList()
+        val temp = components.value.toMutableList()
+        temp.deleteTakeProfit(key)
+        components.value = temp.toPersistentList()
     }
 
     //Dialog Actions
@@ -532,54 +470,4 @@ internal class AddEntriesViewModel(
     private fun onClearQueryClicked() = selectDialogQuery.update { "" }
     private fun onBulkQueryUpdated(query: String) = selectDialogBulkQuery.update { query }
     private fun onTabSelected(index: Int) = selectDialogTab.update { index }
-
-    private fun List<EditEntryComponent>.findTitle(uid: String) = indexOfFirst {
-        it is EditEntryComponent.Title && it.uid == uid
-    }
-
-    private fun MutableList<EditEntryComponent>.balanceEntry(uid: String) {
-        var titleIndex = findTitle(uid)
-        if (titleIndex < 0) return
-
-        val stopLosses = filter { it is EditEntryComponent.StopLoss && it.uid == uid }
-        val takeProfits = filter { it is EditEntryComponent.TakeProfit && it.uid == uid }
-        removeAll { it !is EditEntryComponent.Title && it.uid == uid }
-        val height = max(stopLosses.size, takeProfits.size)
-        val balanced = mutableListOf<EditEntryComponent>()
-
-        var paddingCount = 0
-        for (row in 0..height) {
-            val slComponent = when {
-                row < stopLosses.size -> {
-                    val stopLoss = stopLosses[row] as EditEntryComponent.StopLoss
-                    stopLoss.copy(index = row + 1)
-                }
-
-                row == stopLosses.size -> EditEntryComponent.AddStopLoss(uid)
-                else -> EditEntryComponent.Padding(
-                    key = EditEntryComponent.Padding.generateKey(uid, paddingCount++),
-                    uid = uid
-                )
-            }
-
-            val tpComponent = when {
-                row < takeProfits.size -> {
-                    val takeProfit = takeProfits[row] as EditEntryComponent.TakeProfit
-                    takeProfit.copy(index = row + 1)
-                }
-
-                row == takeProfits.size -> EditEntryComponent.AddTakeProfit(uid)
-                else -> EditEntryComponent.Padding(
-                    key = EditEntryComponent.Padding.generateKey(uid, paddingCount++),
-                    uid = uid
-                )
-            }
-
-            balanced.add(slComponent)
-            balanced.add(tpComponent)
-        }
-
-        titleIndex = findTitle(uid)
-        addAll(titleIndex + 1, balanced)
-    }
 }
