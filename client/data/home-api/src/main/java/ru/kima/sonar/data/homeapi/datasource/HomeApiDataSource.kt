@@ -9,6 +9,8 @@ import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
 import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.model.rules.Rule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.util.SonarResult
@@ -45,9 +47,8 @@ interface HomeApiDataSource {
         entryId: Long,
         name: String,
         targetDeviation: BigDecimal,
-        lowPrice: BigDecimal,
-        highPrice: BigDecimal,
-        note: String
+        stopLosses: List<StopLoss>,
+        takeProfits: List<TakeProfit>,
     ): SonarResult<Unit, HomeApiError>
 
     suspend fun deleteEntry(entryId: Long): SonarResult<Unit, HomeApiError>

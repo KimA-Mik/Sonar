@@ -51,6 +51,8 @@ import ru.kima.sonar.common.serverapi.model.NotificationProvider
 import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
 import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.model.rules.Rule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
@@ -254,9 +256,8 @@ internal class KtorHomeApiDataSource(
         entryId: Long,
         name: String,
         targetDeviation: BigDecimal,
-        lowPrice: BigDecimal,
-        highPrice: BigDecimal,
-        note: String
+        stopLosses: List<StopLoss>,
+        takeProfits: List<TakeProfit>,
     ): SonarResult<Unit, HomeApiError> = safeApiCall {
         client.put(PortfoliosRoute.Entry.Update(PortfoliosRoute.Entry(id = entryId))) {
             contentType(ContentType.Application.Json)
@@ -264,9 +265,8 @@ internal class KtorHomeApiDataSource(
                 UpdatePortfolioEntryRequest(
                     name = name,
                     targetDeviation = targetDeviation,
-                    lowPrice = lowPrice,
-                    highPrice = highPrice,
-                    note = note
+                    stopLosses = stopLosses,
+                    takeProfits = takeProfits
                 )
             )
         }
