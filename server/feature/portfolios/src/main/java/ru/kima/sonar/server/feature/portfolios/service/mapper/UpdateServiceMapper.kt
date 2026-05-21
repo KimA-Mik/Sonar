@@ -17,7 +17,7 @@ private fun UpdateServiceEvent.PriceAlert.toNotificationEvent() = BoundPriceEven
     indicators = indicators.toIndicators(),
     lastPrice = lastPrice,
     priceType = priceType,
-    note = entry.note
+    note = note
 )
 
 private fun UpdateServiceEvent.UnboundPriceAlert.toNotificationEvent() = UnboundPriceEvent(
@@ -27,5 +27,5 @@ private fun UpdateServiceEvent.UnboundPriceAlert.toNotificationEvent() = Unbound
     indicators = indicators.toIndicators(),
     lastPrice = lastPrice,
     priceType = priceType,
-    note = entry.note
+    note = note
 )

@@ -31,6 +31,41 @@ internal class ExposedPortfolioDataSource(
 ) : PortfolioDataSource {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    init {
+        databaseConnector.transaction {
+            val entities = PortfolioEntryEntity.all().with(
+                PortfolioEntryEntity::stopLosses,
+                PortfolioEntryEntity::takeProfits,
+            )
+
+            for (entry in entities) {
+                if (entry.stopLosses.empty()) {
+                    StopLossEntity.new {
+                        putInside(
+                            StopLoss.default(
+                                entryId = entry.id.value,
+                                note = entry.note,
+                                price = entry.lowPrice
+                            )
+                        )
+                    }
+                }
+
+                if (entry.takeProfits.empty()) {
+                    TakeProfitEntity.new {
+                        putInside(
+                            TakeProfit.default(
+                                entryId = entry.id.value,
+                                note = entry.note,
+                                price = entry.highPrice
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     override suspend fun insertPortfolio(portfolio: Portfolio): SonarResult<Portfolio, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
@@ -408,13 +443,23 @@ internal class ExposedPortfolioDataSource(
                     ?.load(
                         PortfolioEntity::entries,
                         PortfolioEntryEntity::stopLosses,
-                        PortfolioEntryEntity::takeProfits
+                        PortfolioEntryEntity::takeProfits,
+                        PortfolioEntity::rules
                     )
                     ?.let { portfolioEntity ->
                         val entries = portfolioEntity.entries.map { it.toDomainModel() }
+                        val rules = portfolioEntity.rules
+                        val rule = if (rules.empty()) {
+                            RulesEntity.new {
+                                pitInside(PortfolioRule.default(portfolioId = portfolioEntity.id.value))
+                            }
+                        } else {
+                            rules.first()
+                        }
                         PortfolioWithEntries(
                             portfolio = portfolioEntity.toDomainModel(),
-                            entries = entries
+                            entries = entries,
+                            rule = rule.toDomainModel()
                         )
                     }
             }
@@ -435,12 +480,25 @@ internal class ExposedPortfolioDataSource(
                 val portfolios = PortfolioEntity.all().with(
                     PortfolioEntity::entries,
                     PortfolioEntryEntity::stopLosses,
-                    PortfolioEntryEntity::takeProfits
+                    PortfolioEntryEntity::takeProfits,
+                    PortfolioEntity::rules
                 )
                 portfolios.map { portfolio ->
+                    val rules = portfolio.rules
+                    val domainPortfolio = portfolio.toDomainModel()
+                    val domainRule = if (rules.empty()) {
+                        RulesEntity.new {
+                            pitInside(PortfolioRule.default(portfolioId = domainPortfolio.id))
+                        }
+                    } else {
+                        rules.first()
+                    }.toDomainModel()
+
+
                     PortfolioWithEntries(
-                        portfolio = portfolio.toDomainModel(),
-                        entries = portfolio.entries.map { it.toDomainModel() }
+                        portfolio = domainPortfolio,
+                        entries = portfolio.entries.map { it.toDomainModel() },
+                        rule = domainRule
                     )
                 }
             }

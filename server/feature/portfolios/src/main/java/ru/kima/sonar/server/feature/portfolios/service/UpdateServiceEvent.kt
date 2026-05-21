@@ -18,7 +18,8 @@ sealed class UpdateServiceEvent {
         val entry: PortfolioEntry,
         val indicators: CacheEntry,
         val lastPrice: LastPrice,
-        val priceType: UnboundPriceEvent.PriceType
+        val priceType: UnboundPriceEvent.PriceType,
+        val note: String
     ) : UpdateServiceEvent()
 
     data class PriceAlert(
@@ -27,6 +28,7 @@ sealed class UpdateServiceEvent {
         val entry: PortfolioEntry,
         val indicators: CacheEntry,
         val lastPrice: LastPrice,
-        val priceType: BoundPriceEvent.PriceType
+        val priceType: BoundPriceEvent.PriceType,
+        val note: String
     ) : UpdateServiceEvent()
 }

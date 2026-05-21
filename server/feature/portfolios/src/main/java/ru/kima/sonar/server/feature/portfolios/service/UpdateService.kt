@@ -28,6 +28,8 @@ import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
+import ru.kima.sonar.server.data.user.model.portfolio.StopLoss
+import ru.kima.sonar.server.data.user.model.portfolio.TakeProfit
 import ru.kima.sonar.server.feature.portfolios.service.model.CacheEntry
 import ru.kima.sonar.server.feature.portfolios.service.model.IndicatorsCache
 import ru.kima.sonar.server.feature.portfolios.service.rules.execute
@@ -125,6 +127,7 @@ class UpdateService(
         handlePortfolios(users, portfolios, lastPrices, cache)
     }
 
+    //TODO: make use of StopLoss and TakeProfit updates
     private suspend fun handlePortfolios(
         users: Map<Long, UserAndSessions>,
         portfolios: List<PortfolioWithEntries>,
@@ -166,13 +169,12 @@ class UpdateService(
         cache: IndicatorsCache,
         updatedEntries: MutableList<PortfolioEntry>
     ) {
-        val rule = portfolioDataSource.getPortfolioRule(portfolio.portfolio.id).valueOr { return }
         for (entry in portfolio.entries) {
             val price = lastPrices[entry.securityUid] ?: continue
             val cacheEntry = cache[entry.securityUid] ?: continue
 
             val current =
-                handlePrice(user, portfolio.portfolio, entry, price, cacheEntry, rule.rule)
+                handlePrice(user, portfolio.portfolio, entry, price, cacheEntry, portfolio.rule)
 
             if (current != entry) {
                 updatedEntries.add(current)
@@ -196,10 +198,22 @@ class UpdateService(
             }
         }
 
-        return if (lastPrice.price > entry.highPrice || lastPrice.price < entry.lowPrice) {
-            handleUnboundPrice(user, portfolio, entry, indicators, lastPrice)
+        val highPrice = entry.takeProfits.asSequence().mapNotNull { it.price }.maxOrNull()
+        val lowPrice = entry.stopLosses.asSequence().mapNotNull { it.price }.minOrNull()
+
+        //Get stoploss with the lowest price
+        val sl =
+            entry.stopLosses.asSequence().filter { it.price != null }.minByOrNull { it.price!! }
+        val tp =
+            entry.takeProfits.asSequence().filter { it.price != null }.maxByOrNull { it.price!! }
+
+        return if (
+            highPrice != null && lastPrice.price > highPrice ||
+            lowPrice != null && lastPrice.price < lowPrice
+        ) {
+            handleUnboundPrice(user, portfolio, entry, indicators, lastPrice, sl, tp)
         } else {
-            handleBoundPrice(user, portfolio, entry, indicators, lastPrice)
+            handleBoundPrice(user, portfolio, entry, indicators, lastPrice, sl, tp)
         }
     }
 
@@ -212,6 +226,8 @@ class UpdateService(
         entry: PortfolioEntry,
         indicators: CacheEntry,
         lastPrice: LastPrice,
+        stopLoss: StopLoss?,
+        takeProfit: TakeProfit?
     ): PortfolioEntry {
         if (entry.lastUnboundUpdatePrice.compareTo(lastPrice.price) == 0) {
             return entry
@@ -222,16 +238,22 @@ class UpdateService(
             return entry
         }
 
-        val highDeviation = MathUtil.absolutePercentageDifference(lastPrice.price, entry.highPrice)
-        val lowDeviation = MathUtil.absolutePercentageDifference(lastPrice.price, entry.lowPrice)
+        val highPrice = takeProfit?.price
+        val lowPrice = stopLoss?.price
+        val highDeviation =
+            highPrice?.let { MathUtil.absolutePercentageDifference(lastPrice.price, it) }
+                ?: BigDecimal.valueOf(Long.MAX_VALUE)
+        val lowDeviation =
+            lowPrice?.let { MathUtil.absolutePercentageDifference(lastPrice.price, it) }
+                ?: BigDecimal.valueOf(Long.MAX_VALUE)
         val priceType = when {
-            lastPrice.price > entry.highPrice -> UnboundPriceEvent.PriceType.Above(
-                entry.highPrice,
+            highPrice != null && lastPrice.price > highPrice -> UnboundPriceEvent.PriceType.Above(
+                highPrice,
                 deviation = highDeviation
             )
 
-            lastPrice.price < entry.lowPrice -> UnboundPriceEvent.PriceType.Below(
-                targetPrice = entry.lowPrice,
+            lowPrice != null && lastPrice.price < lowPrice -> UnboundPriceEvent.PriceType.Below(
+                targetPrice = lowPrice,
                 deviation = lowDeviation
             )
 
@@ -239,13 +261,19 @@ class UpdateService(
         }
 
         if (priceType != null) {
+            val note = when (priceType) {
+                is UnboundPriceEvent.PriceType.Above -> takeProfit?.note ?: ""
+                is UnboundPriceEvent.PriceType.Below -> stopLoss?.note ?: ""
+            }
+
             val event = UpdateServiceEvent.UnboundPriceAlert(
                 user = user,
                 portfolio = portfolio,
                 entry = entry,
                 indicators = indicators,
                 lastPrice = lastPrice,
-                priceType = priceType
+                priceType = priceType,
+                note = note
             )
 
             updateHandler.consume(event)
@@ -265,11 +293,15 @@ class UpdateService(
         entry: PortfolioEntry,
         indicators: CacheEntry,
         lastPrice: LastPrice,
+        stopLoss: StopLoss?,
+        takeProfit: TakeProfit?
     ): PortfolioEntry {
-        val currentHighDeviation =
-            MathUtil.absolutePercentageDifference(lastPrice.price, entry.highPrice)
-        val currentLowDeviation =
-            MathUtil.absolutePercentageDifference(lastPrice.price, entry.lowPrice)
+        val currentHighDeviation = takeProfit?.price?.let {
+            MathUtil.absolutePercentageDifference(lastPrice.price, it)
+        } ?: BigDecimal.valueOf(Long.MAX_VALUE)
+        val currentLowDeviation = stopLoss?.price?.let {
+            MathUtil.absolutePercentageDifference(lastPrice.price, it)
+        } ?: BigDecimal.valueOf(Long.MAX_VALUE)
         val shouldNotifyHigh = currentHighDeviation < entry.targetDeviation
         val shouldNotifyLow = currentLowDeviation < entry.targetDeviation
         if ((shouldNotifyLow || shouldNotifyHigh) && entry.shouldNotify) {
@@ -279,21 +311,33 @@ class UpdateService(
                 entry = entry,
                 indicators = indicators,
                 lastPrice = lastPrice,
+                note = when {
+                    shouldNotifyHigh && shouldNotifyLow -> {
+                        if ((stopLoss?.note?.length ?: 0) >= (takeProfit?.note?.length ?: 0)) {
+                            stopLoss?.note
+                        } else {
+                            takeProfit?.note
+                        }
+                    }
+
+                    shouldNotifyHigh -> takeProfit?.note
+                    else -> stopLoss?.note
+                } ?: "",
                 priceType = when {
                     shouldNotifyHigh && shouldNotifyLow -> BoundPriceEvent.PriceType.All(
-                        lowTargetPrice = entry.lowPrice,
+                        lowTargetPrice = stopLoss?.price ?: BigDecimal.ZERO,
                         lowDeviation = currentLowDeviation,
-                        highTargetPrice = entry.highPrice,
+                        highTargetPrice = takeProfit?.price ?: BigDecimal.ZERO,
                         highDeviation = currentHighDeviation
                     )
 
                     shouldNotifyHigh -> BoundPriceEvent.PriceType.High(
-                        targetPrice = entry.highPrice,
+                        targetPrice = takeProfit?.price ?: BigDecimal.ZERO,
                         deviation = currentHighDeviation
                     )
 
                     else -> BoundPriceEvent.PriceType.Low(
-                        targetPrice = entry.lowPrice,
+                        targetPrice = stopLoss?.price ?: BigDecimal.ZERO,
                         deviation = currentLowDeviation
                     )
                 }
@@ -305,6 +349,38 @@ class UpdateService(
             return entry.copy(shouldNotify = true)
         }
 
+        return entry
+    }
+
+    private fun handleRulesPrice(
+        user: UserAndSessions,
+        portfolio: Portfolio,
+        entry: PortfolioEntry,
+        indicators: CacheEntry,
+        lastPrice: LastPrice,
+        rule: PortfolioRule
+    ): PortfolioEntry {
+//        if (!entry.enabled) return entry
+//        val now = Clock.System.now()
+//        if (now - entry.lastUnboundUpdate < unboundUpdateIntervalSec) {
+//            return entry
+//        }
+//        rule.rule.execute(lastPrice.price.toDouble(), indicators)?.let { shouldNotify ->
+//            if (shouldNotify) {
+//                val event = UpdateServiceEvent.RulesAlert(
+//                    user = user,
+//                    portfolio = portfolio,
+//                    entry = entry,
+//                    indicators = indicators,
+//                    lastPrice = lastPrice
+//                )
+//
+//                updateHandler.consume(event)
+//            }
+//        }
+//
+//
+//
         return entry
     }
 }
