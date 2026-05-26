@@ -20,7 +20,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
                 uid = entry.uid,
                 title = entry.name,
                 price = entry.price,
-                targetDeviation = entry.targetDeviation.toString(),
+                targetDeviation = entry.targetDeviation.formatLocalized(3),
                 id = entry.id
             )
         )
