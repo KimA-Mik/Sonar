@@ -166,3 +166,15 @@ internal fun MutableList<EditEntryComponent>.deleteTakeProfit(key: String) {
     removeAt(i)
     balanceEntry(takeProfit.uid)
 }
+
+internal fun MutableList<EditEntryComponent>.updateTargetDeviation(
+    key: String,
+    targetDeviation: String,
+    decimalFormatter: DecimalFormatter = DecimalFormatter()
+) {
+    val index = indexOfFirst { it.key == key }
+    if (index < 0) return
+    val title = get(index) as? EditEntryComponent.Title ?: return
+
+    this[index] = title.copy(targetDeviation = decimalFormatter.cleanup(targetDeviation))
+}

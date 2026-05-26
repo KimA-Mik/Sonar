@@ -8,6 +8,7 @@ internal sealed interface EditEntryUserEvent {
     data class TakeProfitPriceChange(val key: String, val price: String) : EditEntryUserEvent
     data class TakeProfitNoteChange(val key: String, val note: String) : EditEntryUserEvent
     data class DeleteTakeProfit(val key: String) : EditEntryUserEvent
+    data class UpdateTargetDeviation(val key: String, val deviation: String) : EditEntryUserEvent
     data object AddStopLoss : EditEntryUserEvent
     data object AddTakeProfit : EditEntryUserEvent
 }

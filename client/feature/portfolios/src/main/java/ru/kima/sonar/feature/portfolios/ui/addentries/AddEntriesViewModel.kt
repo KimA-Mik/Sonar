@@ -53,6 +53,7 @@ import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossNo
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossPrice
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitNote
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitPrice
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTargetDeviation
 import java.math.BigDecimal
 
 private const val TAG = "AddEntriesViewModel"
@@ -111,6 +112,10 @@ internal class AddEntriesViewModel(
             )
 
             is AddEntriesUserEvent.DeleteTakeProfit -> onDeleteTakeProfit(event.key)
+            is AddEntriesUserEvent.UpdateTargetDeviation -> onUpdateTargetDeviation(
+                event.key,
+                event.deviation
+            )
         }
     }
 
@@ -335,6 +340,12 @@ internal class AddEntriesViewModel(
         components.value = temp.toPersistentList()
     }
 
+    private fun onUpdateTargetDeviation(key: String, targetDeviation: String) {
+        val temp = components.value.toMutableList()
+        temp.updateTargetDeviation(key, targetDeviation, decimalFormatter)
+        components.value = temp.toPersistentList()
+    }
+
     //Dialog Actions
     private fun onAcceptClicked() {
         val selectedTabIndex = selectDialogTab.value
@@ -361,7 +372,7 @@ internal class AddEntriesViewModel(
             editableComponents.removeAll { selectDialogRemovals.contains(it.uid) }
         }
 
-        val percent = BigDecimal(0.01)
+        val percent = BigDecimal("0.01")
         val newComponents = selectDialogAdditions.values.toComponents(percent)
 
         components.value = (editableComponents + newComponents).toPersistentList()

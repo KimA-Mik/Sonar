@@ -113,7 +113,10 @@ private fun EditEntryDialogContent(
                             onEvent(EditEntryUserEvent.DeleteTakeProfit(key))
                         },
                         onAddStopLoss = { onEvent(EditEntryUserEvent.AddStopLoss) },
-                        onAddTakeProfit = { onEvent(EditEntryUserEvent.AddTakeProfit) }
+                        onAddTakeProfit = { onEvent(EditEntryUserEvent.AddTakeProfit) },
+                        onTargetDeviationUpdate = { key, deviation ->
+                            onEvent(EditEntryUserEvent.UpdateTargetDeviation(key, deviation))
+                        }
                     )
                 }
             }

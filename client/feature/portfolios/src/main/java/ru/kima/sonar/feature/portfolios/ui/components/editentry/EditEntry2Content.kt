@@ -55,6 +55,7 @@ internal fun EditEntry2Content(
     onDeleteTakeProfit: (String) -> Unit,
     onAddStopLoss: (uid: String) -> Unit,
     onAddTakeProfit: (uid: String) -> Unit,
+    onTargetDeviationUpdate: (key: String, String) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -77,7 +78,8 @@ internal fun EditEntry2Content(
             when (component) {
                 is EditEntryComponent.Title -> EditEntryTitle(
                     title = component,
-                    onDeleteEntry = onDeleteEntry
+                    onDeleteEntry = onDeleteEntry,
+                    onTargetDeviationUpdate = onTargetDeviationUpdate
                 )
 
                 is EditEntryComponent.StopLoss -> EditEntryStopLoss(
@@ -112,11 +114,12 @@ internal fun EditEntry2Content(
 private fun EditEntryTitle(
     title: EditEntryComponent.Title,
     modifier: Modifier = Modifier,
+    onTargetDeviationUpdate: (key: String, String) -> Unit,
     onDeleteEntry: ((String) -> Unit)?,
-) {
+) = Column(modifier = modifier) {
     val nf = LocalNumberFormat.current
     Row(
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -143,6 +146,15 @@ private fun EditEntryTitle(
             }
         }
     }
+
+    OutlinedTextField(
+        value = title.targetDeviation,
+        onValueChange = { onTargetDeviationUpdate(title.key, it) },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.label_target_deviation)) },
+        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+        trailingIcon = { Text("%") }
+    )
 }
 
 @Composable
@@ -367,7 +379,8 @@ private fun EditEntryPreview() = SonarPreview {
         onTakeProfitNoteChange = { _, _ -> },
         onDeleteTakeProfit = {},
         onAddStopLoss = {},
-        onAddTakeProfit = {}
+        onAddTakeProfit = {},
+        onTargetDeviationUpdate = { _, _ -> }
     )
 }
 
@@ -439,6 +452,7 @@ private fun MapperPreview() = SonarPreview {
         onTakeProfitNoteChange = { _, _ -> },
         onDeleteTakeProfit = {},
         onAddStopLoss = {},
-        onAddTakeProfit = {}
+        onAddTakeProfit = {},
+        onTargetDeviationUpdate = { _, _ -> }
     )
 }

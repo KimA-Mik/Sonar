@@ -12,4 +12,5 @@ internal sealed interface AddEntriesUserEvent {
     data class UpdateTakeProfitPrice(val key: String, val price: String) : AddEntriesUserEvent
     data class UpdateTakeProfitNote(val key: String, val note: String) : AddEntriesUserEvent
     data class DeleteTakeProfit(val key: String) : AddEntriesUserEvent
+    data class UpdateTargetDeviation(val key: String, val deviation: String) : AddEntriesUserEvent
 }

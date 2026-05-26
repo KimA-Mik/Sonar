@@ -29,6 +29,7 @@ import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossNo
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossPrice
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitNote
 import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitPrice
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTargetDeviation
 import ru.kima.sonar.feature.portfolios.ui.details.event.EditEntryUiEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.EditEntryUserEvent
 import ru.kima.sonar.feature.portfolios.ui.details.state.EditEntryDialogState
@@ -53,7 +54,7 @@ internal class EditEntryDialogViewModel(
     val uiEvents = _uiEvents.asStateFlow()
 
     init {
-            load()
+        load()
     }
 
     private var uid = ""
@@ -82,12 +83,14 @@ internal class EditEntryDialogViewModel(
 
     fun onEvent(event: EditEntryUserEvent) {
         when (event) {
-
             EditEntryUserEvent.ApplyChangesClicked -> onApplyChangesClicked()
             EditEntryUserEvent.AddStopLoss -> onAddStopLoss()
             EditEntryUserEvent.AddTakeProfit -> onAddTakeProfit()
             is EditEntryUserEvent.DeleteStopLoss -> onDeleteStopLoss(event.key)
             is EditEntryUserEvent.DeleteTakeProfit -> onDeleteTakeProfit(event.key)
+            is EditEntryUserEvent.UpdateTargetDeviation ->
+                onUpdateTargetDeviation(event.key, event.deviation)
+
             is EditEntryUserEvent.StopLossNoteChange ->
                 onStopLossNoteChange(event.key, event.note)
 
@@ -147,6 +150,12 @@ internal class EditEntryDialogViewModel(
     private fun onDeleteTakeProfit(key: String) {
         val temp = components.value.toMutableList()
         temp.deleteTakeProfit(key)
+        components.value = temp.toPersistentList()
+    }
+
+    private fun onUpdateTargetDeviation(key: String, deviation: String) {
+        val temp = components.value.toMutableList()
+        temp.updateTargetDeviation(key, deviation, sonarFormatter)
         components.value = temp.toPersistentList()
     }
 

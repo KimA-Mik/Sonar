@@ -232,7 +232,10 @@ private fun AddEntriesScreenBody(
         },
         onDeleteTakeProfit = { key -> onEvent(AddEntriesUserEvent.DeleteTakeProfit(key)) },
         onAddStopLoss = { uid -> onEvent(AddEntriesUserEvent.AddStopLoss(uid)) },
-        onAddTakeProfit = { uid -> onEvent(AddEntriesUserEvent.AddTakeProfit(uid)) }
+        onAddTakeProfit = { uid -> onEvent(AddEntriesUserEvent.AddTakeProfit(uid)) },
+        onTargetDeviationUpdate = { key, targetDeviation ->
+            onEvent(AddEntriesUserEvent.UpdateTargetDeviation(key, targetDeviation))
+        }
     )
 }
 
