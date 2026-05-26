@@ -45,6 +45,16 @@ android {
     }
 }
 
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { output ->
+            val versionName = variant.outputs.first().versionName.get()
+
+            output.outputFileName.set("Sonar ${versionName}.apk")
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
