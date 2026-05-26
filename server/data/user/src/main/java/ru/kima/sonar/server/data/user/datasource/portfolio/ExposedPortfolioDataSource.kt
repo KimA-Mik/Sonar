@@ -1,6 +1,8 @@
 package ru.kima.sonar.server.data.user.datasource.portfolio
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.dao.load
+import org.jetbrains.exposed.v1.dao.with
 import org.slf4j.LoggerFactory
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.common.util.databaseutil.DatabaseConnector
@@ -14,15 +16,55 @@ import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioWithEntries
+import ru.kima.sonar.server.data.user.model.portfolio.StopLoss
+import ru.kima.sonar.server.data.user.model.portfolio.TakeProfit
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntryEntity
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioTable
 import ru.kima.sonar.server.data.user.scema.portfolio.RulesEntity
+import ru.kima.sonar.server.data.user.scema.portfolio.StopLossEntity
+import ru.kima.sonar.server.data.user.scema.portfolio.TakeProfitEntity
+import java.math.BigDecimal
 
 internal class ExposedPortfolioDataSource(
     private val databaseConnector: DatabaseConnector
 ) : PortfolioDataSource {
     private val logger = LoggerFactory.getLogger(this::class.java)
+
+    init {
+        databaseConnector.transaction {
+            val entities = PortfolioEntryEntity.all().with(
+                PortfolioEntryEntity::stopLosses,
+                PortfolioEntryEntity::takeProfits,
+            )
+
+            for (entry in entities) {
+                if (entry.stopLosses.empty()) {
+                    StopLossEntity.new {
+                        putInside(
+                            StopLoss.default(
+                                entryId = entry.id.value,
+                                note = entry.note,
+                                price = entry.lowPrice
+                            )
+                        )
+                    }
+                }
+
+                if (entry.takeProfits.empty()) {
+                    TakeProfitEntity.new {
+                        putInside(
+                            TakeProfit.default(
+                                entryId = entry.id.value,
+                                note = entry.note,
+                                price = entry.highPrice
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     override suspend fun insertPortfolio(portfolio: Portfolio): SonarResult<Portfolio, UserDataError> {
         return try {
@@ -92,9 +134,7 @@ internal class ExposedPortfolioDataSource(
                 val entity = PortfolioEntity.findById(id)
                 if (entity != null) {
                     //TODO: Explore exposed onDelete
-                    entity.entries.forEach { it.delete() }
-                    entity.rules.forEach { it.delete() }
-                    entity.delete()
+                    deletePortfolioEntity(entity)
                     found = true
                 }
             }
@@ -111,7 +151,10 @@ internal class ExposedPortfolioDataSource(
             val result = databaseConnector.suspendTransaction {
                 val entryEntity = PortfolioEntryEntity.new {
                     putInside(portfolioEntry)
-                }
+                }.load(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )
                 entryEntity.toDomainModel()
             }
             SonarResult.Success(result)
@@ -125,8 +168,20 @@ internal class ExposedPortfolioDataSource(
         return try {
             databaseConnector.suspendTransaction {
                 for (entry in entries) {
-                    PortfolioEntryEntity.new {
+                    val inserted = PortfolioEntryEntity.new {
                         putInside(entry)
+                    }
+
+                    for (stopLoss in entry.stopLosses) {
+                        StopLossEntity.new {
+                            putInside(stopLoss.copy(entryId = inserted.id.value))
+                        }
+                    }
+
+                    for (takeProfit in entry.takeProfits) {
+                        TakeProfitEntity.new {
+                            putInside(takeProfit.copy(entryId = inserted.id.value))
+                        }
                     }
                 }
             }
@@ -142,7 +197,74 @@ internal class ExposedPortfolioDataSource(
             val result = databaseConnector.suspendTransaction {
                 PortfolioEntryEntity.findByIdAndUpdate(portfolioEntry.id) {
                     it.putInside(portfolioEntry)
-                }?.toDomainModel()
+                }?.load(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating portfolio entry", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun updatePortfolioEntryTransaction(
+        id: Long,
+        name: String,
+        targetDeviation: BigDecimal,
+        newStopLosses: List<StopLoss>,
+        newTakeProfits: List<TakeProfit>,
+        stopLossesToDelete: List<Long>,
+        takeProfitsToDelete: List<Long>,
+        takeProfitsToUpdate: List<TakeProfit>,
+        stopLossesToUpdate: List<StopLoss>
+    ): SonarResult<PortfolioEntry, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                newStopLosses.forEach {
+                    StopLossEntity.new {
+                        putInside(it)
+                    }
+                }
+
+                newTakeProfits.forEach {
+                    TakeProfitEntity.new {
+                        putInside(it)
+                    }
+                }
+
+                stopLossesToDelete.forEach { id ->
+                    StopLossEntity.findById(id)?.delete()
+                }
+
+                takeProfitsToDelete.forEach { id ->
+                    TakeProfitEntity.findById(id)?.delete()
+                }
+
+                stopLossesToUpdate.forEach {
+                    StopLossEntity.findByIdAndUpdate(it.id) { entity ->
+                        entity.putInside(it)
+                    }
+                }
+
+                takeProfitsToUpdate.forEach {
+                    TakeProfitEntity.findByIdAndUpdate(it.id) { entity ->
+                        entity.putInside(it)
+                    }
+                }
+
+                PortfolioEntryEntity.findByIdAndUpdate(id) {
+                    it.name = name
+                    it.targetDeviation = targetDeviation
+                }?.load(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                )?.toDomainModel()
             }
             if (result != null) {
                 SonarResult.Success(result)
@@ -180,7 +302,7 @@ internal class ExposedPortfolioDataSource(
             databaseConnector.suspendTransaction {
                 val entity = PortfolioEntryEntity.findById(id)
                 if (entity != null) {
-                    entity.delete()
+                    deletePortfolioEntryEntity(entity)
                     found = true
                 }
             }
@@ -198,7 +320,12 @@ internal class ExposedPortfolioDataSource(
     override suspend fun getEntryById(id: Long): SonarResult<PortfolioEntry, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
-                PortfolioEntryEntity.findById(id)?.toDomainModel()
+                PortfolioEntryEntity.findById(id)
+                    ?.load(
+                        PortfolioEntryEntity::stopLosses,
+                        PortfolioEntryEntity::takeProfits
+                    )
+                    ?.toDomainModel()
             }
             if (result != null) {
                 SonarResult.Success(result)
@@ -211,16 +338,130 @@ internal class ExposedPortfolioDataSource(
         }
     }
 
+    override suspend fun createStopLoss(entryId: Long): SonarResult<Long, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                StopLossEntity.new { putInside(StopLoss.default(entryId = entryId)) }
+            }
+            SonarResult.Success(result.id.value)
+        } catch (e: Exception) {
+            logger.error("Error creating stop loss", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun createTakeProfit(entryId: Long): SonarResult<Long, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                TakeProfitEntity.new { putInside(TakeProfit.default(entryId = entryId)) }
+            }
+            SonarResult.Success(result.id.value)
+        } catch (e: Exception) {
+            logger.error("Error creating take profit", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getStopLossById(id: Long): SonarResult<StopLoss, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                StopLossEntity.findById(id)?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting stop loss by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun getTakeProfitById(id: Long): SonarResult<TakeProfit, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                TakeProfitEntity.findById(id)?.toDomainModel()
+            }
+            if (result != null) {
+                SonarResult.Success(result)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error getting take profit by id", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun deleteStopLoss(id: Long): SonarResult<Unit, UserDataError> {
+        return try {
+            var found = false
+            databaseConnector.suspendTransaction {
+                val entity = StopLossEntity.findById(id)
+                if (entity != null) {
+                    entity.delete()
+                    found = true
+                }
+            }
+            if (found) {
+                SonarResult.Success(Unit)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error deleting stop loss", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
+    override suspend fun deleteTakeProfit(id: Long): SonarResult<Unit, UserDataError> {
+        return try {
+            var found = false
+            databaseConnector.suspendTransaction {
+                val entity = TakeProfitEntity.findById(id)
+                if (entity != null) {
+                    entity.delete()
+                    found = true
+                }
+            }
+            if (found) {
+                SonarResult.Success(Unit)
+            } else {
+                SonarResult.Error(UserDataError.NotFound)
+            }
+        } catch (e: Exception) {
+            logger.error("Error deleting take profit", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
     override suspend fun getPortfolioWithEntriesById(id: Long): SonarResult<PortfolioWithEntries, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
-                PortfolioEntity.findById(id)?.let { portfolioEntity ->
-                    val entries = portfolioEntity.entries.map { it.toDomainModel() }
-                    PortfolioWithEntries(
-                        portfolio = portfolioEntity.toDomainModel(),
-                        entries = entries
+                PortfolioEntity.findById(id)
+                    ?.load(
+                        PortfolioEntity::entries,
+                        PortfolioEntryEntity::stopLosses,
+                        PortfolioEntryEntity::takeProfits,
+                        PortfolioEntity::rules
                     )
-                }
+                    ?.let { portfolioEntity ->
+                        val entries = portfolioEntity.entries.map { it.toDomainModel() }
+                        val rules = portfolioEntity.rules
+                        val rule = if (rules.empty()) {
+                            RulesEntity.new {
+                                pitInside(PortfolioRule.default(portfolioId = portfolioEntity.id.value))
+                            }
+                        } else {
+                            rules.first()
+                        }
+                        PortfolioWithEntries(
+                            portfolio = portfolioEntity.toDomainModel(),
+                            entries = entries,
+                            rule = rule.toDomainModel()
+                        )
+                    }
             }
             if (result != null) {
                 SonarResult.Success(result)
@@ -236,11 +477,28 @@ internal class ExposedPortfolioDataSource(
     override suspend fun getPortfolios(): SonarResult<List<PortfolioWithEntries>, UserDataError> {
         return try {
             val result = databaseConnector.suspendTransaction {
-                val portfolios = PortfolioEntity.all()
+                val portfolios = PortfolioEntity.all().with(
+                    PortfolioEntity::entries,
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits,
+                    PortfolioEntity::rules
+                )
                 portfolios.map { portfolio ->
+                    val rules = portfolio.rules
+                    val domainPortfolio = portfolio.toDomainModel()
+                    val domainRule = if (rules.empty()) {
+                        RulesEntity.new {
+                            pitInside(PortfolioRule.default(portfolioId = domainPortfolio.id))
+                        }
+                    } else {
+                        rules.first()
+                    }.toDomainModel()
+
+
                     PortfolioWithEntries(
-                        portfolio = portfolio.toDomainModel(),
-                        entries = portfolio.entries.map { it.toDomainModel() }
+                        portfolio = domainPortfolio,
+                        entries = portfolio.entries.map { it.toDomainModel() },
+                        rule = domainRule
                     )
                 }
             }

@@ -14,6 +14,8 @@ import ru.kima.sonar.server.data.user.scema.UserTable
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntryTable
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioTable
 import ru.kima.sonar.server.data.user.scema.portfolio.RulesTable
+import ru.kima.sonar.server.data.user.scema.portfolio.StopLossTable
+import ru.kima.sonar.server.data.user.scema.portfolio.TakeProfitTable
 import java.sql.Connection
 
 internal class UsersDatabaseConnector(dbName: String) : DatabaseConnector {
@@ -23,8 +25,15 @@ internal class UsersDatabaseConnector(dbName: String) : DatabaseConnector {
         connection.transactionManager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
         val logger = LoggerFactory.getLogger(this::class.java)
         this.transaction {
-            val tables =
-                arrayOf(UserTable, SessionTable, PortfolioTable, PortfolioEntryTable, RulesTable)
+            val tables = arrayOf(
+                UserTable,
+                SessionTable,
+                PortfolioTable,
+                PortfolioEntryTable,
+                RulesTable,
+                StopLossTable,
+                TakeProfitTable
+            )
             SchemaUtils.create(*tables)
             val missingColumnsStatements =
                 MigrationUtils.statementsRequiredForDatabaseMigration(*tables)

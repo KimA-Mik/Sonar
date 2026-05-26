@@ -2,24 +2,37 @@ package ru.kima.sonar.feature.portfolios.ui.details
 
 import android.util.Log
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.DecimalFormatter
-import ru.kima.sonar.common.util.combine
 import ru.kima.sonar.common.util.isSuccess
+import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.data.homeapi.datasource.HomeApiDataSource
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.EditEntryComponent
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.addStopLoss
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.addTakeProfit
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.deleteStopLoss
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.deleteTakeProfit
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.toComponents
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.toPortfolioEntries
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossNote
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateStopLossPrice
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitNote
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTakeProfitPrice
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.updateTargetDeviation
 import ru.kima.sonar.feature.portfolios.ui.details.event.EditEntryUiEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.EditEntryUserEvent
 import ru.kima.sonar.feature.portfolios.ui.details.state.EditEntryDialogState
-import java.math.BigDecimal
 import java.text.NumberFormat
 
 private const val TAG = "EditEntryDialogViewModel"
@@ -28,34 +41,30 @@ private const val TAG = "EditEntryDialogViewModel"
 internal class EditEntryDialogViewModel(
     private val entryId: Long,
     private val homeApi: HomeApiDataSource,
-    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val numberFormat = NumberFormat.getInstance()
+    private val decimalFormatter = DecimalFormatter()
     private val sonarFormatter = DecimalFormatter()
 
     private val isLoading = MutableStateFlow(false)
+    private val name = MutableStateFlow("")
+    private val components = MutableStateFlow<ImmutableList<EditEntryComponent>>(persistentListOf())
 
     private val _uiEvents = MutableStateFlow(SonarEvent<EditEntryUiEvent>())
     val uiEvents = _uiEvents.asStateFlow()
 
     init {
-        if (!savedStateHandle.contains(ENTRY_ID_KEY)) {
-            load()
-        }
+        load()
     }
 
+    private var uid = ""
     private fun load() = viewModelScope.launch {
         isLoading.value = true
         val result = homeApi.getPortfolioEntry(entryId)
         if (result.isSuccess()) {
-            val entry = result.data
-            savedStateHandle[ENTRY_ID_KEY] = entryId
-            savedStateHandle[NAME_KEY] = entry.name
-            savedStateHandle[PRICE_KEY] = entry.price
-            savedStateHandle[TARGET_DEVIATION_KEY] = numberFormat.format(entry.targetDeviation)
-            savedStateHandle[LOW_PRICE_KEY] = numberFormat.format(entry.lowPrice)
-            savedStateHandle[HIGH_PRICE_KEY] = numberFormat.format(entry.highPrice)
-            savedStateHandle[NOTE_KEY] = entry.note
+            name.value = result.data.name
+            uid = result.data.uid
+            components.value = listOf(result.data).toComponents()
         } else {
             Log.d(TAG, "Failed to load entry with id $entryId: ${result.data}")
         }
@@ -63,72 +72,104 @@ internal class EditEntryDialogViewModel(
     }
 
     val state = combine(
-        isLoading,
-        savedStateHandle.getStateFlow(NAME_KEY, ""),
-        savedStateHandle.getStateFlow(PRICE_KEY, BigDecimal.ZERO),
-        savedStateHandle.getStateFlow(TARGET_DEVIATION_KEY, "1"),
-        savedStateHandle.getStateFlow(LOW_PRICE_KEY, ""),
-        savedStateHandle.getStateFlow(HIGH_PRICE_KEY, ""),
-        savedStateHandle.getStateFlow(NOTE_KEY, "")
-    ) { isLoading, name, price, targetDeviation, lowPrice, highPrice, note ->
+        isLoading, name, components
+    ) { isLoading, name, components ->
         EditEntryDialogState(
             isLoading = isLoading,
             name = name,
-            price = price,
-            targetDeviation = targetDeviation,
-            lowPrice = lowPrice,
-            highPrice = highPrice,
-            note = note
+            components = components
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EditEntryDialogState.default())
 
     fun onEvent(event: EditEntryUserEvent) {
         when (event) {
-            is EditEntryUserEvent.HighPriceUpdated -> onHighPriceUpdated(event.highPrice)
-            is EditEntryUserEvent.LowPriceUpdated -> onLowPriceUpdated(event.lowPrice)
-            is EditEntryUserEvent.TargetDeviationUpdated -> onTargetDeviationUpdated(event.targetDeviation)
-            is EditEntryUserEvent.NoteUpdated -> onNoteUpdated(event.note)
             EditEntryUserEvent.ApplyChangesClicked -> onApplyChangesClicked()
+            EditEntryUserEvent.AddStopLoss -> onAddStopLoss()
+            EditEntryUserEvent.AddTakeProfit -> onAddTakeProfit()
+            is EditEntryUserEvent.DeleteStopLoss -> onDeleteStopLoss(event.key)
+            is EditEntryUserEvent.DeleteTakeProfit -> onDeleteTakeProfit(event.key)
+            is EditEntryUserEvent.UpdateTargetDeviation ->
+                onUpdateTargetDeviation(event.key, event.deviation)
+
+            is EditEntryUserEvent.StopLossNoteChange ->
+                onStopLossNoteChange(event.key, event.note)
+
+            is EditEntryUserEvent.StopLossPriceChange ->
+                onStopLossPriceChange(event.key, event.price)
+
+            is EditEntryUserEvent.TakeProfitNoteChange ->
+                onTakeProfitNoteChange(event.key, event.note)
+
+            is EditEntryUserEvent.TakeProfitPriceChange ->
+                onTakeProfitPriceChange(event.key, event.price)
         }
     }
 
-    private fun onHighPriceUpdated(highPrice: String) {
-        savedStateHandle[HIGH_PRICE_KEY] = sonarFormatter.cleanup(highPrice)
+    private fun onAddStopLoss() {
+        val temp = components.value.toMutableList()
+        temp.addStopLoss(uid)
+        components.value = temp.toPersistentList()
     }
 
-    private fun onLowPriceUpdated(lowPrice: String) {
-        savedStateHandle[LOW_PRICE_KEY] = sonarFormatter.cleanup(lowPrice)
+    private fun onAddTakeProfit() {
+        val temp = components.value.toMutableList()
+        temp.addTakeProfit(uid)
+        components.value = temp.toPersistentList()
     }
 
-    private fun onTargetDeviationUpdated(targetDeviation: String) {
-        savedStateHandle[TARGET_DEVIATION_KEY] = sonarFormatter.cleanup(targetDeviation)
+    private fun onStopLossNoteChange(key: String, note: String) {
+        val temp = components.value.toMutableList()
+        temp.updateStopLossNote(key, note)
+        components.value = temp.toPersistentList()
     }
 
-    private fun onNoteUpdated(note: String) {
-        savedStateHandle[NOTE_KEY] = if (note.length > NOTE_LENGTH) note.take(NOTE_LENGTH) else note
+    private fun onStopLossPriceChange(key: String, price: String) {
+        val temp = components.value.toMutableList()
+        temp.updateStopLossPrice(key, price, decimalFormatter)
+        components.value = temp.toPersistentList()
+    }
+
+    private fun onDeleteStopLoss(key: String) {
+        val temp = components.value.toMutableList()
+        temp.deleteStopLoss(key)
+        components.value = temp.toPersistentList()
+    }
+
+    private fun onTakeProfitNoteChange(key: String, note: String) {
+        val temp = components.value.toMutableList()
+        temp.updateTakeProfitNote(key, note)
+        components.value = temp.toPersistentList()
+    }
+
+    private fun onTakeProfitPriceChange(key: String, price: String) {
+        val temp = components.value.toMutableList()
+        temp.updateTakeProfitPrice(key, price, decimalFormatter)
+        components.value = temp.toPersistentList()
+    }
+
+    private fun onDeleteTakeProfit(key: String) {
+        val temp = components.value.toMutableList()
+        temp.deleteTakeProfit(key)
+        components.value = temp.toPersistentList()
+    }
+
+    private fun onUpdateTargetDeviation(key: String, deviation: String) {
+        val temp = components.value.toMutableList()
+        temp.updateTargetDeviation(key, deviation, sonarFormatter)
+        components.value = temp.toPersistentList()
     }
 
     private fun onApplyChangesClicked() {
-        val lowPrice = savedStateHandle.get<String>(LOW_PRICE_KEY) ?: ""
-        val highPrice = savedStateHandle.get<String>(HIGH_PRICE_KEY) ?: ""
-        val targetDeviation = savedStateHandle.get<String>(TARGET_DEVIATION_KEY) ?: "1"
-        val lowPriceBd = if (lowPrice.isBlank()) BigDecimal.ZERO
-        else sonarFormatter.parseToBigDecimal(lowPrice)
-
-        val highPriceBd = if (highPrice.isBlank()) BigDecimal.ZERO
-        else sonarFormatter.parseToBigDecimal(highPrice)
-
-        val targetDeviationBd = if (targetDeviation.isBlank()) BigDecimal.ONE
-        else sonarFormatter.parseToBigDecimal(targetDeviation)
+        val entry = components.value.toPortfolioEntries()
+            .valueOr { return }.firstOrNull() ?: return
 
         viewModelScope.launch {
             val res = homeApi.updateEntry(
                 entryId = entryId,
-                name = savedStateHandle.get<String>(NAME_KEY) ?: "",
-                targetDeviation = targetDeviationBd,
-                lowPrice = lowPriceBd,
-                highPrice = highPriceBd,
-                note = savedStateHandle.get<String>(NOTE_KEY) ?: ""
+                name = entry.name,
+                targetDeviation = entry.targetDeviation,
+                stopLosses = entry.stopLosses,
+                takeProfits = entry.takeProfits
             )
 
             if (res.isSuccess()) {
@@ -137,15 +178,5 @@ internal class EditEntryDialogViewModel(
                 Log.d(TAG, "Failed to apply changes for entry with id $entryId: ${res.data}")
             }
         }
-    }
-
-    companion object {
-        private const val ENTRY_ID_KEY = "entryId"
-        private const val NAME_KEY = "name"
-        private const val PRICE_KEY = "price"
-        private const val TARGET_DEVIATION_KEY = "targetDeviation"
-        private const val LOW_PRICE_KEY = "lowPrice"
-        private const val HIGH_PRICE_KEY = "highPrice"
-        private const val NOTE_KEY = "note"
     }
 }

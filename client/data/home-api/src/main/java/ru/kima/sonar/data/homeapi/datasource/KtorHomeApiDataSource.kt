@@ -44,12 +44,15 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntry
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdateRuleRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ResourceCreatedResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
 import ru.kima.sonar.common.serverapi.model.NotificationProvider
+import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
 import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.model.rules.Rule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.serverapi.routing.AuthRoute
@@ -232,7 +235,7 @@ internal class KtorHomeApiDataSource(
     override suspend fun deletePortfolio(portfolioId: Long): SonarResult<Unit, HomeApiError> =
         safeApiCall { client.delete(PortfoliosRoute.Portfolio.Delete(PortfoliosRoute.Portfolio(id = portfolioId))) }
 
-    override suspend fun getPortfolioEntry(entryId: Long): SonarResult<ListItemPortfolioEntry, HomeApiError> =
+    override suspend fun getPortfolioEntry(entryId: Long): SonarResult<PortfolioEntry, HomeApiError> =
         safeApiCall { client.get(PortfoliosRoute.Entry(id = entryId)) }
 
     override suspend fun addEntry(
@@ -253,9 +256,8 @@ internal class KtorHomeApiDataSource(
         entryId: Long,
         name: String,
         targetDeviation: BigDecimal,
-        lowPrice: BigDecimal,
-        highPrice: BigDecimal,
-        note: String
+        stopLosses: List<StopLoss>,
+        takeProfits: List<TakeProfit>,
     ): SonarResult<Unit, HomeApiError> = safeApiCall {
         client.put(PortfoliosRoute.Entry.Update(PortfoliosRoute.Entry(id = entryId))) {
             contentType(ContentType.Application.Json)
@@ -263,9 +265,8 @@ internal class KtorHomeApiDataSource(
                 UpdatePortfolioEntryRequest(
                     name = name,
                     targetDeviation = targetDeviation,
-                    lowPrice = lowPrice,
-                    highPrice = highPrice,
-                    note = note
+                    stopLosses = stopLosses,
+                    takeProfits = takeProfits
                 )
             )
         }
@@ -278,6 +279,12 @@ internal class KtorHomeApiDataSource(
         safeApiCall {
             client.get(PortfoliosRoute.Portfolio.Rules(PortfoliosRoute.Portfolio(id = portfolioId)))
         }
+
+    override suspend fun createStopLoss(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError> =
+        safeApiCall { client.post(PortfoliosRoute.Entry.AddStopLoss(PortfoliosRoute.Entry(id = entryId))) }
+
+    override suspend fun createTakeProfit(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError> =
+        safeApiCall { client.post(PortfoliosRoute.Entry.AddTakeProfit(PortfoliosRoute.Entry(id = entryId))) }
 
     override suspend fun updatePortfolioRule(
         portfolioId: Long,

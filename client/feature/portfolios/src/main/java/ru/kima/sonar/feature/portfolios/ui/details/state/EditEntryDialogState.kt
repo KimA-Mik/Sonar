@@ -1,35 +1,25 @@
 package ru.kima.sonar.feature.portfolios.ui.details.state
 
 import androidx.compose.runtime.Immutable
-import java.math.BigDecimal
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.EditEntryComponent
 
 @Immutable
 internal data class EditEntryDialogState(
     val isLoading: Boolean,
     val name: String,
-    val price: BigDecimal,
-    val targetDeviation: String,
-    val lowPrice: String,
-    val highPrice: String,
-    val note: String,
+    val components: ImmutableList<EditEntryComponent>
 ) {
     companion object {
         fun default(
             isLoading: Boolean = false,
             name: String = "",
-            price: BigDecimal = BigDecimal.ZERO,
-            targetDeviation: String = "1",
-            lowPrice: String = "",
-            highPrice: String = "",
-            note: String = ""
+            components: ImmutableList<EditEntryComponent> = persistentListOf()
         ) = EditEntryDialogState(
             isLoading = isLoading,
             name = name,
-            targetDeviation = targetDeviation,
-            price = price,
-            lowPrice = lowPrice,
-            highPrice = highPrice,
-            note = note
+            components = components
         )
     }
 }

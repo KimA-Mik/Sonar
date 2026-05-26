@@ -19,6 +19,8 @@ internal class PortfolioEntryEntity(id: EntityID<Long>) : LongEntity(id) {
     var lastUnboundUpdate by PortfolioEntryTable.lastUnboundUpdate
     var lastUnboundUpdatePrice by PortfolioEntryTable.lastUnboundUpdatePrice
 
+    val takeProfits by TakeProfitEntity referrersOn TakeProfitTable.entryId
+    val stopLosses by StopLossEntity referrersOn StopLossTable.entryId
     val portfolio by PortfolioEntity referencedOn PortfolioEntryTable.portfolioId
 }
 

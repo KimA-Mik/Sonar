@@ -28,5 +28,9 @@ fun Application.portfoliosRoute() = routing {
         post<PortfoliosRoute.Portfolio.AddEntry> { controller.addEntry(call, it.parent.id) }
         put<PortfoliosRoute.Entry.Update> { controller.updateEntry(call, it.parent.id) }
         delete<PortfoliosRoute.Entry.Delete> { controller.deleteEntry(call, it.parent.id) }
+        post<PortfoliosRoute.Entry.AddTakeProfit> { controller.addTakeProfit(call, it.parent.id) }
+        post<PortfoliosRoute.Entry.AddStopLoss> { controller.addStopLoss(call, it.parent.id) }
+        delete<PortfoliosRoute.DeleteStopLoss> { controller.deleteStopLoss(call, it.id) }
+        delete<PortfoliosRoute.DeleteTakeProfit> { controller.deleteTakeProfit(call, it.id) }
     }
 }

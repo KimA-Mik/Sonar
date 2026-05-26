@@ -3,11 +3,14 @@ package ru.kima.sonar.data.homeapi.datasource
 import kotlinx.coroutines.flow.Flow
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolio
-import ru.kima.sonar.common.serverapi.dto.portfolio.response.ListItemPortfolioEntry
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ResourceCreatedResponse
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemShare
+import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
 import ru.kima.sonar.common.serverapi.model.portfolio.SonarPortfolio
+import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
+import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.model.rules.Rule
 import ru.kima.sonar.common.serverapi.model.rules.RulesMode
 import ru.kima.sonar.common.util.SonarResult
@@ -33,7 +36,7 @@ interface HomeApiDataSource {
     suspend fun getPortfolio(portfolioId: Long): SonarResult<SonarPortfolio, HomeApiError>
     suspend fun updatePortfolio(portfolioId: Long, name: String): SonarResult<Unit, HomeApiError>
     suspend fun deletePortfolio(portfolioId: Long): SonarResult<Unit, HomeApiError>
-    suspend fun getPortfolioEntry(entryId: Long): SonarResult<ListItemPortfolioEntry, HomeApiError>
+    suspend fun getPortfolioEntry(entryId: Long): SonarResult<PortfolioEntry, HomeApiError>
 
     suspend fun addEntry(
         portfolioId: Long,
@@ -44,14 +47,15 @@ interface HomeApiDataSource {
         entryId: Long,
         name: String,
         targetDeviation: BigDecimal,
-        lowPrice: BigDecimal,
-        highPrice: BigDecimal,
-        note: String
+        stopLosses: List<StopLoss>,
+        takeProfits: List<TakeProfit>,
     ): SonarResult<Unit, HomeApiError>
 
     suspend fun deleteEntry(entryId: Long): SonarResult<Unit, HomeApiError>
 
     suspend fun getPortfolioRule(portfolioId: Long): SonarResult<RuleEditPortfolio, HomeApiError>
+    suspend fun createStopLoss(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError>
+    suspend fun createTakeProfit(entryId: Long): SonarResult<ResourceCreatedResponse, HomeApiError>
     suspend fun updatePortfolioRule(
         portfolioId: Long,
         mode: RulesMode,

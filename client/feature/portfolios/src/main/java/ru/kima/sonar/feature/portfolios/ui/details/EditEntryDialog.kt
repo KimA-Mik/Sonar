@@ -1,11 +1,8 @@
 package ru.kima.sonar.feature.portfolios.ui.details
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
@@ -25,7 +22,7 @@ import ru.kima.sonar.common.ui.event.LocalResultEventBus
 import ru.kima.sonar.common.ui.event.SonarEvent
 import ru.kima.sonar.common.ui.util.CommonStrings
 import ru.kima.sonar.common.ui.util.LocalNavigator
-import ru.kima.sonar.feature.portfolios.ui.components.EditEntryContent
+import ru.kima.sonar.feature.portfolios.ui.components.editentry.EditEntry2Content
 import ru.kima.sonar.feature.portfolios.ui.details.event.EditEntryUiEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.EditEntryUserEvent
 import ru.kima.sonar.feature.portfolios.ui.details.event.PortfolioDetailsResultEvent
@@ -91,27 +88,35 @@ private fun EditEntryDialogContent(
         },
         text = {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(),
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 if (state.isLoading) {
                     LoadingIndicator()
                 } else {
-                    EditEntryContent(
-                        price = state.price,
-                        lowPrice = state.lowPrice,
-                        targetDeviation = state.targetDeviation,
-                        onTargetDeviationUpdate = {
-                            onEvent(EditEntryUserEvent.TargetDeviationUpdated(it))
+                    EditEntry2Content(
+                        components = state.components,
+                        onStopLossPriceChange = { key, price ->
+                            onEvent(EditEntryUserEvent.StopLossPriceChange(key, price))
                         },
-                        onLowPriceUpdate = { onEvent(EditEntryUserEvent.LowPriceUpdated(it)) },
-                        highPrice = state.highPrice,
-                        onHighPriceUpdate = { onEvent(EditEntryUserEvent.HighPriceUpdated(it)) },
-                        note = state.note,
-                        onNoteUpdate = { onEvent(EditEntryUserEvent.NoteUpdated(it)) },
-                        modifier = Modifier.verticalScroll(rememberScrollState())
+                        onStopLossNoteChange = { key, note ->
+                            onEvent(EditEntryUserEvent.StopLossNoteChange(key, note))
+                        },
+                        onDeleteStopLoss = { key -> onEvent(EditEntryUserEvent.DeleteStopLoss(key)) },
+                        onTakeProfitPriceChange = { key, price ->
+                            onEvent(EditEntryUserEvent.TakeProfitPriceChange(key, price))
+                        },
+                        onTakeProfitNoteChange = { key, note ->
+                            onEvent(EditEntryUserEvent.TakeProfitNoteChange(key, note))
+                        },
+                        onDeleteTakeProfit = { key ->
+                            onEvent(EditEntryUserEvent.DeleteTakeProfit(key))
+                        },
+                        onAddStopLoss = { onEvent(EditEntryUserEvent.AddStopLoss) },
+                        onAddTakeProfit = { onEvent(EditEntryUserEvent.AddTakeProfit) },
+                        onTargetDeviationUpdate = { key, deviation ->
+                            onEvent(EditEntryUserEvent.UpdateTargetDeviation(key, deviation))
+                        }
                     )
                 }
             }

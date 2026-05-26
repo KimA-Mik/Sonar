@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
+import java.text.NumberFormat
+import java.util.Locale
 
 
 class DecimalFormatter(
@@ -37,7 +39,6 @@ class DecimalFormatter(
     }
 
     fun formatForVisual(input: String): String {
-
         val split = input.split(decimalSeparator)
 
         val intPart = split[0]
@@ -55,6 +56,26 @@ class DecimalFormatter(
         val cleaned = cleanup(input).replace(decimalSeparator, '.')
         return if (cleaned.isBlank()) BigDecimal.ZERO else BigDecimal(cleaned)
     }
+
+    fun parseToBigDecimalOrNull(input: String): BigDecimal? {
+        val cleaned = cleanup(input).replace(decimalSeparator, '.')
+        return try {
+            BigDecimal(cleaned)
+        } catch (_: Exception) {
+            null
+        }
+    }
+}
+
+fun BigDecimal.formatLocalized(
+    fractionDigits: Int = 2,
+    locale: Locale = Locale.getDefault()
+): String {
+    val nf = NumberFormat.getNumberInstance(locale).apply {
+        maximumFractionDigits = fractionDigits
+        isGroupingUsed = false
+    }
+    return nf.format(this)
 }
 
 @Composable

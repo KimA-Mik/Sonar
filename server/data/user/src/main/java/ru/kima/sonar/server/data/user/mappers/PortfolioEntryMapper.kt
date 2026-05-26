@@ -2,6 +2,8 @@ package ru.kima.sonar.server.data.user.mappers
 
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.scema.portfolio.PortfolioEntryEntity
+import ru.kima.sonar.server.data.user.scema.portfolio.StopLossEntity
+import ru.kima.sonar.server.data.user.scema.portfolio.TakeProfitEntity
 import kotlin.time.Instant
 
 internal fun PortfolioEntryEntity.toDomainModel(): PortfolioEntry = PortfolioEntry(
@@ -16,7 +18,9 @@ internal fun PortfolioEntryEntity.toDomainModel(): PortfolioEntry = PortfolioEnt
     enabled = enabled,
     shouldNotify = shouldNotify,
     lastUnboundUpdate = Instant.fromEpochMilliseconds(lastUnboundUpdate),
-    lastUnboundUpdatePrice = lastUnboundUpdatePrice
+    lastUnboundUpdatePrice = lastUnboundUpdatePrice,
+    stopLosses = stopLosses.map { it.toDomainModel() },
+    takeProfits = takeProfits.map { it.toDomainModel() }
 )
 
 internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
@@ -31,4 +35,16 @@ internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
     shouldNotify = domainObject.shouldNotify
     lastUnboundUpdate = domainObject.lastUnboundUpdate.toEpochMilliseconds()
     lastUnboundUpdatePrice = domainObject.lastUnboundUpdatePrice
+
+    domainObject.stopLosses.forEach { stopLoss ->
+        StopLossEntity.findByIdAndUpdate(stopLoss.id) {
+            it.putInside(stopLoss)
+        }
+    }
+
+    domainObject.takeProfits.forEach { takeProfit ->
+        TakeProfitEntity.findByIdAndUpdate(takeProfit.id) {
+            it.putInside(takeProfit)
+        }
+    }
 }

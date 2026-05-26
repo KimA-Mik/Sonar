@@ -11,6 +11,7 @@ import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioReque
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdatePortfolioRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.UpdateRuleRequest
+import ru.kima.sonar.common.serverapi.dto.portfolio.response.ResourceCreatedResponse
 import ru.kima.sonar.common.serverapi.util.TITLE_LENGTH
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.server.common.util.ktor.receiveOrBadRequest
@@ -20,8 +21,8 @@ import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
 import ru.kima.sonar.server.data.user.model.User
 import ru.kima.sonar.server.data.user.model.UserDataError
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
-import ru.kima.sonar.server.data.user.model.portfolio.PortfolioEntry
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
+import ru.kima.sonar.server.feature.portfolios.mappers.toDomain
 import ru.kima.sonar.server.feature.portfolios.mappers.toDto
 import java.math.BigDecimal
 
@@ -175,17 +176,7 @@ internal class PortfoliosController(
 
         val entries = request.entries.asSequence()
             .filter { !existedEntries.contains(it.securityUid) }
-            .map {
-                PortfolioEntry.default(
-                    portfolioId = portfolioId,
-                    securityUid = it.securityUid,
-                    name = it.name,
-                    targetDeviation = it.targetDeviation,
-                    lowPrice = it.lowPrice,
-                    highPrice = it.highPrice,
-                    note = it.note
-                )
-            }
+            .map { it.toDomain(portfolioId) }
             .toList()
 
         when (val res = portfoliosDataSource.insertPortfolioEntries(entries)) {
@@ -212,14 +203,28 @@ internal class PortfoliosController(
             return
         }
 
-        when (val res = portfoliosDataSource.updatePortfolioEntry(
-            oldEntry.copy(
-                name = request.name,
-                targetDeviation = request.targetDeviation,
-                lowPrice = request.lowPrice,
-                highPrice = request.highPrice,
-                note = request.note
-            )
+        //It's time to think about use cases
+        val newStopLosses = request.stopLosses.filter { it.id == 0L }.map { it.toDomain() }
+        val newTakeProfits = request.takeProfits.filter { it.id == 0L }.map { it.toDomain() }
+        val takeProfitsToDelete = oldEntry.takeProfits
+            .filter { oldTp -> request.takeProfits.none { it.id == oldTp.id } }
+            .map { it.id }
+        val stopLossesToDelete = oldEntry.stopLosses
+            .filter { oldSl -> request.stopLosses.none { it.id == oldSl.id } }
+            .map { it.id }
+        val stopLossesToUpdate = request.stopLosses.filter { it.id != 0L }.map { it.toDomain() }
+        val takeProfitsToUpdate = request.takeProfits.filter { it.id != 0L }.map { it.toDomain() }
+
+        when (val res = portfoliosDataSource.updatePortfolioEntryTransaction(
+            id = entryId,
+            name = request.name,
+            targetDeviation = request.targetDeviation,
+            newStopLosses = newStopLosses,
+            newTakeProfits = newTakeProfits,
+            stopLossesToDelete = stopLossesToDelete,
+            takeProfitsToDelete = takeProfitsToDelete,
+            takeProfitsToUpdate = takeProfitsToUpdate,
+            stopLossesToUpdate = stopLossesToUpdate
         )) {
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
             is SonarResult.Error -> call.handleUserDataError(res.data)
@@ -228,14 +233,7 @@ internal class PortfoliosController(
 
     suspend fun deleteEntry(call: RoutingCall, entryId: Long) {
         val user = call.getUserOrISE { return }
-        val entry = when (val res = portfoliosDataSource.getEntryById(entryId)) {
-            is SonarResult.Success -> res.data
-            is SonarResult.Error -> {
-                call.handleUserDataError(res.data)
-                return
-            }
-        }
-        call.getPortfolioReturnIfNotOwn(user.id, entry.portfolioId) { return }
+        call.validatePortfolioEntryOwnership(user.id, entryId) { return }
 
         when (val res = portfoliosDataSource.deletePortfolioEntry(entryId)) {
             is SonarResult.Success -> call.respond(HttpStatusCode.OK)
@@ -243,6 +241,58 @@ internal class PortfoliosController(
                 UserDataError.NotFound -> call.respond(HttpStatusCode.Forbidden)
                 else -> call.respond(HttpStatusCode.InternalServerError)
             }
+        }
+    }
+
+    suspend fun addStopLoss(call: RoutingCall, entryId: Long) {
+        val user = call.getUserOrISE { return }
+        call.validatePortfolioEntryOwnership(user.id, entryId) { return }
+        when (val res = portfoliosDataSource.createStopLoss(entryId)) {
+            is SonarResult.Success -> call.respond(ResourceCreatedResponse(res.data))
+            is SonarResult.Error -> call.handleUserDataError(res.data)
+        }
+    }
+
+    suspend fun addTakeProfit(call: RoutingCall, entryId: Long) {
+        val user = call.getUserOrISE { return }
+        call.validatePortfolioEntryOwnership(user.id, entryId) { return }
+        when (val res = portfoliosDataSource.createTakeProfit(entryId)) {
+            is SonarResult.Success -> call.respond(ResourceCreatedResponse(res.data))
+            is SonarResult.Error -> call.handleUserDataError(res.data)
+        }
+    }
+
+    suspend fun deleteStopLoss(call: RoutingCall, id: Long) {
+        val user = call.getUserOrISE { return }
+        val stopLoss = when (val res = portfoliosDataSource.getStopLossById(id)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                call.handleUserDataError(res.data)
+                return
+            }
+        }
+
+        call.validatePortfolioEntryOwnership(user.id, stopLoss.entryId) { return }
+        when (val res = portfoliosDataSource.deleteStopLoss(id)) {
+            is SonarResult.Success -> call.respond(HttpStatusCode.OK)
+            is SonarResult.Error -> call.handleUserDataError(res.data)
+        }
+    }
+
+    suspend fun deleteTakeProfit(call: RoutingCall, id: Long) {
+        val user = call.getUserOrISE { return }
+        val takeProfit = when (val res = portfoliosDataSource.getTakeProfitById(id)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                call.handleUserDataError(res.data)
+                return
+            }
+        }
+
+        call.validatePortfolioEntryOwnership(user.id, takeProfit.entryId) { return }
+        when (val res = portfoliosDataSource.deleteTakeProfit(id)) {
+            is SonarResult.Success -> call.respond(HttpStatusCode.OK)
+            is SonarResult.Error -> call.handleUserDataError(res.data)
         }
     }
 
@@ -289,6 +339,21 @@ internal class PortfoliosController(
             respond(HttpStatusCode.Forbidden)
             onInvalid()
         }
+    }
+
+    private suspend inline fun RoutingCall.validatePortfolioEntryOwnership(
+        userId: Long,
+        entryId: Long,
+        onInvalid: () -> Nothing
+    ) {
+        val entry = when (val res = portfoliosDataSource.getEntryById(entryId)) {
+            is SonarResult.Success -> res.data
+            is SonarResult.Error -> {
+                handleUserDataError(res.data)
+                onInvalid()
+            }
+        }
+        getPortfolioReturnIfNotOwn(userId, entry.portfolioId, onInvalid)
     }
 
     private suspend inline fun RoutingCall.getPortfolioRuleOrReturnIfNotOwn(
