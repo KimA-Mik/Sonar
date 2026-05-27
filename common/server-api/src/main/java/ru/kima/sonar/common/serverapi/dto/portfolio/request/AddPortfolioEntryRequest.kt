@@ -13,6 +13,7 @@ data class AddPortfolioEntryRequest(
     data class Entry(
         val securityUid: String,
         val name: String,
+        val ticker: String,
         val targetDeviation: BigDecimalJson,
         val stopLosses: List<StopLoss>,
         val takeProfits: List<TakeProfit>

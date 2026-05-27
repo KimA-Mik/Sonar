@@ -13,6 +13,7 @@ internal sealed interface EditEntryComponent {
         override val key: String,
         override val uid: String,
         val title: String,
+        val ticker: String,
         val price: BigDecimal,
         val targetDeviation: String,
         val id: Long,

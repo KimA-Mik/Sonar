@@ -17,6 +17,7 @@ internal object PortfolioEntryTable : LongIdTable() {
     )
     val securityUid = varchar("security_uid", UID_LENGTH)
     val name = varchar("name", TITLE_LENGTH)
+    val ticker = varchar("ticker", TITLE_LENGTH).default("")
     val targetDeviation =
         decimal("target_deviation", MONEY_PRECISION, MONEY_SCALE).default(BigDecimal.ONE)
     val lowPrice = decimal("low_price", MONEY_PRECISION, MONEY_SCALE)

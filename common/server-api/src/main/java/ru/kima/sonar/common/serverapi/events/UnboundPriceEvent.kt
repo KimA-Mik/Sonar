@@ -11,6 +11,7 @@ import ru.kima.sonar.common.serverapi.util.BigDecimalJson
 data class UnboundPriceEvent(
     val portfolioId: Long,
     val portfolioName: String,
+    val ticker: String,
     val securityName: String,
     val indicators: Indicators,
     val lastPrice: LastPrice,

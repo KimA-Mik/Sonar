@@ -8,6 +8,7 @@ data class PortfolioEntry(
     val id: Long,
     val uid: String,
     val name: String,
+    val ticker: String,
     val targetDeviation: BigDecimalJson,
     val price: BigDecimalJson,
     val lowPrice: BigDecimalJson,

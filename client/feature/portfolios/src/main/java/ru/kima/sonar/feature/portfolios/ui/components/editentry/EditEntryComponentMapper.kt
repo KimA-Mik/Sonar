@@ -19,6 +19,7 @@ internal fun List<PortfolioEntry>.toComponents(): ImmutableList<EditEntryCompone
                 key = EditEntryComponent.Title.generateKey(entry.uid),
                 uid = entry.uid,
                 title = entry.name,
+                ticker = entry.ticker,
                 price = entry.price,
                 targetDeviation = entry.targetDeviation.formatLocalized(3),
                 id = entry.id
@@ -113,6 +114,7 @@ internal fun List<EditEntryComponent>.toPortfolioEntries(): SonarResult<List<Por
                             id = title.id,
                             uid = title.uid,
                             name = title.title,
+                            ticker = title.ticker,
                             targetDeviation = df.parseToBigDecimal(title.targetDeviation),
                             price = title.price,
                             lowPrice = BigDecimal.ZERO,
@@ -138,6 +140,7 @@ internal fun List<EditEntryComponent>.toPortfolioEntries(): SonarResult<List<Por
                 id = title.id,
                 uid = title.uid,
                 name = title.title,
+                ticker = title.ticker,
                 targetDeviation = df.parseToBigDecimal(title.targetDeviation),
                 price = title.price,
                 lowPrice = BigDecimal.ZERO,
