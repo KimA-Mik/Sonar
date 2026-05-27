@@ -12,6 +12,7 @@ internal fun PortfolioEntryEntity.toDomainModel(): PortfolioEntry = PortfolioEnt
     securityUid = securityUid,
     name = name,
     ticker = ticker,
+    securityType = securityType,
     targetDeviation = targetDeviation,
     lowPrice = lowPrice,
     highPrice = highPrice,
@@ -29,6 +30,7 @@ internal fun PortfolioEntryEntity.putInside(domainObject: PortfolioEntry) {
     securityUid = domainObject.securityUid
     name = domainObject.name
     ticker = domainObject.ticker
+    securityType = domainObject.securityType
     targetDeviation = domainObject.targetDeviation
     lowPrice = domainObject.lowPrice
     highPrice = domainObject.highPrice

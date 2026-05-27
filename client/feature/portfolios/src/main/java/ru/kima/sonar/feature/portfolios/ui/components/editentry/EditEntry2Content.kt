@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
+import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
 import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.serverapi.util.NOTE_LENGTH
@@ -337,6 +338,7 @@ private fun EditEntryPreview() = SonarPreview {
             uid = "",
             title = "SBER",
             ticker = "SBER",
+            securityType = SecurityType.SHARE,
             price = 1337.toBigDecimal(),
             targetDeviation = "123",
             id = 123
@@ -394,6 +396,7 @@ private fun MapperPreview() = SonarPreview {
             uid = "0",
             name = "0",
             ticker = "",
+            securityType = SecurityType.SHARE,
             targetDeviation = 0.toBigDecimal(),
             price = 0.toBigDecimal(),
             lowPrice = 0.toBigDecimal(),
@@ -427,6 +430,7 @@ private fun MapperPreview() = SonarPreview {
             uid = "1",
             name = "1",
             ticker = "",
+            securityType = SecurityType.SHARE,
             targetDeviation = 1.toBigDecimal(),
             price = 1.toBigDecimal(),
             lowPrice = 1.toBigDecimal(),

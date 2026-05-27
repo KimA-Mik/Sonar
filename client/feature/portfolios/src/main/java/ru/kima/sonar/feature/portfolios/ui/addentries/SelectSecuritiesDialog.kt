@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import ru.kima.sonar.common.ui.components.ConditionalPullToRefreshBox
 import ru.kima.sonar.common.ui.components.SonarAlertDialog
 import ru.kima.sonar.common.ui.components.SonarDialogDefaults
@@ -316,6 +317,7 @@ private fun SelectSecuritiesDialogPreview() = SonarPreview {
                 uid = "SBER",
                 ticker = "SBER",
                 name = "Сбербанк",
+                securityType = SecurityType.SHARE,
                 price = BigDecimal("123.456"),
                 selected = false,
                 basicAsset = "SBER"
@@ -325,6 +327,7 @@ private fun SelectSecuritiesDialogPreview() = SonarPreview {
             AddableSecurity(
                 uid = "MOEX",
                 ticker = "MOEX",
+                securityType = SecurityType.SHARE,
                 name = "Индекс мосбиржи с очень длинным названием",
                 price = BigDecimal("3456.789"),
                 selected = true,
@@ -336,6 +339,7 @@ private fun SelectSecuritiesDialogPreview() = SonarPreview {
                 AddableSecurity(
                     uid = it.toString(),
                     ticker = "MOEX",
+                    securityType = SecurityType.SHARE,
                     name = "Индекс мосбиржи с очень длинным названием",
                     price = BigDecimal("3456.$it"),
                     selected = it % 2 == 1,

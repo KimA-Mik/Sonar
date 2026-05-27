@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.kima.sonar.common.serverapi.events.model.Indicators
 import ru.kima.sonar.common.serverapi.model.LastPrice
+import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import ru.kima.sonar.common.serverapi.util.BigDecimalJson
 
 @Serializable
@@ -12,6 +13,7 @@ data class BoundPriceEvent(
     val portfolioId: Long,
     val portfolioName: String,
     val ticker: String,
+    val securityType: SecurityType,
     val securityName: String,
     val indicators: Indicators,
     val lastPrice: LastPrice,
