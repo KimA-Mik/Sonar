@@ -73,14 +73,18 @@ class SonarNotificationsManager(
         notificationLayoutExpanded.setTextViewText(R.id.notification_large_title, title)
         notificationLayoutExpanded.setTextViewText(R.id.notification_body, text)
 
-        val notification = NotificationCompat
+        val builder = NotificationCompat
             .Builder(context, PORTFOLIO_EVENTS_NOTIFICATION_CHANNEL_ID)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSmallIcon(CommonDrawables.exclamation_24px)
             .setCustomContentView(notificationLayout)
             .setCustomBigContentView(notificationLayoutExpanded)
-            .build()
-        notificationManager.notify(messageId, notification)
+
+        format.actions(context).forEach {
+            builder.addAction(it)
+        }
+
+        notificationManager.notify(messageId, builder.build())
     }
 
     companion object {

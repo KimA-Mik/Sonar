@@ -1,6 +1,8 @@
 package ru.kima.sonar.feature.notifications.notifications
 
+import android.content.Context
 import android.content.res.Resources
+import androidx.core.app.NotificationCompat
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.feature.notifications.R
 
@@ -62,6 +64,15 @@ internal class UnboundPriceNotification(
         if (event.note.isNotBlank()) {
             appendLine(resources.getString(R.string.note_headline))
             appendLine(event.note)
+        }
+    }
+
+    override fun actions(context: Context): List<NotificationCompat.Action> {
+        return buildList {
+            add(getTInvestAction(context, event.ticker, event.securityType))
+            getFinamAction(context, event.ticker, event.securityType)?.let {
+                add(it)
+            }
         }
     }
 }
