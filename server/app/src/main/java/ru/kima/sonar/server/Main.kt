@@ -30,6 +30,7 @@ import ru.kima.sonar.server.feature.portfolios.service.core.initializeFirebase
 import ru.kima.sonar.server.feature.portfolios.service.runUpdateService
 import ru.kima.sonar.server.feature.securities.routing.securitiesRoute
 import ru.kima.sonar.server.lifecycle.shutdownHook
+import ru.kima.sonar.server.migrations.migrations
 import ru.kima.sonar.server.util.setLogbackLevel
 
 class Program : CliktCommand() {
@@ -73,6 +74,7 @@ class Program : CliktCommand() {
             portfoliosRoute()
             runUpdateService()
             shutdownHook()
+            migrations()
         }.start(wait = true)
     }
 }
