@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.koin.compiler)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -21,6 +22,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    ksp {
+        arg("room.schemaLocation", "${projectDir}/schemas")
+    }
 }
 
 dependencies {
@@ -31,8 +35,14 @@ dependencies {
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.koin.core)
+    implementation(libs.koin.android)
     implementation(libs.slf4j.andrpid)
+
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    annotationProcessor(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
     implementation(project(":common:util"))
     implementation(project(":client:data:application-config"))
 
