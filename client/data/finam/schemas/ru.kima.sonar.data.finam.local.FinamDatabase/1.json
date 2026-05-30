@@ -1,0 +1,37 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "ddc2fb542e1297ede6b29e42674cde4c",
+    "entities": [
+      {
+        "tableName": "finam_id",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ticker` TEXT NOT NULL, `remote_identifier` TEXT NOT NULL, PRIMARY KEY(`ticker`))",
+        "fields": [
+          {
+            "fieldPath": "ticker",
+            "columnName": "ticker",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteIdentifier",
+            "columnName": "remote_identifier",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ticker"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ddc2fb542e1297ede6b29e42674cde4c')"
+    ]
+  }
+}
