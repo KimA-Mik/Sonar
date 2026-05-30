@@ -2,9 +2,11 @@ package ru.kima.sonar.di
 
 import org.koin.dsl.module
 import ru.kima.sonar.data.applicationconfig.di.localConfigModule
+import ru.kima.sonar.data.finam.di.finamModule
 import ru.kima.sonar.data.homeapi.di.homeApiModule
 
 val dataModule = module {
     includes(localConfigModule())
+    includes(finamModule())
     includes(homeApiModule())
 }
