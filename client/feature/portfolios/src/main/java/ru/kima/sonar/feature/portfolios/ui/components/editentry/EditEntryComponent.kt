@@ -1,6 +1,7 @@
 package ru.kima.sonar.feature.portfolios.ui.components.editentry
 
 import androidx.compose.runtime.Immutable
+import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import java.math.BigDecimal
 
 @Immutable
@@ -13,6 +14,8 @@ internal sealed interface EditEntryComponent {
         override val key: String,
         override val uid: String,
         val title: String,
+        val ticker: String,
+        val securityType: SecurityType,
         val price: BigDecimal,
         val targetDeviation: String,
         val id: Long,

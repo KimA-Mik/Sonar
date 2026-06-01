@@ -1,6 +1,7 @@
 package ru.kima.sonar.feature.portfolios.ui.addentries.model.mapper
 
 import ru.kima.sonar.common.serverapi.dto.securitieslist.response.ListItemFuture
+import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import ru.kima.sonar.feature.portfolios.ui.addentries.model.AddableSecurity
 
 internal fun ListItemFuture.toAddableSecurity(
@@ -8,6 +9,7 @@ internal fun ListItemFuture.toAddableSecurity(
 ) = AddableSecurity(
     uid = uid,
     ticker = ticker,
+    securityType = SecurityType.FUTURE,
     name = name,
     price = price,
     selected = selected,

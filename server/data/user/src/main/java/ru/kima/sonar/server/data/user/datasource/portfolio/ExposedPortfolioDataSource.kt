@@ -296,6 +296,21 @@ internal class ExposedPortfolioDataSource(
         }
     }
 
+    override suspend fun allEntries(): SonarResult<List<PortfolioEntry>, UserDataError> {
+        return try {
+            val result = databaseConnector.suspendTransaction {
+                PortfolioEntryEntity.all().with(
+                    PortfolioEntryEntity::stopLosses,
+                    PortfolioEntryEntity::takeProfits
+                ).map { it.toDomainModel() }
+            }
+            SonarResult.Success(result)
+        } catch (e: Exception) {
+            logger.error("Error getting all portfolio entries", e)
+            SonarResult.Error(UserDataError.UnknownError(e))
+        }
+    }
+
     override suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError> {
         return try {
             var found = false

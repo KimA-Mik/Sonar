@@ -270,6 +270,8 @@ internal class AddEntriesViewModel(
             AddPortfolioEntryRequest.Entry(
                 securityUid = it.uid,
                 name = it.name,
+                ticker = it.ticker,
+                securityType = it.securityType,
                 targetDeviation = it.targetDeviation,
                 stopLosses = it.stopLosses,
                 takeProfits = it.takeProfits,
@@ -419,6 +421,8 @@ internal class AddEntriesViewModel(
             id = 0,
             uid = security.uid,
             name = security.name,
+            ticker = security.ticker,
+            securityType = security.securityType,
             targetDeviation = percent,
             price = security.price,
             lowPrice = percent,

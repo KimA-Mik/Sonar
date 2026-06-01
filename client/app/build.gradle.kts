@@ -80,6 +80,7 @@ dependencies {
 
     implementation(project(":client:common:ui"))
     implementation(project(":client:data:application-config"))
+    implementation(project(":client:data:finam"))
     implementation(project(":client:data:home-api"))
     implementation(project(":client:feature:authentication"))
     implementation(project(":client:feature:notifications"))

@@ -10,6 +10,8 @@ internal class PortfolioEntryEntity(id: EntityID<Long>) : LongEntity(id) {
     var portfolioId by PortfolioEntryTable.portfolioId
     var securityUid by PortfolioEntryTable.securityUid
     var name by PortfolioEntryTable.name
+    var ticker by PortfolioEntryTable.ticker
+    var securityType by PortfolioEntryTable.securityType
     var targetDeviation by PortfolioEntryTable.targetDeviation
     var lowPrice by PortfolioEntryTable.lowPrice
     var highPrice by PortfolioEntryTable.highPrice

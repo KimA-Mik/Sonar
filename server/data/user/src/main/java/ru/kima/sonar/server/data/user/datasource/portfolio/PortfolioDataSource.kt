@@ -33,6 +33,7 @@ interface PortfolioDataSource {
         stopLossesToUpdate: List<StopLoss>
     ): SonarResult<PortfolioEntry, UserDataError>
     suspend fun updatePortfolioEntries(entries: List<PortfolioEntry>): SonarResult<Unit, UserDataError>
+    suspend fun allEntries(): SonarResult<List<PortfolioEntry>, UserDataError>
     suspend fun deletePortfolioEntry(id: Long): SonarResult<Unit, UserDataError>
     suspend fun getEntryById(id: Long): SonarResult<PortfolioEntry, UserDataError>
     suspend fun createStopLoss(entryId: Long): SonarResult<Long, UserDataError>

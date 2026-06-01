@@ -7,20 +7,27 @@ import android.os.Build
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
+import org.koin.core.qualifier.named
 import ru.kima.sonar.common.serverapi.events.NotificationEvent
-import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.common.ui.util.CommonDrawables
 import ru.kima.sonar.feature.notifications.R
-import ru.kima.sonar.feature.notifications.notifications.BoundPriceNotification
-import ru.kima.sonar.feature.notifications.notifications.UnboundPriceNotification
+import ru.kima.sonar.feature.notifications.di.qualifier
+import ru.kima.sonar.feature.notifications.notifications.EventNotificationFormat
 
 class SonarNotificationsManager(
     private val context: Context
-) {
+) : KoinComponent {
 
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    private val coroutineScope = CoroutineScope(SupervisorJob())
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -60,10 +67,7 @@ class SonarNotificationsManager(
     }
 
     fun showNotificationEvent(messageId: Int, event: NotificationEvent) {
-        val format = when (event) {
-            is BoundPriceEvent -> BoundPriceNotification(event)
-            is UnboundPriceEvent -> UnboundPriceNotification(event)
-        }
+        val format = getFormat(event)
         val title = format.title(context.resources)
         val text = format.body(context.resources)
         val notificationLayout = RemoteViews(context.packageName, R.layout.notification_small)
@@ -73,14 +77,31 @@ class SonarNotificationsManager(
         notificationLayoutExpanded.setTextViewText(R.id.notification_large_title, title)
         notificationLayoutExpanded.setTextViewText(R.id.notification_body, text)
 
-        val notification = NotificationCompat
+        val builder = NotificationCompat
             .Builder(context, PORTFOLIO_EVENTS_NOTIFICATION_CHANNEL_ID)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSmallIcon(CommonDrawables.exclamation_24px)
             .setCustomContentView(notificationLayout)
             .setCustomBigContentView(notificationLayoutExpanded)
-            .build()
-        notificationManager.notify(messageId, notification)
+
+        format.actions(context).forEach {
+            builder.addAction(it)
+        }
+
+        notificationManager.notify(messageId, builder.build())
+
+        coroutineScope.launch {
+            val newActions = format.deferredActions(context)
+            if (newActions.isEmpty()) return@launch
+            newActions.forEach {
+                builder.addAction(it)
+            }
+            notificationManager.notify(messageId, builder.build())
+        }
+    }
+
+    private fun getFormat(event: NotificationEvent): EventNotificationFormat {
+        return get(named(event.qualifier())) { parametersOf(event) }
     }
 
     companion object {

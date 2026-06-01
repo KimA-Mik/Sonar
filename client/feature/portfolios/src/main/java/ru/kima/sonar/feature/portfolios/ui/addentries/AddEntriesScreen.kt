@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.kima.sonar.common.serverapi.model.portfolio.PortfolioEntry
+import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import ru.kima.sonar.common.serverapi.model.portfolio.StopLoss
 import ru.kima.sonar.common.serverapi.model.portfolio.TakeProfit
 import ru.kima.sonar.common.ui.components.AppBar
@@ -247,6 +248,8 @@ private fun AddEntriesScreenPreview() = SonarPreview {
             id = 0,
             uid = "0",
             name = "0",
+            ticker = "",
+            securityType = SecurityType.SHARE,
             targetDeviation = 0.toBigDecimal(),
             price = 0.toBigDecimal(),
             lowPrice = 0.toBigDecimal(),
@@ -279,6 +282,8 @@ private fun AddEntriesScreenPreview() = SonarPreview {
             id = 1,
             uid = "1",
             name = "1",
+            ticker = "",
+            securityType = SecurityType.SHARE,
             targetDeviation = 1.toBigDecimal(),
             price = 1.toBigDecimal(),
             lowPrice = 1.toBigDecimal(),
