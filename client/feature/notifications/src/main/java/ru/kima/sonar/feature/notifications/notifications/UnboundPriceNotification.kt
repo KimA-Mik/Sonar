@@ -4,10 +4,12 @@ import android.content.Context
 import android.content.res.Resources
 import androidx.core.app.NotificationCompat
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
+import ru.kima.sonar.data.finam.repository.FinamRepository
 import ru.kima.sonar.feature.notifications.R
 
 internal class UnboundPriceNotification(
-    private val event: UnboundPriceEvent
+    private val event: UnboundPriceEvent,
+    private val finamRepository: FinamRepository
 ) : EventNotificationFormat {
     override fun title(resources: Resources): String {
         val df = decimalFormat()
@@ -70,7 +72,12 @@ internal class UnboundPriceNotification(
     override fun actions(context: Context): List<NotificationCompat.Action> {
         return buildList {
             add(getTInvestAction(context, event.ticker, event.securityType))
-            getFinamAction(context, event.ticker, event.securityType)?.let {
+        }
+    }
+
+    override suspend fun deferredActions(context: Context): List<NotificationCompat.Action> {
+        return buildList {
+            getFinamAction(context, event.ticker, event.securityType, finamRepository)?.let {
                 add(it)
             }
         }

@@ -1,5 +1,7 @@
 package ru.kima.sonar.data.finam.repository
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ru.kima.sonar.common.util.SonarResult
 import ru.kima.sonar.common.util.isError
 import ru.kima.sonar.data.finam.local.dao.FinamIdDao
@@ -12,8 +14,10 @@ internal class FinamRepositoryImpl(
     private val localDataSource: FinamIdDao,
     private val remoteDataSource: RemoteFinamDataSource
 ) : FinamRepository {
-    private val finamRegex = "https://www.finam.ru/quote/moex/[a-zA-Z0-9]*/".toRegex()
-    override suspend fun findFinamId(ticker: String): SonarResult<String, FinamRepositoryError> {
+    private val mutex = Mutex()
+    private val finamRegex = "/quote/moex/[a-zA-Z0-9]*/".toRegex()
+    override suspend fun findFinamId(ticker: String): SonarResult<String, FinamRepositoryError> =
+        mutex.withLock {
         localDataSource.findByTicker(ticker)
             ?.let { return SonarResult.Success(it.remoteIdentifier) }
         val result = remoteDataSource.findTicker(ticker)

@@ -6,6 +6,8 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
+import ru.kima.sonar.common.util.valueOr
+import ru.kima.sonar.data.finam.repository.FinamRepository
 import ru.kima.sonar.feature.notifications.R
 
 fun getTInvestAction(
@@ -35,15 +37,17 @@ fun getTInvestAction(
     )
 }
 
-fun getFinamAction(
+suspend fun getFinamAction(
     context: Context,
     ticker: String,
-    securityType: SecurityType
+    securityType: SecurityType,
+    finamRepository: FinamRepository
 ): NotificationCompat.Action? {
-    val url = when (securityType) {
-        SecurityType.SHARE -> "https://www.finam.ru/quote/moex/${ticker.lowercase()}/"
-        SecurityType.FUTURE -> return null
+    val securityId = when (securityType) {
+        SecurityType.SHARE -> ticker.lowercase()
+        SecurityType.FUTURE -> finamRepository.findFinamId(ticker).valueOr { return null }
     }
+    val url = "https://www.finam.ru/quote/moex/$securityId/"
 
     val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
     val pendingIntentFlags =
