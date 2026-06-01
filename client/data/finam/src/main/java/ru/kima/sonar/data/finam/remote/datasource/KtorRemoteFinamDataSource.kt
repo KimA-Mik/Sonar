@@ -4,12 +4,15 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.headers
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -20,7 +23,9 @@ import ru.kima.sonar.data.finam.remote.dto.FinamResponse
 
 private const val TAG = "KtorRemoteFinamDataSource"
 
-internal class KtorRemoteFinamDataSource : RemoteFinamDataSource {
+internal class KtorRemoteFinamDataSource(
+    cookieStorage: CookiesStorage
+) : RemoteFinamDataSource {
     private val client = HttpClient(OkHttp) {
         install(Logging) {
             logger = Logger.DEFAULT
@@ -28,10 +33,14 @@ internal class KtorRemoteFinamDataSource : RemoteFinamDataSource {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
+        install(HttpCookies) {
+            storage = cookieStorage
+        }
     }
 
     override suspend fun findTicker(ticker: String): SonarResult<String, FinamError> = try {
-        val request = client.post(FINAM_PLUGIN_URL) {
+        val request = client.request(FINAM_PLUGIN_URL) {
+            method = HttpMethod.Post
             headers {
                 append("Host", "www.finam.ru")
                 append(
@@ -63,10 +72,10 @@ internal class KtorRemoteFinamDataSource : RemoteFinamDataSource {
             }
             return SonarResult.Success(response.html)
         } else {
-            SonarResult.Error(FinamError.RequestFailed(request.status.value))
+            return SonarResult.Error(FinamError.RequestFailed(request.status.value))
         }
     } catch (e: Exception) {
-        SonarResult.Error(FinamError.Unknown(e))
+        return SonarResult.Error(FinamError.Unknown(e))
     }
 
     companion object {

@@ -43,6 +43,9 @@ dependencies {
     annotationProcessor(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
+    implementation(libs.androidx.datastore)
+    implementation(libs.kotlinx.serialization.protobuf)
+
     implementation(project(":common:util"))
     implementation(project(":client:data:application-config"))
 

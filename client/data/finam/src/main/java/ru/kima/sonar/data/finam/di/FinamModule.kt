@@ -1,11 +1,13 @@
 package ru.kima.sonar.data.finam.di
 
 import androidx.room.Room
+import io.ktor.client.plugins.cookies.CookiesStorage
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import ru.kima.sonar.data.finam.local.FinamDatabase
+import ru.kima.sonar.data.finam.remote.cookies.LocalCookieStorage
 import ru.kima.sonar.data.finam.remote.datasource.KtorRemoteFinamDataSource
 import ru.kima.sonar.data.finam.remote.datasource.RemoteFinamDataSource
 import ru.kima.sonar.data.finam.repository.FinamRepository
@@ -32,4 +34,6 @@ fun finamModule() = module {
 
     singleOf(::KtorRemoteFinamDataSource) bind RemoteFinamDataSource::class
     singleOf(::FinamRepositoryImpl) bind FinamRepository::class
+
+    single { LocalCookieStorage(context = androidContext()) } bind CookiesStorage::class
 }
