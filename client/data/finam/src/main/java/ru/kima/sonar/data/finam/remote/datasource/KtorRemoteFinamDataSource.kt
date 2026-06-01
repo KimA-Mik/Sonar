@@ -3,6 +3,7 @@ package ru.kima.sonar.data.finam.remote.datasource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
@@ -36,6 +37,10 @@ internal class KtorRemoteFinamDataSource(
         install(HttpCookies) {
             storage = cookieStorage
         }
+        install(ContentEncoding) {
+            gzip()
+            deflate()
+        }
     }
 
     override suspend fun findTicker(ticker: String): SonarResult<String, FinamError> = try {
@@ -49,7 +54,7 @@ internal class KtorRemoteFinamDataSource(
                 )
                 append("Accept", "application/json, text/javascript, */*; q=0.01")
                 append("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")
-                append("Accept-Encoding", "gzip, deflate, br, zstd")
+                append("Accept-Encoding", "gzip, deflate")
                 append("Content-Type", "application/json; charset=utf-8")
                 append("X-Requested-With", "XMLHttpRequest")
                 append("Origin", "https://www.finam.ru")
