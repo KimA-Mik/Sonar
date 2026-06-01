@@ -49,6 +49,12 @@ class SonarNotificationsManager(
         return channel
     }
 
+    fun showUnknownMessageNotification(id: Int) {
+        val title = context.getString(R.string.unknown_notification_title)
+        val text = context.getString(R.string.unknown_notification_text)
+        showBasicNotification(id, title, text)
+    }
+
     fun showBasicNotification(id: Int, title: String, text: String) {
         val notificationLayout = RemoteViews(context.packageName, R.layout.notification_small)
         val notificationLayoutExpanded =

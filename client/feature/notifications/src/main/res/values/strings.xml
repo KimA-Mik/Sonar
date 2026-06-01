@@ -32,6 +32,9 @@
     <string name="event_unbound_price_is_greater"> is %1$s%% greater than %2$s</string>
     <string name="event_unbound_price_is_lower"> is %1$s%% lower than %2$s</string>
 
+    <string name="unknown_notification_title">Received unknown event</string>
+    <string name="unknown_notification_text">Maybe you should update your app</string>
+
     <string name="action_finam" translatable="false">Finam</string>
     <string name="action_tinvest" translatable="false">T-Invest</string>
 </resources>

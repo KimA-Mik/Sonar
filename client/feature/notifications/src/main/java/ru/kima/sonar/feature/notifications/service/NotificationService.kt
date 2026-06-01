@@ -44,6 +44,7 @@ class NotificationService : FirebaseMessagingService() {
             Json.decodeFromString<NotificationEvent>(raw)
         } catch (e: Exception) {
             Log.e(TAG, "Unable to decode event because of $e")
+            notificationsManager.showUnknownMessageNotification(-1)
             return
         }
 
