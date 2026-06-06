@@ -173,13 +173,95 @@ class UpdateService(
             val price = lastPrices[entry.securityUid] ?: continue
             val cacheEntry = cache[entry.securityUid] ?: continue
 
-            val current =
-                handlePrice(user, portfolio.portfolio, entry, price, cacheEntry, portfolio.rule)
+            val current = when (portfolio.rule.mode) {
+                RulesMode.RULES_DISABLED -> handlePrice(
+                    user,
+                    portfolio.portfolio,
+                    entry,
+                    price,
+                    cacheEntry,
+                    portfolio.rule
+                )
+
+                RulesMode.LIMIT_SECURITIES -> handlePrice(
+                    user,
+                    portfolio.portfolio,
+                    entry,
+                    price,
+                    cacheEntry,
+                    portfolio.rule
+                )
+
+                RulesMode.RULES_NOTIFICATIONS -> handleRuleNotification(
+                    user,
+                    portfolio.portfolio,
+                    entry,
+                    price,
+                    cacheEntry,
+                    portfolio.rule
+                )
+
+                RulesMode.RULES_AND_SECURITIES -> entry
+            }
+
 
             if (current != entry) {
                 updatedEntries.add(current)
             }
         }
+    }
+
+    private suspend fun handleRuleNotification(
+        user: UserAndSessions,
+        portfolio: Portfolio,
+        entry: PortfolioEntry,
+        lastPrice: LastPrice,
+        indicators: CacheEntry,
+        rule: PortfolioRule
+    ): PortfolioEntry {
+        if (!entry.enabled) return entry
+        if (rule.mode != RulesMode.RULES_NOTIFICATIONS) return entry
+
+        val now = Clock.System.now()
+        if (now - entry.lastUnboundUpdate < unboundUpdateIntervalSec) {
+            return entry
+        }
+
+        val price = lastPrice.price.toDouble()
+        if (rule.rule.execute(price, indicators)) {
+            var noteLength = Int.MIN_VALUE
+            var note = ""
+            for (stopLoss in entry.stopLosses) {
+                if (stopLoss.note.length > noteLength) {
+                    noteLength = stopLoss.note.length
+                    note = stopLoss.note
+                }
+            }
+
+            for (takeProfit in entry.takeProfits) {
+                if (takeProfit.note.length > noteLength) {
+                    noteLength = takeProfit.note.length
+                    note = takeProfit.note
+                }
+            }
+
+            val event = UpdateServiceEvent.RulesAlert(
+                user = user,
+                portfolio = portfolio,
+                entry = entry,
+                indicators = indicators,
+                lastPrice = lastPrice,
+                note = note
+            )
+
+            updateHandler.consume(event)
+            return entry.copy(
+                lastUnboundUpdate = now,
+                lastUnboundUpdatePrice = lastPrice.price
+            )
+        }
+
+        return entry
     }
 
     private suspend fun handlePrice(
