@@ -342,7 +342,14 @@ private fun ModeSelector(
                         expanded = false
                         onSelect(RulesMode.LIMIT_SECURITIES)
                     }
-                )
+                ),
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.menu_label_rules_notifications,
+                    onClick = {
+                        expanded = false
+                        onSelect(RulesMode.RULES_NOTIFICATIONS)
+                    }
+                ),
             )
         }
 
