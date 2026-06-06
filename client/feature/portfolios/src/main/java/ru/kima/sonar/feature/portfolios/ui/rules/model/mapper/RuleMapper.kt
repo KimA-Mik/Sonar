@@ -1,5 +1,6 @@
 package ru.kima.sonar.feature.portfolios.ui.rules.model.mapper
 
+import ru.kima.sonar.common.serverapi.model.rules.AdxRule
 import ru.kima.sonar.common.serverapi.model.rules.BbRule
 import ru.kima.sonar.common.serverapi.model.rules.GroupRule
 import ru.kima.sonar.common.serverapi.model.rules.MfiRule
@@ -93,6 +94,17 @@ private fun flattenRules(
                 parent = parent
             )
         )
+
+        is AdxRule -> listOf(
+            DisplayRule.Indicator.Adx(
+                key = startKey,
+                depth = depth,
+                low = rule.lowThreshold.toFloat(),
+                high = rule.highThreshold.toFloat(),
+                threshold = rule.requiredCount,
+                parent = parent
+            )
+        )
     }
 }
 
@@ -125,6 +137,12 @@ private fun DisplayRule.toRule(allRules: List<DisplayRule>): Rule {
         )
 
         is DisplayRule.Indicator.Bb -> BbRule(
+            requiredCount = threshold,
+            lowThreshold = BigDecimal.valueOf(low.toDouble()),
+            highThreshold = BigDecimal.valueOf(high.toDouble())
+        )
+
+        is DisplayRule.Indicator.Adx -> AdxRule(
             requiredCount = threshold,
             lowThreshold = BigDecimal.valueOf(low.toDouble()),
             highThreshold = BigDecimal.valueOf(high.toDouble())

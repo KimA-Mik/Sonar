@@ -33,6 +33,13 @@ internal sealed interface RulesAction {
         val highThreshold: Float
     ) : RulesAction
 
+    data class UpdateAdxRuleAction(
+        override val key: Long,
+        val requiredCount: Int,
+        val lowThreshold: Float,
+        val highThreshold: Float
+    ) : RulesAction
+
     data class UpdateGroupRuleTruthThreshold(
         override val key: Long,
         val truthThreshold: Int

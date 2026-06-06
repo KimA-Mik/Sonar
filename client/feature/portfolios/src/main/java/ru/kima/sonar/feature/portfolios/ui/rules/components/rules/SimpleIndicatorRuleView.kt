@@ -52,6 +52,7 @@ internal fun SimpleIndicatorRuleView(
                     is DisplayRule.Indicator.Mfi -> R.string.rule_title_mfi
                     is DisplayRule.Indicator.Rsi -> R.string.rule_title_rsi
                     is DisplayRule.Indicator.Srsi -> R.string.rule_title_srsi
+                    is DisplayRule.Indicator.Adx -> R.string.rule_title_adx
                 }
                 Text(stringResource(id))
                 titleContent?.let {
@@ -89,6 +90,13 @@ internal fun SimpleIndicatorRuleView(
                     lowThreshold = range.start,
                     highThreshold = range.endInclusive
                 )
+
+                is DisplayRule.Indicator.Adx -> RulesAction.UpdateAdxRuleAction(
+                    key = rule.key,
+                    requiredCount = rule.threshold,
+                    lowThreshold = range.start,
+                    highThreshold = range.endInclusive
+                )
             }
             onAction(action)
         },
@@ -118,6 +126,13 @@ internal fun SimpleIndicatorRuleView(
                 )
 
                 is DisplayRule.Indicator.Srsi -> RulesAction.UpdateSrsiRuleAction(
+                    key = rule.key,
+                    requiredCount = count,
+                    lowThreshold = rule.low,
+                    highThreshold = rule.high
+                )
+
+                is DisplayRule.Indicator.Adx -> RulesAction.UpdateAdxRuleAction(
                     key = rule.key,
                     requiredCount = count,
                     lowThreshold = rule.low,

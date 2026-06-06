@@ -377,6 +377,7 @@ private fun RootRoleSelector(
             is DisplayRule.Indicator.Mfi -> R.string.rule_title_mfi
             is DisplayRule.Indicator.Rsi -> R.string.rule_title_rsi
             is DisplayRule.Indicator.Srsi -> R.string.rule_title_srsi
+            is DisplayRule.Indicator.Adx -> R.string.rule_title_adx
             null -> null
         }
         id?.let {

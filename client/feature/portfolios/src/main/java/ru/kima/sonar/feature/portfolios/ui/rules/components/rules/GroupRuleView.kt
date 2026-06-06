@@ -68,6 +68,10 @@ internal fun rememberRulesMenu(
                 SonarDropdownMenuItem.SimpleItem(
                     title = R.string.rule_title_bb,
                     onClick = { onSelect(RuleType.BB) }
+                ),
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.rule_title_adx,
+                    onClick = { onSelect(RuleType.ADX) }
                 )
             )
         )

@@ -60,6 +60,16 @@ sealed interface DisplayRule {
             override val threshold: Int,
             override val parent: ParentRule?
         ) : Indicator
+
+        @Immutable
+        data class Adx(
+            override val key: Long,
+            override val depth: Int,
+            override val low: Float,
+            override val high: Float,
+            override val threshold: Int,
+            override val parent: ParentRule?
+        ) : Indicator
     }
 
     fun ruleType(): RuleType = when (this) {
@@ -68,5 +78,6 @@ sealed interface DisplayRule {
         is Indicator.Srsi -> RuleType.SRSI
         is Indicator.Mfi -> RuleType.MFI
         is Indicator.Bb -> RuleType.BB
+        is Indicator.Adx -> RuleType.ADX
     }
 }
