@@ -217,10 +217,12 @@ fun ListItemShare(
     modifier: Modifier = Modifier
 ) = Row(
     modifier = modifier,
-    horizontalArrangement = Arrangement.SpaceBetween,
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically
 ) {
-    Column {
+    Column(
+        modifier = Modifier.weight(1f)
+    ) {
         Text(ticker, style = MaterialTheme.typography.headlineSmall)
         Text(name, style = MaterialTheme.typography.bodyMedium)
     }
@@ -256,6 +258,12 @@ private fun SecuritiesListScreenPreview() = SonarPreview {
                     ticker = "GOOGL",
                     name = "Alphabet Inc.",
                     price = BigDecimal("2800.0"),
+                ),
+                DisplayListItemShare(
+                    uid = "3",
+                    ticker = "MSFT",
+                    name = "Microsoft Corporation and kinda long description to test overflow",
+                    price = BigDecimal("300.0"),
                 )
             )
         ),
