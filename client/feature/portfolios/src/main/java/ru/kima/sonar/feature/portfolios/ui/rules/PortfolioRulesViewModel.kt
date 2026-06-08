@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.kima.sonar.common.serverapi.model.portfolio.RuleEditPortfolio
+import ru.kima.sonar.common.serverapi.model.rules.AdxRule
 import ru.kima.sonar.common.serverapi.model.rules.BbRule
 import ru.kima.sonar.common.serverapi.model.rules.MfiRule
 import ru.kima.sonar.common.serverapi.model.rules.RsiRule
@@ -169,6 +170,15 @@ internal class PortfolioRulesViewModel(
                 depth = 0,
                 parent = null
             )
+
+            RuleType.ADX -> DisplayRule.Indicator.Adx(
+                key = 1,
+                depth = 0,
+                low = oldLow ?: dummyAdx.defaultLowThreshold,
+                high = oldHigh ?: dummyAdx.defaultHighThreshold,
+                threshold = oldThreshold,
+                parent = null
+            )
         }
 
         _rules.value = persistentListOf(newRoot)
@@ -222,6 +232,15 @@ internal class PortfolioRulesViewModel(
                         key = key,
                         threshold = 1,
                         depth = parent.depth + 1,
+                        parent = parent
+                    )
+
+                    RuleType.ADX -> DisplayRule.Indicator.Adx(
+                        key = key,
+                        depth = parent.depth + 1,
+                        low = dummyAdx.defaultLowThreshold,
+                        high = dummyAdx.defaultHighThreshold,
+                        threshold = 2,
                         parent = parent
                     )
                 }
@@ -298,6 +317,17 @@ internal class PortfolioRulesViewModel(
                 )
                 _rules.value = list.toImmutableList()
             }
+
+            is RulesAction.UpdateAdxRuleAction -> {
+                val (index, old) = findIndexOrReturn<DisplayRule.Indicator.Adx>(action.key) { return }
+                val list = _rules.value.toMutableList()
+                list[index] = old.copy(
+                    threshold = action.requiredCount,
+                    low = action.lowThreshold,
+                    high = action.highThreshold
+                )
+                _rules.value = list.toImmutableList()
+            }
         }
     }
 
@@ -345,5 +375,6 @@ internal class PortfolioRulesViewModel(
     private val dummySrsi = SrsiRule(0, BigDecimal(0), BigDecimal(0))
     private val dummyMfi = MfiRule(0, BigDecimal(0), BigDecimal(0))
     private val dummyBb = BbRule(0, BigDecimal(0), BigDecimal(0))
+    private val dummyAdx = AdxRule(0, BigDecimal(0), BigDecimal(0))
 
 }

@@ -342,7 +342,14 @@ private fun ModeSelector(
                         expanded = false
                         onSelect(RulesMode.LIMIT_SECURITIES)
                     }
-                )
+                ),
+                SonarDropdownMenuItem.SimpleItem(
+                    title = R.string.menu_label_rules_notifications,
+                    onClick = {
+                        expanded = false
+                        onSelect(RulesMode.RULES_NOTIFICATIONS)
+                    }
+                ),
             )
         }
 
@@ -377,6 +384,7 @@ private fun RootRoleSelector(
             is DisplayRule.Indicator.Mfi -> R.string.rule_title_mfi
             is DisplayRule.Indicator.Rsi -> R.string.rule_title_rsi
             is DisplayRule.Indicator.Srsi -> R.string.rule_title_srsi
+            is DisplayRule.Indicator.Adx -> R.string.rule_title_adx
             null -> null
         }
         id?.let {

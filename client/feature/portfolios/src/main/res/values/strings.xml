@@ -27,6 +27,7 @@
     <string name="rule_title_srsi" translatable="false">SRSI</string>
     <string name="rule_title_mfi" translatable="false">MFI</string>
     <string name="rule_title_bb">Bollinger bands</string>
+    <string name="rule_title_adx" translatable="false">ADX</string>
     <string name="label_timeframes">Timeframes</string>
     <string name="label_truth_threshold">Truth threshold</string>
     <string name="snackbar_message_securities_recognised">%1$d securities recognised</string>

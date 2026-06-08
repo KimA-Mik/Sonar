@@ -19,9 +19,10 @@
     <string name="event_planned_ask_price">Планируемая цена покупки: %1$s</string>
     <string name="event_price_deviation">Отклонение: %1$s%%</string>
     <string name="event_bid_price_deviation">Отклонение от цены продажи: %1$s%%</string>
-    <string name="event_ask_price_deviation">Отклонение от цены покуоки: %1$s%%</string>
+    <string name="event_ask_price_deviation">Отклонение от цены покупки: %1$s%%</string>
     <string name="indicators_headline">Индикаторы</string>
     <string name="note_headline">"Заметка: "</string>
+    <string name="portfolio_headline">Портфель: </string>
 
     <string name="unknown_notification_title">Получено неизвестное событие</string>
     <string name="unknown_notification_text">Возможно вам стоит обновить приложение</string>
@@ -29,4 +30,6 @@
     <string name="event_unbound_price_below">%1$s стоит дешевле, чем %2$s</string>
     <string name="event_unbound_price_is_greater">" на %1$s%% больше, чем %2$s"</string>
     <string name="event_unbound_price_is_lower">" на %1$s%% меньше, чем %2$s"</string>
+
+    <string name="event_rules_title">%1$s достиг своих индикаторов</string>
 </resources>

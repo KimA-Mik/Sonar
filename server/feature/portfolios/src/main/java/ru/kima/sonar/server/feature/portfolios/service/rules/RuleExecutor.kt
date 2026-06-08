@@ -1,5 +1,6 @@
 package ru.kima.sonar.server.feature.portfolios.service.rules
 
+import ru.kima.sonar.common.serverapi.model.rules.AdxRule
 import ru.kima.sonar.common.serverapi.model.rules.BbRule
 import ru.kima.sonar.common.serverapi.model.rules.GroupRule
 import ru.kima.sonar.common.serverapi.model.rules.MfiRule
@@ -74,6 +75,13 @@ fun SimpleIndicatorRule.execute(currentPrice: Double, cacheEntry: CacheEntry): B
             BigDecimal(cacheEntry.hourlySrsi),
             BigDecimal(cacheEntry.hour4Srsi),
             BigDecimal(cacheEntry.dailySrsi)
+        )
+
+        is AdxRule -> listOf(
+            BigDecimal(cacheEntry.min15Adx),
+            BigDecimal(cacheEntry.hourlyAdx),
+            BigDecimal(cacheEntry.hour4Adx),
+            BigDecimal(cacheEntry.dailyAdx)
         )
     }
 

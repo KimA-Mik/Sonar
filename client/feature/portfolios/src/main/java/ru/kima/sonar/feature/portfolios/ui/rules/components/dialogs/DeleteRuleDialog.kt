@@ -45,6 +45,7 @@ internal fun DeleteRuleDialog(
                 RuleType.MFI -> R.string.rule_title_mfi
                 RuleType.BB -> R.string.bollinger_bands_rule_lowercase
                 RuleType.GROUP -> R.string.group_rule_lowercase
+                RuleType.ADX -> R.string.rule_title_adx
             }
             Text(stringResource(R.string.delete_rule_dialog_title, stringResource(ruleName)))
         },

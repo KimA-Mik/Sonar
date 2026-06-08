@@ -4,15 +4,14 @@ import org.slf4j.LoggerFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.indicators.RSIIndicator
 import org.ta4j.core.indicators.StochasticRSIIndicator
+import org.ta4j.core.indicators.adx.ADXIndicator
 import org.ta4j.core.indicators.averages.SMAIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
 import org.ta4j.core.indicators.volume.MoneyFlowIndexIndicator
 import ru.kima.sonar.common.serverapi.model.CandleInterval
 import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
-import ru.kima.sonar.server.feature.portfolios.techanalysis.BollingerBands
 import ru.kima.sonar.server.feature.portfolios.techanalysis.mappers.toSeries
-import ru.kima.sonar.server.feature.portfolios.util.lastDouble
 import kotlin.time.ExperimentalTime
 
 private const val DEFAULT_BAR_COUNT = 14
@@ -48,38 +47,41 @@ class IndicatorsCache(
         val dailyRsiInd = RSIIndicator(dailyClose, DEFAULT_BAR_COUNT)
         return try {
             CacheEntry(
-                min15Rsi = min15RsiInd.lastDouble(),
-                hourlyRsi = hourlyRsiInd.lastDouble(),
-                hour4Rsi = hour4RsiInd.lastDouble(),
-                dailyRsi = dailyRsiInd.lastDouble(),
-                min15bb = BollingerBands.calculate(min15Close),
-                hourlyBb = BollingerBands.calculate(hourlyClose),
-                hour4Bb = BollingerBands.calculate(hour4Close),
-                dailyBb = BollingerBands.calculate(dailyClose),
-                min15Mfi = MoneyFlowIndexIndicator(seriesResult.min15, DEFAULT_BAR_COUNT)
-                    .lastDouble(),
-                hourlyMfi = MoneyFlowIndexIndicator(seriesResult.hourly, DEFAULT_BAR_COUNT)
-                    .lastDouble(),
-                hour4Mfi = MoneyFlowIndexIndicator(seriesResult.hour4, DEFAULT_BAR_COUNT)
-                    .lastDouble(),
-                dailyMfi = MoneyFlowIndexIndicator(seriesResult.daily, DEFAULT_BAR_COUNT)
-                    .lastDouble(),
-                min15Srsi = SMAIndicator(
+                min15RsiIndicator = min15RsiInd,
+                hourlyRsiIndicator = hourlyRsiInd,
+                hour4RsiIndicator = hour4RsiInd,
+                dailyRsiIndicator = dailyRsiInd,
+                min15Close = min15Close,
+                hourlyClose = hourlyClose,
+                hour4Close = hour4Close,
+                dailyClose = dailyClose,
+                min15MfiIndicator = MoneyFlowIndexIndicator(seriesResult.min15, DEFAULT_BAR_COUNT),
+                hourlyMfiIndicator = MoneyFlowIndexIndicator(
+                    seriesResult.hourly,
+                    DEFAULT_BAR_COUNT
+                ),
+                hour4MfiIndicator = MoneyFlowIndexIndicator(seriesResult.hour4, DEFAULT_BAR_COUNT),
+                dailyMfiIndicator = MoneyFlowIndexIndicator(seriesResult.daily, DEFAULT_BAR_COUNT),
+                min15SrsiIndicator = SMAIndicator(
                     StochasticRSIIndicator(min15RsiInd, DEFAULT_BAR_COUNT),
                     STOCHASTIC_SMOOTHING_STEPS
-                ).lastDouble(),
-                hourlySrsi = SMAIndicator(
+                ),
+                hourlySrsiIndicator = SMAIndicator(
                     StochasticRSIIndicator(hourlyRsiInd, DEFAULT_BAR_COUNT),
                     STOCHASTIC_SMOOTHING_STEPS
-                ).lastDouble(),
-                hour4Srsi = SMAIndicator(
+                ),
+                hour4SrsiIndicator = SMAIndicator(
                     StochasticRSIIndicator(hour4RsiInd, DEFAULT_BAR_COUNT),
                     STOCHASTIC_SMOOTHING_STEPS
-                ).lastDouble(),
-                dailySrsi = SMAIndicator(
+                ),
+                dailySrsiIndicator = SMAIndicator(
                     StochasticRSIIndicator(dailyRsiInd, DEFAULT_BAR_COUNT),
                     STOCHASTIC_SMOOTHING_STEPS
-                ).lastDouble(),
+                ),
+                min15AdxIndicator = ADXIndicator(seriesResult.min15, DEFAULT_BAR_COUNT),
+                hourlyAdxIndicator = ADXIndicator(seriesResult.hourly, DEFAULT_BAR_COUNT),
+                hour4AdxIndicator = ADXIndicator(seriesResult.hour4, DEFAULT_BAR_COUNT),
+                dailyAdxIndicator = ADXIndicator(seriesResult.daily, DEFAULT_BAR_COUNT)
             )
         } catch (e: Exception) {
             val logger = LoggerFactory.getLogger(this::class.java)

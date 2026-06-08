@@ -31,4 +31,13 @@ sealed class UpdateServiceEvent {
         val priceType: BoundPriceEvent.PriceType,
         val note: String
     ) : UpdateServiceEvent()
+
+    data class RulesAlert(
+        override val user: UserAndSessions,
+        override val portfolio: Portfolio,
+        val entry: PortfolioEntry,
+        val indicators: CacheEntry,
+        val lastPrice: LastPrice,
+        val note: String
+    ) : UpdateServiceEvent()
 }

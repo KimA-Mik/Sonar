@@ -2,12 +2,14 @@ package ru.kima.sonar.server.feature.portfolios.service.mapper
 
 import ru.kima.sonar.common.serverapi.events.BoundPriceEvent
 import ru.kima.sonar.common.serverapi.events.NotificationEvent
+import ru.kima.sonar.common.serverapi.events.RulesEvent
 import ru.kima.sonar.common.serverapi.events.UnboundPriceEvent
 import ru.kima.sonar.server.feature.portfolios.service.UpdateServiceEvent
 
 fun UpdateServiceEvent.toNotificationEvent(): NotificationEvent = when (this) {
     is UpdateServiceEvent.PriceAlert -> toNotificationEvent()
     is UpdateServiceEvent.UnboundPriceAlert -> toNotificationEvent()
+    is UpdateServiceEvent.RulesAlert -> toNotificationEvent()
 }
 
 private fun UpdateServiceEvent.PriceAlert.toNotificationEvent() = BoundPriceEvent(
@@ -31,5 +33,16 @@ private fun UpdateServiceEvent.UnboundPriceAlert.toNotificationEvent() = Unbound
     indicators = indicators.toIndicators(),
     lastPrice = lastPrice,
     priceType = priceType,
+    note = note
+)
+
+private fun UpdateServiceEvent.RulesAlert.toNotificationEvent() = RulesEvent(
+    portfolioId = portfolio.id,
+    portfolioName = portfolio.name,
+    securityName = entry.name,
+    securityType = entry.securityType,
+    ticker = entry.ticker,
+    indicators = indicators.toIndicators(),
+    lastPrice = lastPrice,
     note = note
 )
