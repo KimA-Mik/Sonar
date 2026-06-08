@@ -8,6 +8,7 @@ import org.koin.plugin.module.dsl.single
 import ru.kima.sonar.feature.notifications.manager.SonarNotificationsManager
 import ru.kima.sonar.feature.notifications.notifications.BoundPriceNotification
 import ru.kima.sonar.feature.notifications.notifications.EventNotificationFormat
+import ru.kima.sonar.feature.notifications.notifications.RulesNotification
 import ru.kima.sonar.feature.notifications.notifications.UnboundPriceNotification
 
 val notificationsModule = module {
@@ -18,5 +19,8 @@ val notificationsModule = module {
     } bind EventNotificationFormat::class
     factoryOf(::UnboundPriceNotification) {
         qualifier = named(UnboundPriceNotification::class.java.simpleName)
+    } bind EventNotificationFormat::class
+    factoryOf(::RulesNotification) {
+        qualifier = named(RulesNotification::class.java.simpleName)
     } bind EventNotificationFormat::class
 }

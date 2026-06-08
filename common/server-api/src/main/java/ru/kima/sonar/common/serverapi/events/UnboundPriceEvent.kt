@@ -8,7 +8,7 @@ import ru.kima.sonar.common.serverapi.model.portfolio.SecurityType
 import ru.kima.sonar.common.serverapi.util.BigDecimalJson
 
 @Serializable
-@SerialName("UnboundPriceEvent")
+@SerialName("UnboundPrice")
 data class UnboundPriceEvent(
     val portfolioId: Long,
     val portfolioName: String,
