@@ -19,6 +19,7 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.resources.Resources
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.Koin
+import ru.kima.sonar.server.common.util.di.commonModule
 import ru.kima.sonar.server.di.dataModule
 import ru.kima.sonar.server.di.featureModule
 import ru.kima.sonar.server.di.rootModule
@@ -49,6 +50,7 @@ class Program : CliktCommand() {
             install(ContentNegotiation) { json() }
             install(Koin) {
                 modules(
+                    commonModule(),
                     dataModule(
                         usersDbName = usersDbName,
                         marketDataDbName = marketDbName,
