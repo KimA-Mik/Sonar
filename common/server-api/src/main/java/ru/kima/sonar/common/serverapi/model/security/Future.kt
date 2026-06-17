@@ -11,6 +11,7 @@ data class Future(
     override val ticker: String = "",
     override val name: String = "",
     override val lot: Int = 0,
+    override val firstTradeDate: Instant,
     val expirationDate: Instant,
     val basicAsset: String
 ) : Security

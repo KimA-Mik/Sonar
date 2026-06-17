@@ -2,7 +2,6 @@ package ru.kima.sonar.server.data.market.marketdata.remote
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +16,8 @@ import ru.kima.sonar.common.serverapi.model.schema.LastPriceType
 import ru.kima.sonar.common.serverapi.model.security.Future
 import ru.kima.sonar.common.serverapi.model.security.Share
 import ru.kima.sonar.common.util.sonarRunCaching
+import ru.kima.sonar.server.data.market.marketdata.local.consumer.CandleConsumer
+import ru.kima.sonar.server.data.market.marketdata.local.consumer.ConsumerEvent
 import ru.kima.sonar.server.data.market.marketdata.remote.service.InstrumentsService
 import ru.kima.sonar.server.data.market.marketdata.remote.service.MarketDataService
 import ru.kima.sonar.server.data.market.marketdata.remote.service.futures
@@ -44,6 +45,7 @@ import ru.ttech.piapi.core.connector.streaming.listeners.OnNextListener
 import ru.ttech.piapi.core.impl.marketdata.MarketDataStreamManager
 import ru.ttech.piapi.core.impl.marketdata.subscription.Instrument
 import ru.ttech.piapi.core.impl.marketdata.wrapper.LastPriceWrapper
+import java.time.ZoneOffset
 import java.util.Properties
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
@@ -52,12 +54,17 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlin.time.toKotlinInstant
 
 //Make dynamic
 private const val TINKOFF_UNARY_REQUEST_LIMIT = 50
 private val TINKOFF_RATE_WINDOW = 1.minutes
 
-class TinkoffDataSource(token: String) {
+internal class TinkoffDataSource(
+    token: String,
+    private val coroutineScope: CoroutineScope,
+    private val consumer: CandleConsumer
+) {
     private val marketDataService: MarketDataService
     private val instrumentsService: InstrumentsService
     private val marketDataStreamManager: MarketDataStreamManager
@@ -65,9 +72,6 @@ class TinkoffDataSource(token: String) {
         limit = TINKOFF_UNARY_REQUEST_LIMIT,
         rateWindow = TINKOFF_RATE_WINDOW
     )
-
-    private val rootJob = SupervisorJob()
-    private val coroutineScope = CoroutineScope(rootJob)
 
     private var sharesMap = mapOf<String, Share>()
     private var futuresMap = mapOf<String, Future>()
@@ -132,11 +136,23 @@ class TinkoffDataSource(token: String) {
         }
     }
 
+    private val zoneOffset = ZoneOffset.of("+00:00")
     private val lastPriceListener = OnNextListener<LastPriceWrapper> {
         if (sharesMap.contains(it.instrumentUid)) {
             _sharesLastPrices[it.instrumentUid] = it.toLastPrice()
         } else if (futuresMap.contains(it.instrumentUid)) {
             _futuresLastPrices[it.instrumentUid] = it.toLastPrice()
+        }
+
+        coroutineScope.launch {
+            consumer.consume(
+                ConsumerEvent(
+                    ticker = sharesMap[it.instrumentUid]?.ticker
+                        ?: futuresMap[it.instrumentUid]?.ticker ?: return@launch,
+                    price = it.price,
+                    time = it.time.toInstant(zoneOffset).toKotlinInstant()
+                )
+            )
         }
     }
 
@@ -311,10 +327,5 @@ class TinkoffDataSource(token: String) {
             .await()
             .lastPricesList
             .map { it.toLastPrice() }
-    }
-
-    fun shutdown() {
-        marketDataStreamManager.shutdown()
-        rootJob.cancel()
     }
 }
