@@ -10,18 +10,17 @@ import kotlin.time.ExperimentalTime
 internal class CandleEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<CandleEntity>(CandleTable)
 
-    var time by CandleTable.time
-    var instrumentUid by CandleTable.instrumentUid
+    var ticker by CandleTable.ticker
+    var timestamp by CandleTable.timestamp
     var interval by CandleTable.interval
     var open by CandleTable.open
     var high by CandleTable.high
     var low by CandleTable.low
     var close by CandleTable.close
     var volume by CandleTable.volume
-    var lastTrade by CandleTable.lastTrade
     var isComplete by CandleTable.isComplete
     override fun toString() =
-        "CandleEntity(id=$id, time=$time, instrumentUid=$instrumentUid, " +
+        "CandleEntity(id=$id, time=$timestamp, ticker=$ticker, " +
                 "interval=$interval, open=$open, high=$high, low=$low, close=$close, " +
-                "volume=$volume, lastTrade=$lastTrade, isComplete=$isComplete)"
+                "volume=$volume, isComplete=$isComplete)"
 }
