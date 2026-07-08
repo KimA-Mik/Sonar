@@ -23,13 +23,23 @@ class NotificationService : FirebaseMessagingService() {
     private val scope = CoroutineScope(SupervisorJob() + exceptionHandler)
     private val applicationConfig: LocalConfigDataSource by inject()
     private val notificationsManager: SonarNotificationsManager by inject()
+    private val notificationProviderUpdater: NotificationProviderUpdater by inject()
+
+    @Deprecated("Deprecated")
     override fun onNewToken(token: String) {
         scope.launch {
+            notificationProviderUpdater.updateFirebaseToken(token)
             applicationConfig.upgradeNotificationProvider(LocalNotificationProvider.FIREBASE, token)
 //            val config = applicationConfig.localConfig().first()
 //            if (config.apiAccessToken != null) {
 //                //TODO: Update token on server
 //            }
+        }
+    }
+
+    override fun onRegistered(installationId: String) {
+        scope.launch {
+            notificationProviderUpdater.updateFirebaseToken(installationId)
         }
     }
 

@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":client:common:ui"))
     implementation(project(":client:data:application-config"))
     implementation(project(":client:data:finam"))
+    implementation(project(":client:data:home-api"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
