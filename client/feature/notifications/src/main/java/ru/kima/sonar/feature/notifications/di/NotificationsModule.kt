@@ -10,6 +10,7 @@ import ru.kima.sonar.feature.notifications.notifications.BoundPriceNotification
 import ru.kima.sonar.feature.notifications.notifications.EventNotificationFormat
 import ru.kima.sonar.feature.notifications.notifications.RulesNotification
 import ru.kima.sonar.feature.notifications.notifications.UnboundPriceNotification
+import ru.kima.sonar.feature.notifications.service.NotificationProviderUpdater
 
 val notificationsModule = module {
     single<SonarNotificationsManager>()
@@ -23,4 +24,5 @@ val notificationsModule = module {
     factoryOf(::RulesNotification) {
         qualifier = named(RulesNotification::class.java.simpleName)
     } bind EventNotificationFormat::class
+    single<NotificationProviderUpdater>()
 }

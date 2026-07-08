@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import ru.kima.sonar.common.serverapi.clientrequests.AuthenticateClientRequest
+import ru.kima.sonar.common.serverapi.clientrequests.UpdateNotificationProvider
 import ru.kima.sonar.common.serverapi.dto.auth.response.AuthorizationResult
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.AddPortfolioEntryRequest
 import ru.kima.sonar.common.serverapi.dto.portfolio.request.CreatePortfolioRequest
@@ -301,6 +302,21 @@ internal class KtorHomeApiDataSource(
                 UpdateRuleRequest(
                     mode = mode,
                     rule = rule
+                )
+            )
+        }
+    }
+
+    override suspend fun updateNotificationProvider(
+        localNotificationProvider: LocalNotificationProvider,
+        notificationProviderClientId: String
+    ): SonarResult<Unit, HomeApiError> = safeApiCall {
+        client.put(AuthRoute.UpdateNotificationProviderToken()) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                UpdateNotificationProvider(
+                    notificationProvider = localNotificationProvider.toNotificationProvider(),
+                    token = notificationProviderClientId
                 )
             )
         }

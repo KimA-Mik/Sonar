@@ -28,6 +28,11 @@ interface HomeApiDataSource {
         notificationProviderClientId: String?
     ): SonarResult<String, HomeApiError>
 
+    suspend fun updateNotificationProvider(
+        localNotificationProvider: LocalNotificationProvider,
+        notificationProviderClientId: String
+    ): SonarResult<Unit, HomeApiError>
+
     fun tradableShares(period: Duration = 5.seconds): Flow<SonarResult<List<ListItemShare>, HomeApiError>>
     fun tradableFutures(period: Duration = 5.seconds): Flow<SonarResult<List<ListItemFuture>, HomeApiError>>
 
