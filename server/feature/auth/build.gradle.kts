@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.ktor.server.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.spring.security.crypto)
+    implementation(libs.spring.security.core)
     // Source: https://mvnrepository.com/artifact/commons-logging/commons-logging
     implementation(libs.commons.logging)
     // Source: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on

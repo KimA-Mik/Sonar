@@ -41,7 +41,7 @@ lifecycleViewmodelCompose = "2.11.0"
 firebaseBom = "34.15.0"
 googleServices = "4.5.0"
 accompanistPermissions = "0.37.3"
-ta4j = "0.22.8"
+ta4j = "0.22.6" #0.22.7 requires java 25+
 shadow = "9.5.1"
 ksp = "2.3.4"
 
@@ -122,6 +122,7 @@ ta4j-core = { module = "org.ta4j:ta4j-core", version.ref = "ta4j" }
 #Argon2 password hashing
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcprovJdk18on" }
 commons-logging = { module = "commons-logging:commons-logging", version.ref = "commonsLogging" }
+spring-security-core = { module = "org.springframework.security:spring-security-core", version.ref = "springSecurityCrypto" }
 spring-security-crypto = { module = "org.springframework.security:spring-security-crypto", version.ref = "springSecurityCrypto" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 

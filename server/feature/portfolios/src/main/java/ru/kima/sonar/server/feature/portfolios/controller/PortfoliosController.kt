@@ -18,7 +18,7 @@ import ru.kima.sonar.server.common.util.ktor.receiveOrBadRequest
 import ru.kima.sonar.server.data.market.marketdata.MarketDataRepository
 import ru.kima.sonar.server.data.user.datasource.UserDataSource
 import ru.kima.sonar.server.data.user.datasource.portfolio.PortfolioDataSource
-import ru.kima.sonar.server.data.user.model.User
+import ru.kima.sonar.server.data.user.model.UserAndSession
 import ru.kima.sonar.server.data.user.model.UserDataError
 import ru.kima.sonar.server.data.user.model.portfolio.Portfolio
 import ru.kima.sonar.server.data.user.model.portfolio.PortfolioRule
@@ -32,7 +32,7 @@ internal class PortfoliosController(
     private val marketDataRepository: MarketDataRepository
 ) {
     suspend fun portfoliosRoute(call: RoutingCall) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         return when (val res = portfoliosDataSource.getPortfoliosByUserId(user.id)) {
             is SonarResult.Success -> call.respond(res.data.map { it.toDto() })
             is SonarResult.Error -> call.respond(HttpStatusCode.InternalServerError)
@@ -40,7 +40,7 @@ internal class PortfoliosController(
     }
 
     suspend fun createPortfolio(call: RoutingCall) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val request = try {
             call.receive<CreatePortfolioRequest>()
         } catch (_: Exception) {
@@ -62,7 +62,7 @@ internal class PortfoliosController(
     }
 
     suspend fun getPortfolio(call: RoutingCall, portfolioId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         when (val res = portfoliosDataSource.getPortfolioWithEntriesById(portfolioId)) {
             is SonarResult.Success -> {
                 if (res.data.portfolio.userId != user.id) call.respond(HttpStatusCode.Forbidden)
@@ -74,7 +74,7 @@ internal class PortfoliosController(
     }
 
     suspend fun updatePortfolio(call: RoutingCall, portfolioId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val oldPortfolio = when (val res = portfoliosDataSource.getPortfolioById(portfolioId)) {
             is SonarResult.Success -> res.data
             is SonarResult.Error -> {
@@ -106,7 +106,7 @@ internal class PortfoliosController(
     }
 
     suspend fun deletePortfolio(call: RoutingCall, portfolioId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         call.getPortfolioReturnIfNotOwn(user.id, portfolioId) { return }
 
         when (val res = portfoliosDataSource.deletePortfolioById(portfolioId)) {
@@ -116,13 +116,13 @@ internal class PortfoliosController(
     }
 
     suspend fun getPortfolioRules(call: RoutingCall, portfolioId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val portfolioRules = call.getPortfolioRuleOrReturnIfNotOwn(user.id, portfolioId) { return }
         call.respond(portfolioRules.toDto())
     }
 
     suspend fun updatePortfolioRules(call: RoutingCall, portfolioId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val portfolioRules = call.getPortfolioRuleOrReturnIfNotOwn(user.id, portfolioId) { return }
         val request = call.receiveOrBadRequest<UpdateRuleRequest> { return }
 
@@ -142,7 +142,7 @@ internal class PortfoliosController(
     }
 
     suspend fun getPortfolioEntry(call: RoutingCall, entryId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val entry = when (val res = portfoliosDataSource.getEntryById(entryId)) {
             is SonarResult.Success -> res.data
             is SonarResult.Error -> {
@@ -155,7 +155,7 @@ internal class PortfoliosController(
     }
 
     suspend fun addEntry(call: RoutingCall, portfolioId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         call.getPortfolioReturnIfNotOwn(user.id, portfolioId) { return }
 
         val request = try {
@@ -186,7 +186,7 @@ internal class PortfoliosController(
     }
 
     suspend fun updateEntry(call: RoutingCall, entryId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val oldEntry = when (val res = portfoliosDataSource.getEntryById(entryId)) {
             is SonarResult.Success -> res.data
             is SonarResult.Error -> {
@@ -232,7 +232,7 @@ internal class PortfoliosController(
     }
 
     suspend fun deleteEntry(call: RoutingCall, entryId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         call.validatePortfolioEntryOwnership(user.id, entryId) { return }
 
         when (val res = portfoliosDataSource.deletePortfolioEntry(entryId)) {
@@ -245,7 +245,7 @@ internal class PortfoliosController(
     }
 
     suspend fun addStopLoss(call: RoutingCall, entryId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         call.validatePortfolioEntryOwnership(user.id, entryId) { return }
         when (val res = portfoliosDataSource.createStopLoss(entryId)) {
             is SonarResult.Success -> call.respond(ResourceCreatedResponse(res.data))
@@ -254,7 +254,7 @@ internal class PortfoliosController(
     }
 
     suspend fun addTakeProfit(call: RoutingCall, entryId: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         call.validatePortfolioEntryOwnership(user.id, entryId) { return }
         when (val res = portfoliosDataSource.createTakeProfit(entryId)) {
             is SonarResult.Success -> call.respond(ResourceCreatedResponse(res.data))
@@ -263,7 +263,7 @@ internal class PortfoliosController(
     }
 
     suspend fun deleteStopLoss(call: RoutingCall, id: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val stopLoss = when (val res = portfoliosDataSource.getStopLossById(id)) {
             is SonarResult.Success -> res.data
             is SonarResult.Error -> {
@@ -280,7 +280,7 @@ internal class PortfoliosController(
     }
 
     suspend fun deleteTakeProfit(call: RoutingCall, id: Long) {
-        val user = call.getUserOrISE { return }
+        val user = call.getUserOrISE { return }.user
         val takeProfit = when (val res = portfoliosDataSource.getTakeProfitById(id)) {
             is SonarResult.Success -> res.data
             is SonarResult.Error -> {
@@ -312,8 +312,8 @@ internal class PortfoliosController(
         }
     }
 
-    private suspend inline fun RoutingCall.getUserOrISE(actionReturn: () -> Nothing): User {
-        val user = principal<User>()
+    private suspend inline fun RoutingCall.getUserOrISE(actionReturn: () -> Nothing): UserAndSession {
+        val user = principal<UserAndSession>()
         return if (user != null) {
             user
         } else {

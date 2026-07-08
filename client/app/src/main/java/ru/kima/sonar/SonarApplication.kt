@@ -1,6 +1,11 @@
 package ru.kima.sonar
 
 import android.app.Application
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,6 +20,7 @@ import org.koin.core.context.startKoin
 import ru.kima.sonar.common.ui.event.ResultEventBus
 import ru.kima.sonar.data.applicationconfig.local.datasource.LocalConfigDataSource
 import ru.kima.sonar.di.applicationModule
+import ru.kima.sonar.feature.notifications.service.NotificationProviderUpdater
 
 class SonarApplication : Application() {
     private lateinit var job: Job
@@ -44,11 +50,28 @@ class SonarApplication : Application() {
                     initialized = true
                 }
         }
+
+        val notificationProviderUpdater by inject<NotificationProviderUpdater>()
+        applicationScope.launch(Dispatchers.IO) {
+            notificationProviderUpdater.retainedCheck()
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            initFirebase()
+        }
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
         resultEventBus.channelMap.clear()
+    }
+
+    private fun initFirebase() {
+        val availability = GoogleApiAvailability.getInstance()
+        val res = availability.isGooglePlayServicesAvailable(this)
+        if (res != ConnectionResult.SUCCESS) return
+        Firebase.messaging.isAutoInitEnabled = true
+        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(true)
     }
 
     companion object {

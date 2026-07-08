@@ -10,6 +10,9 @@ class AuthRoute {
     @Resource("/slap_user")
     class Register(val parent: AuthRoute = AuthRoute())
 
+    @Resource("/update_notification_provider_token")
+    class UpdateNotificationProviderToken(val parent: AuthRoute = AuthRoute())
+
     companion object {
         const val ROOT = "auth"
     }

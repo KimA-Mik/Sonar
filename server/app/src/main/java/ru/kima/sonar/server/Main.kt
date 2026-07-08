@@ -65,7 +65,7 @@ class Program : CliktCommand() {
             install(Authentication) {
                 bearer(MAIN_BEARER_NAME) {
                     authenticate { tokenCredential ->
-                        authManager.getUserForToken(tokenCredential.token)?.user
+                        authManager.getUserForToken(tokenCredential.token)
                     }
                 }
             }
