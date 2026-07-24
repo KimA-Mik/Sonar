@@ -14,6 +14,7 @@ import ru.kima.sonar.common.serverapi.model.schema.InstrumentExchangeType
 import ru.kima.sonar.common.serverapi.model.schema.InstrumentStatus
 import ru.kima.sonar.common.serverapi.model.schema.LastPriceType
 import ru.kima.sonar.common.serverapi.model.security.Future
+import ru.kima.sonar.common.serverapi.model.security.Security
 import ru.kima.sonar.common.serverapi.model.security.Share
 import ru.kima.sonar.common.util.sonarRunCaching
 import ru.kima.sonar.server.data.market.marketdata.local.consumer.CandleConsumer
@@ -327,5 +328,21 @@ internal class TinkoffDataSource(
             .await()
             .lastPricesList
             .map { it.toLastPrice() }
+    }
+
+    fun findSecurity(ticker: String): Security? {
+        for ((_, share) in sharesMap) {
+            if (share.ticker == ticker) {
+                return share
+            }
+        }
+
+        for ((_, future) in futuresMap) {
+            if (future.ticker == ticker) {
+                return future
+            }
+        }
+
+        return null
     }
 }
