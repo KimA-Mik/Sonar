@@ -5,8 +5,8 @@ import org.ta4j.core.indicators.adx.ADXIndicator
 import org.ta4j.core.indicators.averages.SMAIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
 import org.ta4j.core.indicators.volume.MoneyFlowIndexIndicator
+import ru.kima.sonar.server.data.market.marketdata.local.indicators.lastDouble
 import ru.kima.sonar.server.feature.portfolios.techanalysis.BollingerBands
-import ru.kima.sonar.server.feature.portfolios.util.lastDouble
 
 class CacheEntry(
     private val min15RsiIndicator: RSIIndicator,
