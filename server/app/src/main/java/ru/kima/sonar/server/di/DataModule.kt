@@ -6,9 +6,8 @@ import ru.kima.sonar.server.data.user.di.userModule
 
 fun dataModule(
     usersDbName: String,
-    marketDataDbName: String,
     tToken: String
 ) = module {
     includes(userModule(usersDbName))
-    includes(marketDataModule(marketDataDbName, tToken))
+    includes(marketDataModule(tToken))
 }

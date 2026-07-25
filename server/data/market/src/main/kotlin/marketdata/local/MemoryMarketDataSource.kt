@@ -18,6 +18,7 @@ import ru.kima.sonar.common.util.valueOr
 import ru.kima.sonar.server.data.market.marketdata.local.consumer.calculateCandleTime
 import ru.kima.sonar.server.data.market.marketdata.local.consumer.newDoubleBar
 import ru.kima.sonar.server.data.market.marketdata.local.consumer.validIntervals
+import ru.kima.sonar.server.data.market.marketdata.local.indicators.Indicators
 import ru.kima.sonar.server.data.market.marketdata.remote.TinkoffDataSource
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -29,56 +30,33 @@ internal class MemoryMarketDataSource(
     private val tinkoffDataSource: TinkoffDataSource
 ) : LocalDataSource {
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val graphs: MutableMap<Pair<String, CandleInterval>, GraphEntry> =
-        mutableMapOf<Pair<String, CandleInterval>, GraphEntry>().withDefault { GraphEntry() }
-    private val mutex = Mutex()
+    private val graphs: MutableMap<Key, GraphEntry> =
+        mutableMapOf<Key, GraphEntry>().withDefault { GraphEntry() }
+    private val indicators = mutableMapOf<Key, Indicators>()
     override suspend fun getCandles(
         ticker: String,
         interval: CandleInterval
-    ): BarSeries? = mutex.withLock {
-        val key = ticker to interval
-        val entry = graphs[key] ?: return@withLock null
-        if (entry.initialized) return@withLock entry.barSeries
-        val security = tinkoffDataSource.findSecurity(ticker) ?: return@withLock null
-        //TODO: Report error if security is null
-        val windowSize = interval.duration * interval.limit
-        val fetchEnd = if (!entry.barSeries.isEmpty) {
-            entry.barSeries.lastBar.endTime.toKotlinInstant()
-        } else {
-            Clock.System.now()
+    ): BarSeries? {
+        val key = ticker with interval
+        val entry = graphs[key] ?: return null
+        if (!entry.initialized) {
+            if (!entry.initialize(key)) return null
         }
-        var cursorStart = security.firstTradeDate
-        var cursorEnd = min(cursorStart + windowSize, fetchEnd)
-        val bars = mutableListOf<Bar>()
 
-        while (cursorStart < fetchEnd) {
-            val candles = tinkoffDataSource.getCandles(
-                security.uid,
-                cursorStart,
-                cursorEnd,
-                interval,
-                CandleSource.INCLUDE_WEEKEND
-            ).valueOr {
-                logger.error("Unable to fetch candles $it")
-                return@withLock null
-            }
+        return entry.barSeries
+    }
 
-            bars += candles.map { it.toBar(interval.duration) }
-            cursorStart = cursorEnd
-            cursorEnd = min(cursorEnd + windowSize, fetchEnd)
+    override suspend fun getIndicators(
+        ticker: String,
+        interval: CandleInterval
+    ): Indicators? {
+        val key = ticker with interval
+        val entry = graphs[key] ?: return null
+        if (!entry.initialized) {
+            if (!entry.initialize(key)) return null
         }
-        val series = BaseBarSeriesBuilder()
-            .withNumFactory(DoubleNumFactory.getInstance())
-            .build()
-        for (bar in bars) {
-            series.addBar(bar)
-        }
-        for (i in 1 until entry.barSeries.barCount) {
-            series.addBar(entry.barSeries.getBar(i))
-        }
-        entry.barSeries = series
-        entry.initialized = true
-        return@withLock entry.barSeries
+
+        return indicators[key]
     }
 
     override suspend fun onTick(
@@ -88,7 +66,7 @@ internal class MemoryMarketDataSource(
     ) {
         for (interval in validIntervals) {
             val candleTime = calculateCandleTime(time, interval)
-            val key = ticker to interval
+            val key = ticker with interval
             val entry = graphs.getOrPut(key) { GraphEntry() }
             if (entry.barSeries.isEmpty ||
                 entry.barSeries.lastBar.endTime.toKotlinInstant() < candleTime
@@ -115,10 +93,65 @@ internal class MemoryMarketDataSource(
             .volume(volume)
             .build()
 
-    private data class GraphEntry(
+
+    private infix fun String.with(that: CandleInterval): Key = Key(this, that)
+    private data class Key(val ticker: String, val interval: CandleInterval)
+    private inner class GraphEntry(
         var barSeries: BarSeries = ConcurrentBarSeriesBuilder()
             .withNumFactory(DoubleNumFactory.getInstance())
             .build(),
+    ) {
+        private val mutex = Mutex()
         var initialized: Boolean = false
-    )
+            private set
+
+        suspend fun initialize(
+            key: Key
+        ): Boolean = mutex.withLock {
+            if (initialized) return true
+            val security = tinkoffDataSource.findSecurity(key.ticker) ?: return@withLock false
+            //TODO: Report error if security is null
+            val windowSize = key.interval.duration * key.interval.limit
+            val fetchEnd = if (!barSeries.isEmpty) {
+                barSeries.lastBar.endTime.toKotlinInstant()
+            } else {
+                Clock.System.now()
+            }
+            var cursorStart = security.firstTradeDate
+            var cursorEnd = min(cursorStart + windowSize, fetchEnd)
+            val bars = mutableListOf<Bar>()
+
+            while (cursorStart < fetchEnd) {
+                val candles = tinkoffDataSource.getCandles(
+                    security.uid,
+                    cursorStart,
+                    cursorEnd,
+                    key.interval,
+                    CandleSource.INCLUDE_WEEKEND
+                ).valueOr {
+                    logger.error("Unable to fetch candles $it")
+                    return@withLock false
+                }
+
+                bars += candles.map { it.toBar(key.interval.duration) }
+                cursorStart = cursorEnd
+                cursorEnd = min(cursorEnd + windowSize, fetchEnd)
+            }
+
+            val series = BaseBarSeriesBuilder()
+                .withNumFactory(DoubleNumFactory.getInstance())
+                .build()
+
+            for (bar in bars) series.addBar(bar)
+            for (i in 1 until barSeries.barCount) {
+                series.addBar(barSeries.getBar(i))
+            }
+
+            if (series.isEmpty) return@withLock false
+            indicators[key] = Indicators(series)
+            barSeries = series
+            initialized = true
+            return@withLock true
+        }
+    }
 }

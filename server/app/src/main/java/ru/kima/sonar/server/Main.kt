@@ -36,7 +36,8 @@ import ru.kima.sonar.server.util.setLogbackLevel
 
 class Program : CliktCommand() {
     val port by option("-p", "--port").int().default(1337)
-    val marketDbName by option("--market-db-name").default("marketdata.db")
+
+    //    val marketDbName by option("--market-db-name").default("marketdata.db")
     val usersDbName by option("--users-db-name").default("users.db")
     val tToken by option("--t-invest-token").required().help("T-Invest API token")
     val firebaseCredentialsPath by option("--firebase-credentials").required()
@@ -53,7 +54,6 @@ class Program : CliktCommand() {
                     commonModule(),
                     dataModule(
                         usersDbName = usersDbName,
-                        marketDataDbName = marketDbName,
                         tToken = tToken
                     ),
                     featureModule(),
