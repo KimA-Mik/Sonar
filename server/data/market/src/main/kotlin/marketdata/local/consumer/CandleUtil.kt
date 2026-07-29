@@ -37,7 +37,8 @@ fun newDoubleBar(
     .highPrice(DoubleNum.valueOf(price))
     .lowPrice(DoubleNum.valueOf(price))
     .closePrice(DoubleNum.valueOf(price))
-    .volume(0.0)
+    .volume(1.0)
+    .amount(price)
     .build()
 
 fun newDecimalBar(
@@ -51,5 +52,6 @@ fun newDecimalBar(
     .highPrice(DoubleNum.valueOf(price))
     .lowPrice(DoubleNum.valueOf(price))
     .closePrice(DoubleNum.valueOf(price))
-    .volume(0.0)
+    .volume(1.0)
+    .amount(price)
     .build()

@@ -91,6 +91,7 @@ internal class MemoryMarketDataSource(
             .lowPrice(low)
             .closePrice(close)
             .volume(volume)
+            .amount(close * volume)
             .build()
 
 
