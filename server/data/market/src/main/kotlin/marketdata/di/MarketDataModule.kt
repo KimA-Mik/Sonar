@@ -14,15 +14,15 @@ import ru.kima.sonar.server.data.market.marketdata.remote.TinkoffDataSource
 fun marketDataModule(
     tToken: String
 ) = module {
+    single(createdAtStart = true) {
+        TinkoffDataSource(tToken, get(CommonQualifiers.DEFAULT_SCOPE), get())
+    }
+    single<MarketDataRepositoryImpl>() bind MarketDataRepository::class
     single<MemoryMarketDataSource>() bind LocalDataSource::class
     single {
         CandleConsumer(
-            dataSource = get(),
+//            dataSource = get(),
             coroutineScope = get(CommonQualifiers.DEFAULT_SCOPE),
         )
-    }
-    single<MarketDataRepositoryImpl>() bind MarketDataRepository::class
-    single(createdAtStart = true) {
-        TinkoffDataSource(tToken, get(CommonQualifiers.DEFAULT_SCOPE), get())
     }
 }
